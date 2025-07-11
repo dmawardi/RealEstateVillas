@@ -18,6 +18,23 @@ class Property extends Model
         'created_at', // Timestamps are managed by Eloquent
         'updated_at',
     ];
+
+    /**
+     * The features that belong to the property.
+     */
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class)
+            ->withPivot('quantity', 'notes')
+            ->withTimestamps();
+    }
+    /**
+     * The user that manages the property.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     /**
      * The attributes that should be cast to native types.
      *

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Feature;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -372,5 +373,28 @@ class PropertyFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'user_id' => $user->id,
         ]);
+    }
+
+    /**
+     * Attach random features to the property with quantities and notes.
+     *
+     * @param  int  $count
+     * @return static
+     */
+    public function withFeatures(?int $count = null): static
+    {
+        return $this->afterCreating(function ($property) use ($count) {
+            // Get random features from existing features
+            $featureCount = $count ?? rand(1, 5);
+            $features = Feature::inRandomOrder()->limit($featureCount)->get();
+            
+            // Attach each feature with random quantity and optional notes
+            $features->each(function ($feature) use ($property) {
+                $property->features()->attach($feature->id, [
+                    'quantity' => rand(1, 3),
+                    'notes' => fake()->optional(0.3)->sentence(),
+                ]);
+            });
+        });
     }
 }
