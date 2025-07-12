@@ -397,4 +397,17 @@ class PropertyFactory extends Factory
             });
         });
     }
+    /**
+     * Attach a random property price.
+     *
+     * @return static
+     */
+    public function withPricing(): static
+    {
+        return $this->afterCreating(function ($property) {
+            $property->pricing()->save(\App\Models\PropertyPrice::factory()->make([
+                'property_id' => $property->id,
+            ]));
+        });
+    }
 }

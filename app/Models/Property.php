@@ -35,6 +35,15 @@ class Property extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * The pricing information for the property.
+     */
+    public function pricing()
+    {
+        return $this->hasMany(PropertyPrice::class, 'property_id');
+    }
+    
     /**
      * The attributes that should be cast to native types.
      *
