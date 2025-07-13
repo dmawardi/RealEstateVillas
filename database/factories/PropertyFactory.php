@@ -410,4 +410,20 @@ class PropertyFactory extends Factory
             ]));
         });
     }
+
+    /**
+     * Attach image property attachments.
+     *
+     * @param  int  $count
+     * @return static
+     */
+    public function withAttachments(?int $count = null): static
+    {
+        return $this->afterCreating(function ($property) use ($count) {
+            $attachmentCount = $count ?? rand(1, 5);
+            \App\Models\PropertyAttachment::factory($attachmentCount)->create([
+                'property_id' => $property->id,
+            ]);
+        });
+    }
 }

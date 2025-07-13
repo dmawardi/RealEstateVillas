@@ -43,7 +43,15 @@ class Property extends Model
     {
         return $this->hasMany(PropertyPrice::class, 'property_id');
     }
-    
+
+    /**
+     * The attachments for the property.
+     */
+    public function attachments()
+    {
+        return $this->hasMany(PropertyAttachment::class, 'property_id');
+    }
+
     /**
      * The attributes that should be cast to native types.
      *
