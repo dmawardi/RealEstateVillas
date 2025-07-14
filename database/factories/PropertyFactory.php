@@ -96,7 +96,6 @@ class PropertyFactory extends Factory
             'inspection_times' => $this->faker->optional(0.8)->sentence(),
             
             // Media
-            'images' => $this->generateImagePaths(),
             'floor_plan' => $this->faker->optional(0.6)->filePath(),
             'virtual_tour_url' => $this->faker->optional(0.3)->url(),
             'video_url' => $this->faker->optional(0.2)->url(),

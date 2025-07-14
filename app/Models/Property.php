@@ -68,7 +68,6 @@ class Property extends Model
             'land_size' => 'decimal:2',
             'floor_area' => 'decimal:2',
             'amenities' => 'json', // This is correct
-            'images' => 'json', // Add this cast
             'listed_at' => 'datetime',
             'available_date' => 'date', // Add this cast
             'year_built' => 'integer',

@@ -67,13 +67,6 @@ return new class extends Migration
             $table->text('inspection_times')->nullable();
             
             // Media
-            $table->json('images')->nullable(); // array of image paths
-            // Example structure for images JSON:
-            // [
-            //   "image1.jpg",
-            //   "image2.jpg",
-            //   "image3.jpg"
-            // ]
             $table->string('floor_plan')->nullable(); // path to floor plan
             $table->string('virtual_tour_url')->nullable();
             $table->string('video_url')->nullable();
