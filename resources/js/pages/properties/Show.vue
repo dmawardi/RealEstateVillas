@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import PropertyHeader from '@/components/properties/PropertyHeader.vue';
+import PropertyImages from '@/components/properties/PropertyImages.vue';
+import PropertyKeyStats from '@/components/properties/PropertyKeyStats.vue';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import type { BreadcrumbItemType, Property } from '@/types';
 import { Head } from '@inertiajs/vue3';
@@ -39,25 +41,7 @@ const formatPropertyType = (type: string): string => {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Main Content -->
                 <div class="lg:col-span-2 space-y-8">
-                    <!-- Property Images -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                        <div class="aspect-video bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                            <div v-if="property.attachments && property.attachments.length > 0" class="w-full h-full">
-                                <img 
-                                    :src="property.attachments[0].path" 
-                                    :alt="property.title"
-                                    class="w-full h-full object-cover"
-                                />
-                            </div>
-                            <div v-else class="text-gray-500 dark:text-gray-400">
-                                <svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                                </svg>
-                                <p>No images available</p>
-                            </div>
-                        </div>
-                    </div>
-    
+                    <PropertyImages :property="property" />
                     <!-- Property Details -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                         <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
@@ -65,25 +49,8 @@ const formatPropertyType = (type: string): string => {
                         </h2>
                         
                         <!-- Key Stats -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                            <div v-if="property.bedrooms" class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ property.bedrooms }}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">Bedrooms</div>
-                            </div>
-                            <div v-if="property.bathrooms" class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ property.bathrooms }}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">Bathrooms</div>
-                            </div>
-                            <div v-if="property.car_spaces" class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ property.car_spaces }}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">Car Spaces</div>
-                            </div>
-                            <div v-if="property.land_size" class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ property.land_size }}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">Land Size (m²)</div>
-                            </div>
-                        </div>
-    
+                        <PropertyKeyStats :property="property" />
+
                         <!-- Description -->
                         <div>
                             <h3 class="text-lg font-medium mb-3 text-gray-900 dark:text-gray-100">Description</h3>
