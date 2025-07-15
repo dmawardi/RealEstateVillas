@@ -275,10 +275,11 @@ const truncateDescription = (text: string, length: number = 150): string => {
                             ? 'bg-blue-600 text-white' 
                             : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700',
                         !link.url ? 'opacity-50 cursor-not-allowed' : ''
-                    ]"
+                    ]" 
                     :preserve-scroll="true"
-                    v-html="link.label"
-                />
+                    >
+                    {{ link.label }}
+                </Link>
             </div>
         </div>
     </BaseLayout>
