@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
 import PropertyHeader from '@/components/properties/PropertyHeader.vue';
 import PropertyImages from '@/components/properties/PropertyImages.vue';
+import PropertyInfoBar from '@/components/properties/PropertyInfoBar.vue';
 import PropertyKeyStats from '@/components/properties/PropertyKeyStats.vue';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import type { BreadcrumbItemType, Property } from '@/types';
@@ -24,10 +26,6 @@ const breadcrumbs: BreadcrumbItemType[] = [
     },
 ];
 
-// Helper function to format property type
-const formatPropertyType = (type: string): string => {
-    return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-};
 </script>
 
 <template>
@@ -61,30 +59,7 @@ const formatPropertyType = (type: string): string => {
                     </div>
     
                     <!-- Features -->
-                    <div v-if="property.features && property.features.length > 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-                        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                            Features
-                        </h2>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div 
-                                v-for="feature in property.features" 
-                                :key="feature.id"
-                                class="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                            >
-                                <div class="flex-1">
-                                    <div class="font-medium text-gray-900 dark:text-gray-100">
-                                        {{ feature.name }}
-                                        <span v-if="feature.pivot.quantity > 1" class="text-sm text-gray-500">
-                                            ({{ feature.pivot.quantity }})
-                                        </span>
-                                    </div>
-                                    <div v-if="feature.pivot.notes" class="text-sm text-gray-600 dark:text-gray-400">
-                                        {{ feature.pivot.notes }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <PropertyFeatures :property="property" />
                 </div>
     
                 <!-- Sidebar -->
@@ -118,37 +93,7 @@ const formatPropertyType = (type: string): string => {
                     </div>
     
                     <!-- Property Info -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                            Property Information
-                        </h3>
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600 dark:text-gray-400">Type:</span>
-                                <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                                    {{ formatPropertyType(property.property_type) }}
-                                </span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600 dark:text-gray-400">Status:</span>
-                                <span class="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                                    {{ property.status }}
-                                </span>
-                            </div>
-                            <div v-if="property.year_built" class="flex justify-between">
-                                <span class="text-gray-600 dark:text-gray-400">Year Built:</span>
-                                <span class="font-medium text-gray-900 dark:text-gray-100">{{ property.year_built }}</span>
-                            </div>
-                            <div v-if="property.floor_area" class="flex justify-between">
-                                <span class="text-gray-600 dark:text-gray-400">Floor Area:</span>
-                                <span class="font-medium text-gray-900 dark:text-gray-100">{{ property.floor_area }} m²</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600 dark:text-gray-400">Views:</span>
-                                <span class="font-medium text-gray-900 dark:text-gray-100">{{ property.view_count }}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <PropertyInfoBar :property="property" />
                 </div>
             </div>
         </div>
