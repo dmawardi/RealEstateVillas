@@ -43,7 +43,7 @@ class PropertyController extends Controller
      */
     public function show(Property $property)
     {
-        $property->load(['user', 'features']);
+        $property->load(['user', 'features', 'attachments']);
         // Logic to retrieve and display a specific property
         return Inertia::render('properties/Show', compact('property'));
     }
