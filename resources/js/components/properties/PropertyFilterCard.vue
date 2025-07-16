@@ -22,7 +22,7 @@ const currentFilters = reactive({
 const applyFilters = () => {
     // Remove empty filters
     const cleanFilters = Object.fromEntries(
-        Object.entries(currentFilters).filter(([_, value]) => value !== '')
+        Object.entries(currentFilters).filter(([, value]) => value !== '')
     );
 
     router.get('/properties', cleanFilters, {
