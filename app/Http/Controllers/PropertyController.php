@@ -11,13 +11,39 @@ class PropertyController extends Controller
     /**
      * Display a listing of the properties.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $properties = Property::with(['user', 'features'])
-            ->latest('listed_at')
-            ->paginate(12);
+        $query = Property::with(['user', 'features']);
+            
+
+        // Apply filters
+        if ($request->filled('property_type')) {
+            $query->where('property_type', $request->property_type);
+        }
+
+        if ($request->filled('listing_type')) {
+            $query->where('listing_type', $request->listing_type);
+        }
+
+        if ($request->filled('bedrooms')) {
+            $query->where('bedrooms', '>=', $request->bedrooms);
+        }
+
+        if ($request->filled('village')) {
+            $query->where('village', 'like', '%' . $request->village . '%');
+        }
+
+        // Only show active properties
+        $query->where('status', 'active');
+
+        // Paginate the results
+        $properties = $query->latest('listed_at')->paginate(10)->withQueryString();
+
+        // Get current filters for the frontend
+        $filters = $request->only(['property_type', 'listing_type', 'bedrooms', 'village']);
+
         // Logic to retrieve and display properties
-        return Inertia::render('properties/Index', compact('properties'));
+        return Inertia::render('properties/Index', compact('properties', 'filters'));
     }
 
     /**

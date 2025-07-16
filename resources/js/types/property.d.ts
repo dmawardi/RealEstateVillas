@@ -80,6 +80,13 @@ export interface PaginatedProperties {
     }[];
 }
 
+export interface PropertyFilters {
+    propertyType?: string;
+    listingType?: string;
+    bedrooms?: string;
+    village?: string;
+}
+
 // Property-specific enums for better type safety
 export type PropertyType = 'house' | 'apartment' | 'townhouse' | 'villa' | 'land' | 'commercial' | 'guest_house' | 'other';
 export type ListingType = 'for_sale' | 'for_rent' | 'sold' | 'off_market';

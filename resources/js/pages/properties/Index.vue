@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import BaseLayout from '@/layouts/BaseLayout.vue';
-import type { BreadcrumbItemType, PaginatedProperties, Property } from '@/types';
+import type { BreadcrumbItemType, PaginatedProperties, Property, PropertyFilters } from '@/types';
+import PropertyFilterCard from '@/components/properties/PropertyFilterCard.vue';
 import { Head, Link } from '@inertiajs/vue3';
 
 interface Props {
     properties: PaginatedProperties;
+    filters?: PropertyFilters;
 }
 
-const { properties } = defineProps<Props>();
+const { properties, filters } = defineProps<Props>();
 
 // Generate breadcrumbs
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -83,61 +85,7 @@ const truncateDescription = (text: string, length: number = 150): string => {
             </div>
 
             <!-- Filters Section -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Property Type
-                        </label>
-                        <select class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            <option value="">All Types</option>
-                            <option value="house">House</option>
-                            <option value="apartment">Apartment</option>
-                            <option value="villa">Villa</option>
-                            <option value="land">Land</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Listing Type
-                        </label>
-                        <select class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            <option value="">All Listings</option>
-                            <option value="for_sale">For Sale</option>
-                            <option value="for_rent">For Rent</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Bedrooms
-                        </label>
-                        <select class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            <option value="">Any</option>
-                            <option value="1">1+</option>
-                            <option value="2">2+</option>
-                            <option value="3">3+</option>
-                            <option value="4">4+</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Location
-                        </label>
-                        <select class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            <option value="">All Areas</option>
-                            <option value="seminyak">Seminyak</option>
-                            <option value="canggu">Canggu</option>
-                            <option value="ubud">Ubud</option>
-                            <option value="sanur">Sanur</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="mt-4 flex justify-end">
-                    <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                        Apply Filters
-                    </button>
-                </div>
-            </div>
+            <PropertyFilterCard :filters="filters" />
 
             <!-- Properties Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
