@@ -53,6 +53,14 @@ class Property extends Model
     }
 
     /**
+     * The bookings associated with the property.
+     */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'property_id');
+    }
+
+    /**
      * The attributes that should be cast to native types.
      *
      * @return array<string, string>
