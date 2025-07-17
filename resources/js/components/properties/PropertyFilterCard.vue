@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropertyFilters } from '@/types';
 import { router } from '@inertiajs/vue3';
-import { reactive, watch } from 'vue';
+import { reactive } from 'vue';
 import BookingDateFilter from './_BookingDateFilter.vue';
 
 
