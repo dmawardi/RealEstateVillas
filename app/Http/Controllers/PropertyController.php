@@ -60,7 +60,7 @@ class PropertyController extends Controller
         $properties = $query->latest('listed_at')->paginate(10)->withQueryString();
 
         // Get current filters for the frontend
-        $filters = $request->only(['property_type', 'listing_type', 'bedrooms', 'village']);
+        $filters = $request->only(['property_type', 'listing_type', 'bedrooms', 'village', 'check_in_date', 'check_out_date']);
 
         // Logic to retrieve and display properties
         return Inertia::render('properties/Index', compact('properties', 'filters'));

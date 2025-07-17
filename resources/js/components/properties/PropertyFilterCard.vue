@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropertyFilters } from '@/types';
 import { router } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import BookingDateFilter from './_BookingDateFilter.vue';
 
 
@@ -13,13 +13,26 @@ const { filters } = defineProps<Props>();
 
 // Reactive filters state initialized with current filter values
 const currentFilters = reactive({
-    property_type: filters?.propertyType || '',
-    listing_type: filters?.listingType || '',
+    property_type: filters?.property_type || '',
+    listing_type: filters?.listing_type || '',
     bedrooms: filters?.bedrooms || '',
     village: filters?.village || '',
-    check_in_date: filters?.checkInDate || '',
-    check_out_date: filters?.checkOutDate || ''
+    check_in_date: filters?.check_in_date || '',
+    check_out_date: filters?.check_out_date || ''
 });
+
+// Watch for prop changes and update currentFilters
+watch(() => filters, (newFilters) => {
+    console.log('PropertyFilterCard: filters prop changed to:', newFilters);
+    if (newFilters) {
+        currentFilters.property_type = newFilters.property_type || '';
+        currentFilters.listing_type = newFilters.listing_type || '';
+        currentFilters.bedrooms = newFilters.bedrooms || '';
+        currentFilters.village = newFilters.village || '';
+        currentFilters.check_in_date = newFilters.check_in_date || '';
+        currentFilters.check_out_date = newFilters.check_out_date || '';
+    }
+}, { deep: true, immediate: true });
 
 // Apply filters function
 const applyFilters = () => {

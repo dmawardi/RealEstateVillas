@@ -81,12 +81,12 @@ export interface PaginatedProperties {
 }
 
 export interface PropertyFilters {
-    propertyType?: string;
-    listingType?: string;
+    property_type?: string;
+    listing_type?: string;
     bedrooms?: string;
     village?: string;
-    checkInDate: string;
-    checkOutDate: string;
+    check_in_date: string;
+    check_out_date: string;
 }
 
 // Property-specific enums for better type safety
