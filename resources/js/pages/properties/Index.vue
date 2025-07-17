@@ -19,6 +19,29 @@ const breadcrumbs: BreadcrumbItemType[] = [
         href: '/properties',
     },
 ];
+
+// Pagination Link Rendering Functions
+// Function to decode HTML entities
+const decodeHtmlEntities = (text: string): string => {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+};
+
+// Function to clean pagination labels
+const getCleanLabel = (label: string): string => {
+    // First decode HTML entities, then clean up
+    const decoded = decodeHtmlEntities(label);
+    
+    // Replace common pagination text
+    return decoded
+        .replace(/« Previous/g, '← Previous')
+        .replace(/Next »/g, 'Next →')
+        .replace(/«/g, '←')
+        .replace(/»/g, '→')
+        .replace(/…/g, '...');
+};
+
 </script>
 
 <template>
@@ -75,7 +98,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
                     ]" 
                     :preserve-scroll="true"
                     >
-                    {{ link.label }}
+                    {{ getCleanLabel(link.label) }}
                 </Link>
             </div>
         </div>
