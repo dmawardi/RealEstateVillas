@@ -293,21 +293,6 @@ class PropertyFactory extends Factory
     }
 
     /**
-     * Generate image paths array
-     */
-    private function generateImagePaths(): array
-    {
-        $imageCount = $this->faker->numberBetween(3, 12);
-        $images = [];
-        
-        for ($i = 0; $i < $imageCount; $i++) {
-            $images[] = 'properties/property-' . $this->faker->numberBetween(1, 100) . '.jpg';
-        }
-        
-        return $images;
-    }
-
-    /**
      * Get realistic Bali location data
      */
     private function getBaliLocation(): array
@@ -421,6 +406,19 @@ class PropertyFactory extends Factory
         return $this->afterCreating(function ($property) use ($count) {
             $attachmentCount = $count ?? rand(1, 5);
             \App\Models\PropertyAttachment::factory($attachmentCount)->create([
+                'property_id' => $property->id,
+            ]);
+        });
+    }
+
+    /**
+     * Attach a random number of bookings.
+     */
+    public function withBookings(?int $count = null): static
+    {
+        return $this->afterCreating(function ($property) use ($count) {
+            $bookingCount = $count ?? rand(1, 3);
+            \App\Models\Booking::factory($bookingCount)->create([
                 'property_id' => $property->id,
             ]);
         });
