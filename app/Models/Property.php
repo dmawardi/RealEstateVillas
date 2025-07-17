@@ -60,6 +60,31 @@ class Property extends Model
         return $this->hasMany(Booking::class, 'property_id');
     }
 
+
+
+    // Helper methods for bookings
+    /**
+     * Get all confirmed bookings for the property.
+     */
+    public function confirmedBookings()
+    {
+        return $this->hasMany(Booking::class)->where('status', 'confirmed');
+    }
+
+    /**
+     * Check if property is available for given dates
+     */
+    public function isAvailableForDates($checkInDate, $checkOutDate)
+    {
+        return !$this->bookings()
+            ->where('status', 'confirmed')
+            ->where(function ($query) use ($checkInDate, $checkOutDate) {
+                $query->where('check_in_date', '<', $checkOutDate)
+                    ->where('check_out_date', '>', $checkInDate);
+            })
+            ->exists();
+    }
+
     /**
      * The attributes that should be cast to native types.
      *

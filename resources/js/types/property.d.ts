@@ -85,6 +85,8 @@ export interface PropertyFilters {
     listingType?: string;
     bedrooms?: string;
     village?: string;
+    checkInDate: string;
+    checkOutDate: string;
 }
 
 // Property-specific enums for better type safety

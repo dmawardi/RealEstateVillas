@@ -2,6 +2,7 @@
 import type { PropertyFilters } from '@/types';
 import { router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
+import BookingDateFilter from './_BookingDateFilter.vue';
 
 
 interface Props {
@@ -16,6 +17,8 @@ const currentFilters = reactive({
     listing_type: filters?.listingType || '',
     bedrooms: filters?.bedrooms || '',
     village: filters?.village || '',
+    check_in_date: filters?.checkInDate || '',
+    check_out_date: filters?.checkOutDate || ''
 });
 
 // Apply filters function
@@ -47,10 +50,60 @@ const clearFilters = () => {
 const hasActiveFilters = () => {
     return Object.values(currentFilters).some(value => value !== '');
 };
+
+// Handle date changes from BookingDateFilter
+const onDatesChanged = (dates: { checkIn: string; checkOut: string }) => {
+    currentFilters.check_in_date = dates.checkIn;
+    currentFilters.check_out_date = dates.checkOut;
+};
+
+// Clear only booking dates
+const clearBookingDates = () => {
+    currentFilters.check_in_date = '';
+    currentFilters.check_out_date = '';
+};
+
+// Check if booking dates are set
+const hasBookingDates = () => {
+    return currentFilters.check_in_date && currentFilters.check_out_date;
+};
+
+// Format filter display name
+const formatFilterName = (key: string): string => {
+    const names: Record<string, string> = {
+        property_type: 'Property Type',
+        listing_type: 'Listing Type',
+        bedrooms: 'Bedrooms',
+        village: 'Village',
+        check_in_date: 'Check-in',
+        check_out_date: 'Check-out',
+    };
+    return names[key] || key.replace('_', ' ');
+};
+
+// Format filter value for display
+const formatFilterValue = (key: string, value: string): string => {
+    if (key === 'check_in_date' || key === 'check_out_date') {
+        return new Date(value).toLocaleDateString();
+    }
+    return value;
+};
 </script>
 
 <template>
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+        <!-- Booking date filter -->
+        <div class="mb-6">
+            <BookingDateFilter 
+                    :check-in="currentFilters.check_in_date"
+                    :check-out="currentFilters.check_out_date"
+                    @update:check-in="currentFilters.check_in_date = $event"
+                    @update:check-out="currentFilters.check_out_date = $event"
+                    @dates-changed="onDatesChanged"
+                />
+        </div>
+
+        <!-- Property filters -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -123,14 +176,22 @@ const hasActiveFilters = () => {
         
         <!-- Filter Actions -->
         <div class="mt-6 flex justify-between items-center">
-            <button 
-                v-if="hasActiveFilters()"
-                @click="clearFilters"
-                class="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 underline"
-            >
-                Clear all filters
-            </button>
-            <div v-else></div>
+            <div class="flex items-center space-x-4">
+                <button 
+                    v-if="hasActiveFilters()"
+                    @click="clearFilters"
+                    class="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 underline"
+                >
+                    Clear all filters
+                </button>
+                <button 
+                    v-if="hasBookingDates()"
+                    @click="clearBookingDates"
+                    class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 underline"
+                >
+                    Clear dates
+                </button>
+            </div>
             
             <button 
                 @click="applyFilters"
@@ -148,9 +209,12 @@ const hasActiveFilters = () => {
                     v-for="(value, key) in currentFilters" 
                     :key="key"
                     v-show="value"
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+                    :class="key.includes('date') 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'"
                 >
-                    {{ key.replace('_', ' ') }}: {{ value }}
+                    {{ formatFilterName(key) }}: {{ formatFilterValue(key, value) }}
                     <button 
                         @click="currentFilters[key as keyof typeof currentFilters] = ''; applyFilters()"
                         class="ml-2 hover:text-blue-600 focus:outline-none"

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Property;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -31,6 +32,25 @@ class PropertyController extends Controller
 
         if ($request->filled('village')) {
             $query->where('village', 'like', '%' . $request->village . '%');
+        }
+
+        // Apply availability filter if both check-in and check-out dates are provided
+        if ($request->filled('check_in_date') && $request->filled('check_out_date')) {
+            $checkInDate = Carbon::parse($request->check_in_date);
+            $checkOutDate = Carbon::parse($request->check_out_date);
+            
+            // Exclude properties that have confirmed bookings overlapping with requested dates
+            $query->whereDoesntHave('bookings', function ($bookingQuery) use ($checkInDate, $checkOutDate) {
+                $bookingQuery->where('status', 'confirmed')
+                    ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                        // Check if the booking overlaps with requested dates
+                        $q->where(function ($q1) use ($checkInDate, $checkOutDate) {
+                            // Booking starts before checkout and ends after checkin
+                            $q1->where('check_in_date', '<', $checkOutDate)
+                               ->where('check_out_date', '>', $checkInDate);
+                        });
+                    });
+            });
         }
 
         // Only show active properties
