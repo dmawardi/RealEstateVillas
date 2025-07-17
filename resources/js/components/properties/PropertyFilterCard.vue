@@ -21,19 +21,6 @@ const currentFilters = reactive({
     check_out_date: filters?.check_out_date || ''
 });
 
-// Watch for prop changes and update currentFilters
-watch(() => filters, (newFilters) => {
-    console.log('PropertyFilterCard: filters prop changed to:', newFilters);
-    if (newFilters) {
-        currentFilters.property_type = newFilters.property_type || '';
-        currentFilters.listing_type = newFilters.listing_type || '';
-        currentFilters.bedrooms = newFilters.bedrooms || '';
-        currentFilters.village = newFilters.village || '';
-        currentFilters.check_in_date = newFilters.check_in_date || '';
-        currentFilters.check_out_date = newFilters.check_out_date || '';
-    }
-}, { deep: true, immediate: true });
-
 // Apply filters function
 const applyFilters = () => {
     // Remove empty filters
