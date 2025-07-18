@@ -89,6 +89,18 @@ export interface PropertyFilters {
     check_out_date: string;
 }
 
+export interface Availability {
+    period_start: string;
+    period_end: string;
+    unavailable_periods: UnavailablePeriod[];
+}
+
+export interface UnavailablePeriod {
+    start: string;
+    end: string;
+    type: 'booked' | 'blocked' | 'maintenance';
+}
+
 // Property-specific enums for better type safety
 export type PropertyType = 'house' | 'apartment' | 'townhouse' | 'villa' | 'land' | 'commercial' | 'guest_house' | 'other';
 export type ListingType = 'for_sale' | 'for_rent' | 'sold' | 'off_market';

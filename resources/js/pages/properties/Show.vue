@@ -1,18 +1,20 @@
 <script setup lang="ts">
+import PropertyBookingCard from '@/components/properties/PropertyBookingCard.vue';
 import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
 import PropertyHeader from '@/components/properties/PropertyHeader.vue';
 import PropertyImages from '@/components/properties/PropertyImages.vue';
 import PropertyInfoBar from '@/components/properties/PropertyInfoBar.vue';
 import PropertyKeyStats from '@/components/properties/PropertyKeyStats.vue';
 import BaseLayout from '@/layouts/BaseLayout.vue';
-import type { BreadcrumbItemType, Property } from '@/types';
+import type { Availability, BreadcrumbItemType, Property } from '@/types';
 import { Head } from '@inertiajs/vue3';
 
 interface Props {
     property: Property;
+    availability: Availability;
 }
 
-const { property } = defineProps<Props>();
+const { property, availability } = defineProps<Props>();
 
 // Generate breadcrumbs with actual property data
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -64,6 +66,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
     
                 <!-- Sidebar -->
                 <div class="space-y-6">
+                    <PropertyBookingCard :property="property" :availability="availability" />
                     <!-- Agent Contact -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                         <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">

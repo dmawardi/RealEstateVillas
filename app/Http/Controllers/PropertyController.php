@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Property;
+use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PropertyController extends Controller
 {
+    // Upon construction, inject the AvailabilityService
+    public function __construct(
+        private AvailabilityService $availabilityService
+    ) {}
     /**
      * Display a listing of the properties.
      */
@@ -90,8 +95,26 @@ class PropertyController extends Controller
     public function show(Property $property)
     {
         $property->load(['user', 'features', 'attachments']);
+
+         // Pre-load availability for next 6 months for the booking calendar
+        $startDate = Carbon::now();
+        $endDate = Carbon::now()->addMonths(6);
+
+        $unavailablePeriods = $this->availabilityService->getUnavailablePeriods(
+            $property,
+            $startDate,
+            $endDate
+        );
+
         // Logic to retrieve and display a specific property
-        return Inertia::render('properties/Show', compact('property'));
+        return Inertia::render('properties/Show', [
+            'property' => $property,
+            'availability' => [
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'unavailable_periods' => $unavailablePeriods
+            ],
+        ]);
     }
     /**
      * Show the form for editing the specified property.
@@ -116,5 +139,45 @@ class PropertyController extends Controller
     {        // Logic to delete the property
         // ...
         return redirect()->route('properties.index')->with('success', 'Property deleted successfully.');    
+    }
+
+
+    // Availability related methods
+    public function getAvailability(Property $property, Request $request)
+    {
+        // For specific date range check
+        if ($request->filled('check_in_date') && $request->filled('check_out_date')) {
+            $checkIn = Carbon::parse($request->check_in_date);
+            $checkOut = Carbon::parse($request->check_out_date);
+            
+            $isAvailable = $this->availabilityService->isPropertyAvailable($property, $checkIn, $checkOut);
+            
+            return response()->json([
+                'available' => $isAvailable,
+                'check_in_date' => $checkIn->format('Y-m-d'),
+                'check_out_date' => $checkOut->format('Y-m-d')
+            ]);
+        }
+
+        // For calendar display - return unavailable periods
+        $request->validate([
+            'start' => 'required|date',
+            'end' => 'required|date|after:start',
+        ]);
+
+        $startDate = Carbon::parse($request->start);
+        $endDate = Carbon::parse($request->end);
+
+        $unavailablePeriods = $this->availabilityService->getUnavailablePeriods(
+            $property,
+            $startDate,
+            $endDate
+        );
+
+        return response()->json([
+            'period_start' => $startDate->format('Y-m-d'),
+            'period_end' => $endDate->format('Y-m-d'),
+            'unavailable_periods' => $unavailablePeriods
+        ]);
     }
 }
