@@ -17,10 +17,10 @@ class PropertyPriceFactory extends Factory
     public function definition(): array
     {
         return [
-            'nightly_rate' => $this->faker->randomFloat(2, 50, 500),
-            'weekly_rate' => $this->faker->randomFloat(2, 300, 2000),
-            'monthly_rate' => $this->faker->randomFloat(2, 1000, 8000),
-            'currency' => 'AUD',
+            'nightly_rate' => $this->faker->numberBetween(500000, 5000000),
+            'weekly_rate' => $this->faker->numberBetween(7500000, 20000000),
+            'monthly_rate' => $this->faker->numberBetween(10000000, 80000000),
+            'currency' => 'IDR', // Default currency
             'start_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'end_date' => $this->faker->dateTimeBetween('now', '+1 year'),
             'property_id' => \App\Models\Property::factory(), // Assuming Property factory exists

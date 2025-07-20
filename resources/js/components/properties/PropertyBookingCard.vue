@@ -31,28 +31,18 @@ const getNights = computed(() => {
 });
 
 const getTotalPrice = computed(() => {
-    console.log('=== Price Calculation Debug ===');
-    console.log('areDatesValid:', areDatesValid.value);
-    console.log('property.current_pricing:', current_pricing);
-    
     if (!areDatesValid.value) {
-        console.log('Dates not valid, returning 0');
         return 0;
     }
     
     // Check if current_pricing exists and has nightly_rate
     if (!current_pricing || !current_pricing.nightly_rate) {
-        console.log('No current pricing or nightly rate, returning 0');
         return 0;
     }
     
     const nights = getNights.value;
     const pricePerNight = current_pricing.nightly_rate;
     const totalPrice = Math.round(pricePerNight * nights);
-    
-    console.log('nights:', nights);
-    console.log('pricePerNight:', pricePerNight);
-    console.log('totalPrice:', totalPrice);
     
     return totalPrice;
 });
@@ -94,13 +84,6 @@ const formatDate = (date: Date | null) => {
         year: 'numeric'
     });
 };
-
-// Initialize component
-onMounted(() => {
-    console.log('PropertyBookingCard mounted');
-    console.log('Property ID:', property.id);
-    console.log('Initial availability:', availability); 
-});
 </script>
 
 <template>

@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('property_pricing', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->decimal('nightly_rate', 8, 2)->nullable();
-            $table->decimal('weekly_rate', 8, 2)->nullable();
-            $table->decimal('monthly_rate', 8, 2)->nullable();
-            $table->string('currency', 3)->default('AUD');
+            $table->bigInteger('nightly_rate')->nullable();
+            $table->bigInteger('weekly_rate')->nullable();
+            $table->bigInteger('monthly_rate')->nullable();
+            $table->string('currency', 3)->default('IDR');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             
