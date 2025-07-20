@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import type { Availability, Property, PropertyPricing } from '@/types';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import { formatPrice } from '@/utils/formatters'; // Importing formatPrice utility
 
 interface Props {
     property: Property;
@@ -65,15 +66,6 @@ const disabledDates = computed(() => {
 // Clear button handler
 const clearDates = () => {
     dateRange.value = null;
-};
-
-const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(price);
 };
 
 const formatDate = (date: Date | null) => {

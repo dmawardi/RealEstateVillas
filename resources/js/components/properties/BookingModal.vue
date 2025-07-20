@@ -2,6 +2,7 @@
 import { ref, reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
 import type { Property } from '@/types';
+import { formatPrice } from '@/utils/formatters'; // Importing formatPrice utility
 
 interface Props {
     property: Property;
@@ -35,15 +36,6 @@ const form = reactive({
 const errors = ref<Record<string, string[]>>({});
 
 // Methods
-const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(price);
-};
-
 const submitBooking = () => {
     if (isSubmitting.value) return;
     

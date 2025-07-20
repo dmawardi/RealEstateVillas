@@ -1,21 +1,13 @@
 <script setup lang="ts">
 import type { Property } from '@/types';
+import { defineProps } from 'vue';
+import { formatPrice } from '@/utils/formatters'; // Importing formatPrice utility
 
 interface Props {
     property: Property;
 }
 
 const { property } = defineProps<Props>();
-
-// Helper function to format price
-const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(price);
-};
 
 // Helper function to format property type
 const formatPropertyType = (type: string): string => {
