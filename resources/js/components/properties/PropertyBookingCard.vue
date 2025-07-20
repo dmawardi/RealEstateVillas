@@ -4,6 +4,7 @@ import type { Availability, Property, PropertyPricing } from '@/types';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { formatPrice, formatDate } from '@/utils/formatters'; // Importing formatPrice utility
+import BookingModal from '@/components/properties/BookingModal.vue';
 
 interface Props {
     property: Property;
@@ -15,6 +16,7 @@ const { property, availability, current_pricing } = defineProps<Props>();
 
 // Reactive state - VueDatePicker can return null when cleared
 const dateRange = ref<[Date, Date] | null>(null);
+const isBookingModalOpen = ref(false);
 
 // Get today's date as Date object
 const today = new Date();
@@ -66,6 +68,13 @@ const disabledDates = computed(() => {
 // Clear button handler
 const clearDates = () => {
     dateRange.value = null;
+};
+
+// Open booking modal
+const openBookingModal = () => {
+    if (areDatesValid.value && getTotalPrice.value > 0) {
+        isBookingModalOpen.value = true;
+    }
 };
 </script>
 
@@ -135,6 +144,7 @@ const clearDates = () => {
             <!-- Action Buttons -->
             <div class="space-y-2">
                 <button 
+                    @click="openBookingModal"
                     :disabled="!areDatesValid"
                     class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
@@ -155,5 +165,14 @@ const clearDates = () => {
                 </div>
             </div>
         </div>
+        <!-- Booking Modal -->
+        <BookingModal 
+            v-model="isBookingModalOpen"
+            :property="property" 
+            :check-in-date="dateRange?.[0] || null"
+            :check-out-date="dateRange?.[1] || null"
+            :total-price="getTotalPrice"
+            :nights="getNights"
+        />
     </div>
 </template>
