@@ -94,7 +94,10 @@ class PropertyController extends Controller
      */
     public function show(Property $property)
     {
-        $property->load(['user', 'features', 'attachments']);
+        $property->load(['user', 'features', 'attachments', 'pricing']);
+
+        // Get current pricing
+        $currentPricing = $property->getCurrentPricing();
 
          // Pre-load availability for next 6 months for the booking calendar
         $startDate = Carbon::now();
@@ -109,6 +112,7 @@ class PropertyController extends Controller
         // Logic to retrieve and display a specific property
         return Inertia::render('properties/Show', [
             'property' => $property,
+            'current_pricing' => $currentPricing,
             'availability' => [
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),

@@ -1,146 +1,80 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import type { Availability, Property } from '@/types';
+import type { Availability, Property, PropertyPricing } from '@/types';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 
 interface Props {
     property: Property;
     availability: Availability;
+    current_pricing: PropertyPricing;
 }
 
-const { property, availability } = defineProps<Props>();
+const { property, availability, current_pricing } = defineProps<Props>();
 
-// Reactive state
-const checkInDate = ref('');
-const checkOutDate = ref('');
-const isLoadingAvailability = ref(false);
+// Reactive state - VueDatePicker can return null when cleared
+const dateRange = ref<[Date, Date] | null>(null);
 
-// Create reactive copies of availability data that we can update
-const availabilityData = ref({
-    period_start: availability.period_start,
-    period_end: availability.period_end,
-    unavailable_periods: [...availability.unavailable_periods]
-});
-
-//Get today's date for min attribute
-const today = new Date().toISOString().split('T')[0];
+// Get today's date as Date object
+const today = new Date();
 
 // Computed properties
 const areDatesValid = computed(() => {
-    return checkInDate.value && checkOutDate.value && checkInDate.value < checkOutDate.value;
+    return dateRange.value && dateRange.value[0] && dateRange.value[1];
 });
+
 const getNights = computed(() => {
     if (!areDatesValid.value) return 0;
-    const checkIn = new Date(checkInDate.value);
-    const checkOut = new Date(checkOutDate.value);
+    const checkIn = dateRange.value![0];
+    const checkOut = dateRange.value![1];
     return Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
 });
+
 const getTotalPrice = computed(() => {
-    if (!areDatesValid.value || !property.rental_price_weekly) return 0;
+    console.log('=== Price Calculation Debug ===');
+    console.log('areDatesValid:', areDatesValid.value);
+    console.log('property.current_pricing:', current_pricing);
+    
+    if (!areDatesValid.value) {
+        console.log('Dates not valid, returning 0');
+        return 0;
+    }
+    
+    // Check if current_pricing exists and has nightly_rate
+    if (!current_pricing || !current_pricing.nightly_rate) {
+        console.log('No current pricing or nightly rate, returning 0');
+        return 0;
+    }
+    
     const nights = getNights.value;
-    const pricePerNight = property.rental_price_weekly / 7; // Convert weekly to nightly
-    return Math.round(pricePerNight * nights);
+    const pricePerNight = current_pricing.nightly_rate;
+    const totalPrice = Math.round(pricePerNight * nights);
+    
+    console.log('nights:', nights);
+    console.log('pricePerNight:', pricePerNight);
+    console.log('totalPrice:', totalPrice);
+    
+    return totalPrice;
 });
-
-const getMinCheckOutDate = () => {
-    if (!checkInDate.value) return today;
-    const checkIn = new Date(checkInDate.value);
-    checkIn.setDate(checkIn.getDate() + 1);
-    return checkIn.toISOString().split('T')[0];
-};
-
-// Check if a specific date is available (not in any unavailable period)
-const isDateAvailable = (date: string): boolean => {
-    const checkDate = new Date(date);
+// Get disabled dates from unavailable periods
+const disabledDates = computed(() => {
+    const disabled: Date[] = [];
     
-    return !availabilityData.value.unavailable_periods.some(period => {
-        const periodStart = new Date(period.start);
-        const periodEnd = new Date(period.end);
-        return checkDate >= periodStart && checkDate <= periodEnd;
-    });
-};
-
-// Check if the selected date range is available
-// Called when clicking "Check Availability" or when dates change
-const isDateRangeAvailable = computed(() => {
-    if (!areDatesValid.value) return null;
-    
-    const start = new Date(checkInDate.value);
-    const end = new Date(checkOutDate.value);
-    const currentDate = new Date(start);
-    
-    // Check each date in the range
-    while (currentDate < end) {
-        const dateString = currentDate.toISOString().split('T')[0];
-        if (!isDateAvailable(dateString)) {
-            return false;
+    availability.unavailable_periods.forEach(period => {
+        const start = new Date(period.start);
+        const end = new Date(period.end);
+        
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            disabled.push(new Date(d));
         }
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return true;
+    });
+    
+    return disabled;
 });
-
-// Check if we need to fetch more availability data for the selected range
-// Called when dates change and the selected range exceeds current availability data
-const needsMoreAvailabilityData = computed(() => {
-    if (!areDatesValid.value) return false;
-    
-    const start = new Date(checkInDate.value);
-    const end = new Date(checkOutDate.value);
-    const availabilityStart = new Date(availability.period_start);
-    const availabilityEnd = new Date(availability.period_end);
-    
-    // Need more data if the selected range extends beyond our current availability data
-    return start < availabilityStart || end > availabilityEnd;
-});
-
-// Methods
-const fetchMoreAvailability = async () => {
-    if (!areDatesValid.value) return;
-    
-    isLoadingAvailability.value = true;
-    
-    try {
-        const start = new Date(checkInDate.value);
-        const end = new Date(checkOutDate.value);
-        
-        // Extend the range a bit to avoid frequent requests
-        start.setDate(start.getDate() - 7);
-        end.setDate(end.getDate() + 7);
-        
-        const response = await fetch(`/properties/${property.id}/availability?start=${start.toISOString().split('T')[0]}&end=${end.toISOString().split('T')[0]}`);
-        const data = await response.json();
-        
-        // Update our reactive availability data (NOT the prop)
-        availabilityData.value = {
-            period_start: data.period_start,
-            period_end: data.period_end,
-            unavailable_periods: data.unavailable_periods
-        };
-        
-    } catch (error) {
-        console.error('Error fetching availability:', error);
-    } finally {
-        isLoadingAvailability.value = false;
-    }
-};
-
-// Date change handler
-const onDateChange = () => {
-    // Clear checkout if it's before or same as checkin
-    if (checkOutDate.value && checkInDate.value >= checkOutDate.value) {
-        checkOutDate.value = '';
-    }
-    
-    // Check if we need to fetch more availability data
-    if (needsMoreAvailabilityData.value) {
-        fetchMoreAvailability();
-    }
-};
 
 // Clear button handler
 const clearDates = () => {
-    checkInDate.value = '';
-    checkOutDate.value = '';
+    dateRange.value = null;
 };
 
 const formatPrice = (price: number): string => {
@@ -150,6 +84,15 @@ const formatPrice = (price: number): string => {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(price);
+};
+
+const formatDate = (date: Date | null) => {
+    if (!date) return '';
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
 };
 
 // Initialize component
@@ -166,34 +109,24 @@ onMounted(() => {
             Book This Property
         </h3>
 
-        <!-- Date Selection -->
+        <!-- Date Picker -->
         <div class="space-y-4">
-            <!-- Check-in Date -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Check-in Date
+                    Select Dates
                 </label>
-                <input
-                    v-model="checkInDate"
-                    type="date"
-                    :min="today"
-                    @change="onDateChange"
-                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-            </div>
-
-            <!-- Check-out Date -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Check-out Date
-                </label>
-                <input
-                    v-model="checkOutDate"
-                    type="date"
-                    :min="getMinCheckOutDate()"
-                    :disabled="!checkInDate"
-                    @change="onDateChange"
-                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                <VueDatePicker
+                    v-model="dateRange"
+                    :min-date="today"
+                    :disabled-dates="disabledDates"
+                    :enable-time-picker="false"
+                    :inline="false"
+                    :multi-calendars="false"
+                    :auto-apply="false"
+                    range
+                    placeholder="Select check-in and check-out dates"
+                    format="MMM dd, yyyy"
+                    menu-class-name="dp-custom-menu"
                 />
             </div>
 
@@ -208,50 +141,38 @@ onMounted(() => {
                     </span>
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ new Date(checkInDate).toLocaleDateString() }} - {{ new Date(checkOutDate).toLocaleDateString() }}
+                    {{ formatDate(dateRange![0]) }} - {{ formatDate(dateRange![1]) }}
                 </div>
             </div>
 
-            <!-- Availability Status -->
-            <div v-if="areDatesValid" class="text-sm">
-                <div v-if="isLoadingAvailability" class="flex items-center text-gray-500 dark:text-gray-400">
-                    <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Checking availability...
+            <!-- Availability Legend -->
+            <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-green-100 rounded-full mr-2"></div>
+                        <span>Available</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-red-100 rounded-full mr-2"></div>
+                        <span>Unavailable</span>
+                    </div>
                 </div>
-                <div v-else-if="isDateRangeAvailable === true" 
-                     class="flex items-center text-green-600 dark:text-green-400">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                    Available for selected dates
-                </div>
-                <div v-else-if="isDateRangeAvailable === false" 
-                     class="flex items-center text-red-600 dark:text-red-400">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                    Not available for selected dates
-                </div>
+                <button 
+                    v-if="areDatesValid"
+                    @click="clearDates"
+                    class="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                    Clear dates
+                </button>
             </div>
 
             <!-- Action Buttons -->
             <div class="space-y-2">
                 <button 
-                    :disabled="!areDatesValid || isLoadingAvailability || isDateRangeAvailable !== true"
+                    :disabled="!areDatesValid"
                     class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                    {{ isDateRangeAvailable === true ? 'Continue to Book' : 'Check Availability' }}
-                </button>
-                
-                <button 
-                    v-if="checkInDate || checkOutDate"
-                    @click="clearDates"
-                    class="w-full text-gray-600 dark:text-gray-400 py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
-                >
-                    Clear Dates
+                    {{ areDatesValid ? 'Continue to Book' : 'Select Dates' }}
                 </button>
             </div>
 

@@ -85,6 +85,21 @@ class Property extends Model
             ->exists();
     }
 
+    // Helper method to get current pricing
+    public function getCurrentPricing()
+    {
+        return $this->pricing()
+            ->where(function($query) {
+                $query->whereNull('start_date')
+                    ->orWhere('start_date', '<=', now());
+            })
+            ->where(function($query) {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            })
+            ->first();
+    }
+
     /**
      * The attributes that should be cast to native types.
      *

@@ -101,6 +101,17 @@ export interface UnavailablePeriod {
     type: 'booked' | 'blocked' | 'maintenance';
 }
 
+export interface PropertyPricing {
+    id: number;
+    property_id: number;
+    nightly_rate?: number;
+    weekly_rate?: number;
+    monthly_rate?: number;
+    currency: string;
+    start_date?: string;
+    end_date?: string;
+}
+
 // Property-specific enums for better type safety
 export type PropertyType = 'house' | 'apartment' | 'townhouse' | 'villa' | 'land' | 'commercial' | 'guest_house' | 'other';
 export type ListingType = 'for_sale' | 'for_rent' | 'sold' | 'off_market';
