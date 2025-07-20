@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import type { Availability, Property, PropertyPricing } from '@/types';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { formatPrice } from '@/utils/formatters'; // Importing formatPrice utility
+import { formatPrice, formatDate } from '@/utils/formatters'; // Importing formatPrice utility
 
 interface Props {
     property: Property;
@@ -66,15 +66,6 @@ const disabledDates = computed(() => {
 // Clear button handler
 const clearDates = () => {
     dateRange.value = null;
-};
-
-const formatDate = (date: Date | null) => {
-    if (!date) return '';
-    return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    });
 };
 </script>
 
