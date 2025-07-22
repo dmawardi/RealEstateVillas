@@ -32,10 +32,17 @@ const form = reactive({
     last_name: '',
     email: '',
     phone: '',
-    number_of_guests: 2,
-    special_requests: '',
     check_in_date: '',
-    check_out_date: ''
+    check_out_date: '',
+    number_of_guests: 2,
+    total_price: 0,
+    // Optional fields
+    number_of_rooms: null as number | null,
+    flexible_dates: false,
+    special_requests: '',
+    source: 'direct', // Default to direct booking
+    external_booking_id: null as string | null,
+    booking_type: 'booking'
 });
 
 // Reactive refs
@@ -50,6 +57,7 @@ watch([() => props.checkInDate, () => props.checkOutDate], ([checkIn, checkOut])
     if (checkOut) {
         form.check_out_date = checkOut.toISOString().split('T')[0];
     }
+    form.total_price = props.totalPrice;
 }, { immediate: true });
 
 // Computed properties for display
@@ -73,28 +81,32 @@ const formattedCheckOutDate = computed(() => {
 
 // Methods using composition API
 const submitBooking = () => {
+    // If already submitting, do nothing
     if (isSubmitting.value) return;
     
     isSubmitting.value = true;
     errors.value = {};
 
-    router.post(`/properties/${props.property.id}/bookings`, {
-        ...form,
-        property_id: props.property.id,
-        total_price: props.totalPrice
-    }, {
+    // Prepare form data - exclude null values and property_id (comes from URL)
+    const formData = Object.fromEntries(
+        Object.entries(form).filter(([_, value]) => value !== null && value !== '')
+    );
+
+    // API call to submit booking
+    router.post(`/properties/${props.property.id}/bookings`, formData, {
         onSuccess: () => {
             closeModal();
-            // You might want to show a success toast instead of alert
-            alert('Booking request submitted successfully!');
         },
         onError: (responseErrors) => {
+            console.log('Booking errors:', responseErrors);
+            
             // Format errors properly for TypeScript
             const formattedErrors: Record<string, string[]> = {};
             for (const [key, value] of Object.entries(responseErrors)) {
                 formattedErrors[key] = Array.isArray(value) ? value : [String(value)];
             }
             errors.value = formattedErrors;
+            console.error('Booking submission errors:', errors.value);
         },
         onFinish: () => {
             isSubmitting.value = false;
@@ -178,6 +190,13 @@ const handleKeydown = (event: KeyboardEvent) => {
                             <!-- Booking Summary -->
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
                                 <h3 class="font-medium text-gray-900 dark:text-gray-100 mb-3">Booking Summary</h3>
+                                <!-- Errors -->
+                                 <p v-if="errors.check_in_date" class="text-red-500 text-xs mt-1">
+                                            {{ errors.check_in_date[0] }}
+                                </p>
+                                <p v-if="errors.check_out_date" class="text-red-500 text-xs mt-1">
+                                    {{ errors.check_out_date[0] }}
+                                </p>
                                 <div class="space-y-2 text-sm">
                                     <div class="flex justify-between">
                                         <span class="text-gray-600 dark:text-gray-400">Check-in:</span>

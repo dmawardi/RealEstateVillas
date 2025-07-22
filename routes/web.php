@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -11,8 +12,11 @@ Route::get('/', function () {
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
-// Availability routes
+// Availability
 Route::get('properties/{property}/availability', [PropertyController::class, 'getAvailability'])->name('properties.availability');
+
+// Bookings
+Route::post('properties/{property}/bookings', [BookingController::class, 'store'])->name('properties.bookings.store');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
