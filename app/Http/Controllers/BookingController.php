@@ -57,26 +57,9 @@ class BookingController extends Controller
             ])->withInput();
         }
         
-        // Calculate commission if needed
-        $commissionRate = null;
-        $commissionAmount = null;
-        
-        if (isset($validated['source']) && $validated['source'] !== 'direct') {
-            // Set commission rates based on source
-            $commissionRates = [
-                'airbnb' => 3.00,
-                'booking_com' => 15.00,
-                'agoda' => 18.00,
-                'other' => 10.00,
-            ];
-            
-            $commissionRate = $commissionRates[$validated['source']] ?? 0;
-            $commissionAmount = ($validated['total_price'] * $commissionRate) / 100;
-        }
-        
         // Create the booking
         $booking = Booking::create([
-            'property_id' => $validated['property_id'],
+            'property_id' => $property->id,
             'source' => $validated['source'] ?? 'direct',
             'external_booking_id' => $validated['external_booking_id'] ?? null,
             'first_name' => $validated['first_name'],
@@ -91,8 +74,8 @@ class BookingController extends Controller
             'status' => 'pending', // Default to pending
             'booking_type' => $validated['booking_type'] ?? 'booking',
             'total_price' => $validated['total_price'],
-            'commission_rate' => $commissionRate,
-            'commission_amount' => $commissionAmount,
+            'commission_rate' => 0.1,
+            'commission_amount' => $validated['total_price'] * 0.1, // Example commission calculation
             'commission_paid' => false,
             'special_requests' => $validated['special_requests'] ?? null,
             'notes' => null, // Internal notes can be added later by admin
@@ -112,17 +95,9 @@ class BookingController extends Controller
         // Mail::to($property->user->email)->send(new NewBookingNotification($booking));
         
         // Return success response
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'Booking request submitted successfully!',
-                'booking' => $booking,
-                'redirect' => route('bookings.show', $booking)
-            ], 201);
-        }
-        
         return redirect()->route('properties.show', $property)
-                        ->with('success', 'Your booking request has been submitted successfully! You will receive a confirmation email shortly.');
-                        
+            ->with('success', 'Your booking request has been submitted successfully! You will receive a confirmation email shortly.');
+                          
     } catch (\Exception $e) {
         Log::error('Booking creation failed', [
             'error' => $e->getMessage(),
@@ -130,16 +105,10 @@ class BookingController extends Controller
             'email' => $validated['email'] ?? null
         ]);
         
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'An error occurred while processing your booking. Please try again.',
-                'errors' => ['general' => ['Booking could not be processed at this time.']]
-            ], 500);
-        }
-        
-        return back()->withErrors([
-            'general' => 'An error occurred while processing your booking. Please try again.'
-        ])->withInput();
+        // ALWAYS redirect with flash error (no JSON responses)
+        return redirect()->back()
+            ->with('error', 'An error occurred while processing your booking. Please try again.')
+            ->withInput();
     }
     }
 }

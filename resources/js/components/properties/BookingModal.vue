@@ -89,7 +89,7 @@ const submitBooking = () => {
 
     // Prepare form data - exclude null values and property_id (comes from URL)
     const formData = Object.fromEntries(
-        Object.entries(form).filter(([_, value]) => value !== null && value !== '')
+        Object.entries(form).filter(([, value]) => value !== null && value !== '')
     );
 
     // API call to submit booking
