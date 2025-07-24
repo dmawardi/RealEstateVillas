@@ -11,9 +11,6 @@ class PropertyPrice extends Model
     protected $table = 'property_pricing';
     protected $guarded = [];
     protected $casts = [
-        'nightly_rate' => 'decimal:2',
-        'weekly_rate' => 'decimal:2',
-        'monthly_rate' => 'decimal:2',
         'start_date' => 'date',
         'end_date' => 'date',
     ];
