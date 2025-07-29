@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import UpperNavigation from './UpperNavigation.vue';
 import Input from '@/components/ui/form/Input.vue';
 import SearchIcon from '../form/SearchIcon.vue';
+import Modal from '@/components/Modal.vue';
+import PriceFilter from '../filters/PriceFilter.vue';
 
 const modalOpen = ref(false);
 const form = ref({
     search: '',
     mode: 'rent' as 'rent' | 'buy',
+    priceFilter: {
+        minPrice: '',
+        maxPrice: '',
+        priceRate: 'monthly' as 'weekly' | 'monthly',
+    },
+    propertyTypes: [] as string[],
 });
 
 function handleSearch() {
@@ -18,6 +26,11 @@ function handleSearch() {
 
 function selectMode(mode: 'rent' | 'buy') {
     form.value.mode = mode;
+}
+
+// Modal close handler (to be called within the modal)
+function closeModal() {
+    modalOpen.value = false;
 }
 </script>
 
@@ -83,5 +96,53 @@ function selectMode(mode: 'rent' | 'buy') {
                 </div>
             </div>
         </div>
+        <Modal v-model:open="modalOpen" title="Filters" closable @close="modalOpen = false" size="lg">
+             <!-- Modal content -->
+            <div class="space-y-4">                
+                <!-- Price Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Property Type</label>
+                    <div class="flex flex-col space-y-1">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" value="villa" class="form-checkbox text-blue-600" />
+                            <span class="ml-2">Villa</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" value="apartment" class="form-checkbox text-blue-600" />
+                            <span class="ml-2">Apartment</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" value="commercial" class="form-checkbox text-blue-600" />
+                            <span class="ml-2">Commercial</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" value="guest_house" class="form-checkbox text-blue-600" />
+                            <span class="ml-2">Guest House</span>
+                        </label>
+                    </div>
+                </div>
+                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+                <PriceFilter v-model="form.priceFilter" />
+                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+            </div>
+
+            <!-- Modal footer with action buttons -->
+            <template #footer>
+                <div class="flex justify-end space-x-2">
+                    <button
+                        @click="closeModal"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        @click="closeModal"
+                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                    >
+                        Apply Filters
+                    </button>
+                </div>
+            </template>
+        </Modal>
     </header>
 </template>
