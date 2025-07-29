@@ -93,7 +93,7 @@ const submitBooking = () => {
         Object.entries(form).filter(([, value]) => value !== null && value !== '')
     );
 
-    // Replace router.post with API service call
+    // Call API service to create booking
     api.bookings.createBooking(props.property.id, formData, {
         onSuccess: () => {
             closeModal();
