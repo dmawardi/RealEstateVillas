@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
 import type { Property } from '@/types';
 import { formatPrice } from '@/utils/formatters';
+import { api } from '@/services/api';
+
 
 interface Props {
     modelValue: boolean;
@@ -92,20 +93,14 @@ const submitBooking = () => {
         Object.entries(form).filter(([, value]) => value !== null && value !== '')
     );
 
-    // API call to submit booking
-    router.post(`/properties/${props.property.id}/bookings`, formData, {
+    // Replace router.post with API service call
+    api.bookings.createBooking(props.property.id, formData, {
         onSuccess: () => {
             closeModal();
         },
-        onError: (responseErrors) => {
+        onError: (responseErrors: Record<string, string[]>) => {
             console.log('Booking errors:', responseErrors);
-            
-            // Format errors properly for TypeScript
-            const formattedErrors: Record<string, string[]> = {};
-            for (const [key, value] of Object.entries(responseErrors)) {
-                formattedErrors[key] = Array.isArray(value) ? value : [String(value)];
-            }
-            errors.value = formattedErrors;
+            errors.value = responseErrors; // No need to format - already handled by ApiService
             console.error('Booking submission errors:', errors.value);
         },
         onFinish: () => {
