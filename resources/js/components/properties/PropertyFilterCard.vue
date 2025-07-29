@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { PropertyFilters } from '@/types';
-import { router } from '@inertiajs/vue3';
 import { reactive } from 'vue';
 import BookingDateFilter from './_BookingDateFilter.vue';
+import { api } from '@/services/api';
 
 
 interface Props {
@@ -28,9 +28,14 @@ const applyFilters = () => {
         Object.entries(currentFilters).filter(([, value]) => value !== '')
     );
 
-    router.get('/properties', cleanFilters, {
-        preserveState: true,
-        preserveScroll: true,
+    // Use API service with filters as query parameters
+    api.properties.getAllProperties(cleanFilters, {
+        onSuccess: (response: any) => {
+            console.log('Filtered properties loaded:', response);
+        },
+        onError: (errors: Record<string, string[]>) => {
+            console.error('Failed to load filtered properties:', errors);
+        }
     });
 };
 
@@ -40,9 +45,13 @@ const clearFilters = () => {
         currentFilters[key as keyof typeof currentFilters] = '';
     });
     
-    router.get('/properties', {}, {
-        preserveState: true,
-        preserveScroll: true,
+    api.properties.getAllProperties({}, {
+        onSuccess: (response: any) => {
+            console.log('All properties loaded:', response);
+        },
+        onError: (errors: Record<string, string[]>) => {
+            console.error('Failed to load properties:', errors);
+        }
     });
 };
 
