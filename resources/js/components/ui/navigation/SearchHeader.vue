@@ -5,6 +5,7 @@ import Input from '@/components/ui/form/Input.vue';
 import SearchIcon from '../form/SearchIcon.vue';
 import Modal from '@/components/Modal.vue';
 import PriceFilter from '../filters/PriceFilter.vue';
+import LocationFilter from '../filters/LocationFilter.vue';
 
 const modalOpen = ref(false);
 const form = ref({
@@ -16,11 +17,23 @@ const form = ref({
         priceRate: 'monthly' as 'weekly' | 'monthly',
     },
     propertyTypes: [] as string[],
+    bedrooms: '',
+    bathrooms: '',
+    locationFilter: {
+        district: '',
+        regency: '',
+    },
+    minLandSize: '',
+    maxLandSize: '',
+    carSpaces: '',
+    status: [] as string[],
 });
 
 function handleSearch() {
     // Implement search logic here
     console.log('Searching for:', form.value.search, 'Mode:', form.value.mode);
+    console.log('Location Filter:', form.value.locationFilter);
+    console.log('Price Filter:', form.value.priceFilter);
     console.log('Modal Open:', modalOpen.value);
 }
 
@@ -99,7 +112,7 @@ function closeModal() {
         <Modal v-model:open="modalOpen" title="Filters" closable @close="modalOpen = false" size="lg">
              <!-- Modal content -->
             <div class="space-y-4">                
-                <!-- Price Filter -->
+                <!-- Type Filter -->
                 <div>
                     <label class="block text-sm font-medium mb-2">Property Type</label>
                     <div class="flex flex-col space-y-1">
@@ -121,9 +134,102 @@ function closeModal() {
                         </label>
                     </div>
                 </div>
+
                 <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+
+                <!-- Price Filter -->
                 <PriceFilter v-model="form.priceFilter" />
+
                 <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+
+                <!-- Bedrooms Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Bedrooms</label>
+                    <select 
+                        v-model="form.bedrooms"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">Any</option>
+                        <option value="1">1+</option>
+                        <option value="2">2+</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                        <option value="5">5+</option>
+                    </select>
+                </div>
+
+                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+
+                <!-- Bathrooms Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Bathrooms</label>
+                    <select 
+                        v-model="form.bathrooms"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">Any</option>
+                        <option value="1">1+</option>
+                        <option value="2">2+</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                    </select>
+                </div>
+
+                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+
+                <!-- Location Filter (District/Regency) -->
+                <LocationFilter v-model="form.locationFilter" />
+
+                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+
+                <!-- Land Size Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Land Size (Are)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select 
+                            v-model="form.minLandSize"
+                            class="px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Min Size</option>
+                            <option value="1">1+ Are</option>
+                            <option value="2">2+ Are</option>
+                            <option value="3">3+ Are</option>
+                            <option value="5">5+ Are</option>
+                            <option value="10">10+ Are</option>
+                            <option value="20">20+ Are</option>
+                        </select>
+                        <select 
+                            v-model="form.maxLandSize"
+                            class="px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Max Size</option>
+                            <option value="2">2 Are</option>
+                            <option value="3">3 Are</option>
+                            <option value="5">5 Are</option>
+                            <option value="10">10 Are</option>
+                            <option value="20">20 Are</option>
+                            <option value="50">50+ Are</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+
+                <!-- Car Spaces Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Car Spaces</label>
+                    <select 
+                        v-model="form.carSpaces"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">Any</option>
+                        <option value="0">No Parking</option>
+                        <option value="1">1+</option>
+                        <option value="2">2+</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Modal footer with action buttons -->
