@@ -17,15 +17,27 @@ const currentFilters = reactive({
     listing_type: filters?.listing_type || '',
     bedrooms: filters?.bedrooms || '',
     village: filters?.village || '',
-    check_in_date: filters?.check_in_date || '',
-    check_out_date: filters?.check_out_date || ''
+    bookingDates: {
+        checkIn: filters?.check_in_date || '',
+        checkOut: filters?.check_out_date || ''
+    }
 });
 
 // Apply filters function
 const applyFilters = () => {
+    // Flatten the bookingDates object into separate fields for the backend
+    const flattenedFilters = {
+        property_type: currentFilters.property_type,
+        listing_type: currentFilters.listing_type,
+        bedrooms: currentFilters.bedrooms,
+        village: currentFilters.village,
+        check_in_date: currentFilters.bookingDates.checkIn,
+        check_out_date: currentFilters.bookingDates.checkOut,
+    };
+
     // Remove empty filters
     const cleanFilters = Object.fromEntries(
-        Object.entries(currentFilters).filter(([, value]) => value !== '')
+        Object.entries(flattenedFilters).filter(([, value]) => value !== '')
     );
 
     // Use API service with filters as query parameters
@@ -41,9 +53,11 @@ const applyFilters = () => {
 
 // Clear filters function
 const clearFilters = () => {
-    Object.keys(currentFilters).forEach(key => {
-        currentFilters[key as keyof typeof currentFilters] = '';
-    });
+    currentFilters.property_type = '';
+    currentFilters.listing_type = '';
+    currentFilters.bedrooms = '';
+    currentFilters.village = '';
+    currentFilters.bookingDates = { checkIn: '', checkOut: '' };
     
     api.properties.getAllProperties({}, {
         onSuccess: (response: any) => {
@@ -57,24 +71,22 @@ const clearFilters = () => {
 
 // Check if any filters are active
 const hasActiveFilters = () => {
-    return Object.values(currentFilters).some(value => value !== '');
-};
-
-// Handle date changes from BookingDateFilter
-const onDatesChanged = (dates: { checkIn: string; checkOut: string }) => {
-    currentFilters.check_in_date = dates.checkIn;
-    currentFilters.check_out_date = dates.checkOut;
+    return currentFilters.property_type !== '' ||
+           currentFilters.listing_type !== '' ||
+           currentFilters.bedrooms !== '' ||
+           currentFilters.village !== '' ||
+           currentFilters.bookingDates.checkIn !== '' ||
+           currentFilters.bookingDates.checkOut !== '';
 };
 
 // Clear only booking dates
 const clearBookingDates = () => {
-    currentFilters.check_in_date = '';
-    currentFilters.check_out_date = '';
+    currentFilters.bookingDates = { checkIn: '', checkOut: '' };
 };
 
 // Check if booking dates are set
 const hasBookingDates = () => {
-    return currentFilters.check_in_date && currentFilters.check_out_date;
+    return currentFilters.bookingDates.checkIn && currentFilters.bookingDates.checkOut;
 };
 
 // Format filter display name
@@ -103,13 +115,7 @@ const formatFilterValue = (key: string, value: string): string => {
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
         <!-- Booking date filter -->
         <div class="mb-6">
-            <BookingDateFilter 
-                    :check-in="currentFilters.check_in_date"
-                    :check-out="currentFilters.check_out_date"
-                    @update:check-in="currentFilters.check_in_date = $event"
-                    @update:check-out="currentFilters.check_out_date = $event"
-                    @dates-changed="onDatesChanged"
-                />
+            <BookingDateFilter v-model="currentFilters.bookingDates" />
         </div>
 
         <!-- Property filters -->
@@ -214,19 +220,45 @@ const formatFilterValue = (key: string, value: string): string => {
         <div v-if="hasActiveFilters()" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div class="flex flex-wrap gap-2">
                 <span class="text-sm text-gray-600 dark:text-gray-400 mr-2">Active filters:</span>
+                
+                <!-- Property filters -->
+                <template v-for="(value, key) in currentFilters" :key="key">
+                    <!-- All filters except for bookingDates -->
+                    <span 
+                        v-if="value && key !== 'bookingDates'"
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    >
+                        {{ formatFilterName(key) }}: {{ value }}
+                        <button 
+                            @click="currentFilters[key as Exclude<keyof typeof currentFilters, 'bookingDates'>] = ''; applyFilters()"
+                            class="ml-2 hover:text-blue-600 focus:outline-none"
+                        >
+                            ×
+                        </button>
+                    </span>
+                </template>
+                
+                <!-- Date filters -->
                 <span 
-                    v-for="(value, key) in currentFilters" 
-                    :key="key"
-                    v-show="value"
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                    :class="key.includes('date') 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'"
+                    v-if="currentFilters.bookingDates.checkIn"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                 >
-                    {{ formatFilterName(key) }}: {{ formatFilterValue(key, value) }}
+                    Check-in: {{ formatFilterValue('checkIn', currentFilters.bookingDates.checkIn) }}
                     <button 
-                        @click="currentFilters[key as keyof typeof currentFilters] = ''; applyFilters()"
-                        class="ml-2 hover:text-blue-600 focus:outline-none"
+                        @click="currentFilters.bookingDates.checkIn = ''; applyFilters()"
+                        class="ml-2 hover:text-green-600 focus:outline-none"
+                    >
+                        ×
+                    </button>
+                </span>
+                <span 
+                    v-if="currentFilters.bookingDates.checkOut"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                >
+                    Check-out: {{ formatFilterValue('checkOut', currentFilters.bookingDates.checkOut) }}
+                    <button 
+                        @click="currentFilters.bookingDates.checkOut = ''; applyFilters()"
+                        class="ml-2 hover:text-green-600 focus:outline-none"
                     >
                         ×
                     </button>

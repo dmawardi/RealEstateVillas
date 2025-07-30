@@ -1,84 +1,79 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { DateRange } from '@/types';
+import { ref, watch, computed } from 'vue';
 
 interface Props {
-    checkIn?: string;
-    checkOut?: string;
+    modelValue?: DateRange;
 }
 
 interface Emits {
-    (e: 'update:checkIn', value: string): void;
-    (e: 'update:checkOut', value: string): void;
-    (e: 'datesChanged', dates: { checkIn: string; checkOut: string }): void;
+    (e: 'update:modelValue', value: DateRange): void;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 // Local reactive refs for date inputs
-const checkInDate = ref(props.checkIn || '');
-const checkOutDate = ref(props.checkOut || '');
+const checkInDate = ref(props.modelValue?.checkIn || '');
+const checkOutDate = ref(props.modelValue?.checkOut || '');
 
 // Get today's date for min attribute
 const today = new Date().toISOString().split('T')[0];
 
-// Watch for changes and emit updates
-watch(checkInDate, (newDate) => {
-    emit('update:checkIn', newDate);
-    emitDatesChanged();
+// Watch for changes and emit single v-model update
+watch([checkInDate, checkOutDate], ([newCheckIn, newCheckOut]) => {
+    emit('update:modelValue', {
+        checkIn: newCheckIn,
+        checkOut: newCheckOut
+    });
     
     // If check-in is after check-out, clear check-out
-    if (newDate && checkOutDate.value && newDate >= checkOutDate.value) {
+    if (newCheckIn && newCheckOut && newCheckIn >= newCheckOut) {
         checkOutDate.value = '';
-        emit('update:checkOut', '');
     }
-});
+}, { deep: true });
 
-watch(checkOutDate, (newDate) => {
-    emit('update:checkOut', newDate);
-    emitDatesChanged();
-});
-
-// Helper function to emit combined dates
-const emitDatesChanged = () => {
-    if (checkInDate.value && checkOutDate.value) {
-        emit('datesChanged', {
-            checkIn: checkInDate.value,
-            checkOut: checkOutDate.value
-        });
+// Watch for external model value changes
+watch(() => props.modelValue, (newValue) => {
+    if (newValue) {
+        checkInDate.value = newValue.checkIn || '';
+        checkOutDate.value = newValue.checkOut || '';
     }
-};
+}, { deep: true });
 
 // Clear both dates
 const clearDates = () => {
     checkInDate.value = '';
     checkOutDate.value = '';
-    emit('update:checkIn', '');
-    emit('update:checkOut', '');
 };
 
 // Check if dates are valid
-const areDatesValid = () => {
+const areDatesValid = computed(() => {
     return checkInDate.value && checkOutDate.value && checkInDate.value < checkOutDate.value;
-};
+});
 
 // Get minimum checkout date (day after check-in)
-const getMinCheckOutDate = () => {
+const getMinCheckOutDate = computed(() => {
     if (!checkInDate.value) return today;
     
     const checkIn = new Date(checkInDate.value);
     checkIn.setDate(checkIn.getDate() + 1);
     return checkIn.toISOString().split('T')[0];
-};
+});
 
 // Calculate number of nights
-const getNights = () => {
-    if (!areDatesValid()) return 0;
+const getNights = computed(() => {
+    if (!areDatesValid.value) return 0;
     
     const checkIn = new Date(checkInDate.value);
     const checkOut = new Date(checkOutDate.value);
     return Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-};
+});
+
+// Check if any dates are set
+const hasDates = computed(() => {
+    return checkInDate.value || checkOutDate.value;
+});
 </script>
 
 <template>
@@ -88,7 +83,7 @@ const getNights = () => {
                 Booking Dates
             </h3>
             <button 
-                v-if="checkInDate || checkOutDate"
+                v-if="hasDates"
                 @click="clearDates"
                 class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
@@ -119,7 +114,7 @@ const getNights = () => {
                 <input
                     v-model="checkOutDate"
                     type="date"
-                    :min="getMinCheckOutDate()"
+                    :min="getMinCheckOutDate"
                     :disabled="!checkInDate"
                     class="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Select check-out date"
@@ -128,9 +123,9 @@ const getNights = () => {
         </div>
 
         <!-- Date Summary -->
-        <div v-if="areDatesValid()" class="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 rounded p-2">
+        <div v-if="areDatesValid" class="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 rounded p-2">
             <div class="flex items-center justify-between">
-                <span>{{ getNights() }} night{{ getNights() !== 1 ? 's' : '' }}</span>
+                <span>{{ getNights }} night{{ getNights !== 1 ? 's' : '' }}</span>
                 <span>{{ new Date(checkInDate).toLocaleDateString() }} - {{ new Date(checkOutDate).toLocaleDateString() }}</span>
             </div>
         </div>

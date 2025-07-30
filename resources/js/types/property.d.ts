@@ -112,6 +112,11 @@ export interface PropertyPricing {
     end_date?: string;
 }
 
+export interface DateRange {
+    checkIn: string;
+    checkOut: string;
+}
+
 // Property-specific enums for better type safety
 export type PropertyType = 'house' | 'apartment' | 'townhouse' | 'villa' | 'land' | 'commercial' | 'guest_house' | 'other';
 export type ListingType = 'for_sale' | 'for_rent' | 'sold' | 'off_market';
