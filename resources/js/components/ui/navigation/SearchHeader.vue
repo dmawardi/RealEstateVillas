@@ -6,6 +6,7 @@ import SearchIcon from '../form/SearchIcon.vue';
 import Modal from '@/components/Modal.vue';
 import PriceFilter from '../filters/PriceFilter.vue';
 import LocationFilter from '../filters/LocationFilter.vue';
+import BookingDateFilter from '@/components/properties/_BookingDateFilter.vue';
 
 const modalOpen = ref(false);
 const form = ref({
@@ -27,15 +28,11 @@ const form = ref({
     maxLandSize: '',
     carSpaces: '',
     status: [] as string[],
+    dateFilter: {
+        checkIn: '',
+        checkOut: ''
+    }
 });
-
-function handleSearch() {
-    // Implement search logic here
-    console.log('Searching for:', form.value.search, 'Mode:', form.value.mode);
-    console.log('Location Filter:', form.value.locationFilter);
-    console.log('Price Filter:', form.value.priceFilter);
-    console.log('Modal Open:', modalOpen.value);
-}
 
 function selectMode(mode: 'rent' | 'buy') {
     form.value.mode = mode;
@@ -45,6 +42,38 @@ function selectMode(mode: 'rent' | 'buy') {
 function closeModal() {
     modalOpen.value = false;
 }
+
+const handleSearch = () => {
+    // Flatten the bookingDates object into separate fields for the backend
+    const flattenedFilters = {
+        property_type: form.value.propertyTypes,
+        listing_type: form.value.mode,
+        bedrooms: form.value.bedrooms,
+        bathrooms: form.value.bathrooms,
+        village: form.value.locationFilter.district,
+        regency: form.value.locationFilter.regency,
+        min_price: form.value.priceFilter.minPrice,
+        max_price: form.value.priceFilter.maxPrice,
+        price_rate: form.value.priceFilter.priceRate,
+        min_land_size: form.value.minLandSize,
+        max_land_size: form.value.maxLandSize,
+        car_spaces: form.value.carSpaces,
+        status: form.value.status,
+        check_in_date: form.value.dateFilter.checkIn,
+        check_out_date: form.value.dateFilter.checkOut,
+        search: form.value.search,
+    };
+
+    // Remove empty filters
+    const cleanFilters = Object.fromEntries(
+        Object.entries(flattenedFilters).filter(([, value]) => value !== '')
+    );
+    console.log('Clean Filters:', cleanFilters);
+    console.log('Searching for:', form.value.search, 'Mode:', form.value.mode);
+    console.log('Location Filter:', form.value.locationFilter);
+    console.log('Price Filter:', form.value.priceFilter);
+    console.log('Modal Open:', modalOpen.value);
+};
 </script>
 
 <template>
@@ -111,7 +140,9 @@ function closeModal() {
         </div>
         <Modal v-model:open="modalOpen" title="Filters" closable @close="modalOpen = false" size="lg">
              <!-- Modal content -->
-            <div class="space-y-4">                
+            <div class="space-y-4">
+                <!-- Date filter -->
+                 <BookingDateFilter v-model="form.dateFilter" />
                 <!-- Type Filter -->
                 <div>
                     <label class="block text-sm font-medium mb-2">Property Type</label>
