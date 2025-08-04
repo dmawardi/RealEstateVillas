@@ -12,9 +12,6 @@ Route::get('/', function () {
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
-// Availability
-Route::get('properties/{property}/availability', [PropertyController::class, 'getAvailability'])->name('properties.availability');
-
 // Bookings
 Route::post('properties/{property}/bookings', [BookingController::class, 'store'])->name('properties.bookings.store');
 

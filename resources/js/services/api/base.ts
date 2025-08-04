@@ -1,86 +1,61 @@
-import { router } from '@inertiajs/vue3';
-
-interface ApiOptions {
-    onSuccess?: (data?: any) => void;
-    onError?: (errors: Record<string, any>) => void;
+export interface ApiOptions {
+    onSuccess?: (response: any) => void;
+    onError?: (errors: any) => void;
     onFinish?: () => void;
 }
 
-/**
- * Provides a base API service for making HTTP requests using a router.
- * 
- * This class includes static methods for common HTTP operations (`get`, `post`, `put`, `delete`)
- * and error formatting. Each method accepts a URL and optional data or options, and handles
- * success, error, and finish callbacks.
- * 
- * @remarks
- * - The `formatErrors` method standardizes error responses into a consistent format.
- * - The `ApiOptions` type is expected to define optional `onSuccess`, `onError`, and `onFinish` callbacks.
- * - The `router` object is assumed to be available in the scope and provides HTTP methods.
- * 
- * @example
- * ```typescript
- * ApiService.post('/api/resource', { name: 'Example' }, {
- *   onSuccess: (response) => { ... },
- *   onError: (errors) => { ... },
- *   onFinish: () => { ... }
- * });
- * ```
- */
 export class ApiService {
-    protected static formatErrors(responseErrors: Record<string, any>): Record<string, string[]> {
-        const formattedErrors: Record<string, string[]> = {};
-        for (const [key, value] of Object.entries(responseErrors)) {
-            formattedErrors[key] = Array.isArray(value) ? value : [String(value)];
+    private static async makeRequest(
+        method: string, 
+        url: string, 
+        data?: any, 
+        options: ApiOptions = {}
+    ) {
+        const { onSuccess, onError, onFinish } = options;
+
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    // Get CSRF token from meta tag
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: data ? JSON.stringify(data) : undefined,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
+                if (onError) onError(errorData);
+                return;
+            }
+
+            const responseData = await response.json();
+            if (onSuccess) onSuccess(responseData);
+            
+        } catch (error) {
+            console.error('API request failed:', error);
+            if (onError) onError({ message: 'Network error occurred' });
+        } finally {
+            if (onFinish) onFinish();
         }
-        return formattedErrors;
     }
 
-    protected static post(url: string, data: any, options: ApiOptions = {}) {
-        return router.post(url, data, {
-            onSuccess: options.onSuccess,
-            onError: (responseErrors) => {
-                if (options.onError) {
-                    options.onError(this.formatErrors(responseErrors));
-                }
-            },
-            onFinish: options.onFinish
-        });
+    static get(url: string, options: ApiOptions = {}) {
+        return this.makeRequest('GET', url, undefined, options);
     }
 
-    protected static get(url: string, options: ApiOptions = {}) {
-        return router.get(url, undefined, {
-            onSuccess: options.onSuccess,
-            onError: (responseErrors) => {
-                if (options.onError) {
-                    options.onError(this.formatErrors(responseErrors));
-                }
-            },
-            onFinish: options.onFinish
-        });
+    static post(url: string, data: any, options: ApiOptions = {}) {
+        return this.makeRequest('POST', url, data, options);
     }
 
-    protected static put(url: string, data: any, options: ApiOptions = {}) {
-        return router.put(url, data, {
-            onSuccess: options.onSuccess,
-            onError: (responseErrors) => {
-                if (options.onError) {
-                    options.onError(this.formatErrors(responseErrors));
-                }
-            },
-            onFinish: options.onFinish
-        });
+    static put(url: string, data: any, options: ApiOptions = {}) {
+        return this.makeRequest('PUT', url, data, options);
     }
 
-    protected static delete(url: string, options: ApiOptions = {}) {
-        return router.delete(url, {
-            onSuccess: options.onSuccess,
-            onError: (responseErrors) => {
-                if (options.onError) {
-                    options.onError(this.formatErrors(responseErrors));
-                }
-            },
-            onFinish: options.onFinish
-        });
+    static delete(url: string, options: ApiOptions = {}) {
+        return this.makeRequest('DELETE', url, undefined, options);
     }
 }

@@ -184,4 +184,33 @@ class PropertyController extends Controller
             'unavailable_periods' => $unavailablePeriods
         ]);
     }
+
+    // New method to get all unique locations (villages) of properties
+    public function getAllLocations()
+    {
+        // Get all unique villages, districts, or regencies from active properties
+        $villages = Property::where('status', 'active')
+            ->distinct()
+            ->pluck('village')
+            ->filter()
+            ->values();
+
+        $districts = Property::where('status', 'active')
+            ->distinct()
+            ->pluck('district')
+            ->filter()
+            ->values();
+
+        $regencies = Property::where('status', 'active')
+            ->distinct()
+            ->pluck('regency')
+            ->filter()
+            ->values();
+
+        return response()->json([
+            'villages' => $villages,
+            'districts' => $districts,
+            'regencies' => $regencies,
+        ]);
+    }
 }

@@ -15,10 +15,6 @@ interface PageProps extends InertiaPageProps {
 }
 
 const page = usePage<PageProps>();
-// Add console logging for debugging
-console.log('🔥 FlashMessages component loaded');
-console.log('🔥 Current page props:', page.props);
-console.log('🔥 Flash data:', page.props.flash);
 
 // Reactive state for showing messages
 const showSuccess = ref(false);

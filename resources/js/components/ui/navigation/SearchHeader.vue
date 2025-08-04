@@ -7,6 +7,7 @@ import Modal from '@/components/Modal.vue';
 import PriceFilter from '../filters/PriceFilter.vue';
 import LocationFilter from '../filters/LocationFilter.vue';
 import BookingDateFilter from '@/components/properties/_BookingDateFilter.vue';
+import LocationAutocomplete from '../form/LocationAutocomplete.vue';
 
 const modalOpen = ref(false);
 const form = ref({
@@ -20,10 +21,11 @@ const form = ref({
     propertyTypes: [] as string[],
     bedrooms: '',
     bathrooms: '',
-    locationFilter: {
-        district: '',
-        regency: '',
-    },
+    locationFilter: [] as string[],
+    // locationFilter: {
+    //     district: '',
+    //     regency: '',
+    // },
     minLandSize: '',
     maxLandSize: '',
     carSpaces: '',
@@ -50,8 +52,7 @@ const handleSearch = () => {
         listing_type: form.value.mode,
         bedrooms: form.value.bedrooms,
         bathrooms: form.value.bathrooms,
-        village: form.value.locationFilter.district,
-        regency: form.value.locationFilter.regency,
+        locations: form.value.locationFilter,
         min_price: form.value.priceFilter.minPrice,
         max_price: form.value.priceFilter.maxPrice,
         price_rate: form.value.priceFilter.priceRate,
@@ -73,6 +74,10 @@ const handleSearch = () => {
     console.log('Location Filter:', form.value.locationFilter);
     console.log('Price Filter:', form.value.priceFilter);
     console.log('Modal Open:', modalOpen.value);
+    // Create the query string
+    const queryString = new URLSearchParams(cleanFilters as Record<string, string>).toString();
+    // Redirect to the search results page with query parameters
+    window.location.href = `/properties?${queryString}`;
 };
 </script>
 
@@ -114,12 +119,13 @@ const handleSearch = () => {
             <div class="bg-white flex flex-col md:flex-row md:items-center md:justify-between w-2/3 px-4 py-2 rounded-md shadow-md space-y-2 md:space-y-0 md:space-x-2">
                 <div class="flex items-center w-full space-x-1">
                     <SearchIcon />
-                    <Input
+                    <LocationAutocomplete v-model="form.locationFilter" class="flex-grow" />
+                    <!-- <Input
                         v-model="form.search"
                         type="text"
                         placeholder="Search..."
                         class="rounded-md py-1"
-                    />
+                    /> -->
                 </div>
                 <!-- Action buttons -->
                 <div class="flex space-x-2 md:flex-shrink-0 justify-end">
@@ -209,7 +215,7 @@ const handleSearch = () => {
                 <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
 
                 <!-- Location Filter (District/Regency) -->
-                <LocationFilter v-model="form.locationFilter" />
+                <!-- <LocationFilter v-model="form.locationFilter" /> -->
 
                 <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
 

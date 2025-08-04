@@ -20,11 +20,7 @@ export class PropertyApi extends ApiService {
     static getPropertyById(id: number, options = {}) {
         return this.get(`/properties/${id}`, options);
     }
-    static getPropertyAvailability(id: number, options = {}) {
-        return this.get(`/properties/${id}/availability`, options);
-    }
-
-   
+    
     // Admin
     static createProperty(data: any, options = {}) {
         return this.post('/properties', data, options);
@@ -34,5 +30,13 @@ export class PropertyApi extends ApiService {
     }
     static deleteProperty(id: number, options = {}) {
         return this.delete(`/properties/${id}`, options);
+    }
+
+    // API routes (returns JSON)
+    static getAvailability(id: number, options = {}) {
+        return this.get(`/api/properties/${id}/availability`, options);
+    }
+    static getAllLocations(options = {}) {
+        return this.get('/api/properties/locations', options);
     }
 }

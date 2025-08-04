@@ -117,6 +117,13 @@ export interface DateRange {
     checkOut: string;
 }
 
+export interface Location {
+    id: number;
+    name: string;
+    type: 'regency' | 'district' | 'village';
+    parent?: string; // For hierarchy display
+}
+
 // Property-specific enums for better type safety
 export type PropertyType = 'house' | 'apartment' | 'townhouse' | 'villa' | 'land' | 'commercial' | 'guest_house' | 'other';
 export type ListingType = 'for_sale' | 'for_rent' | 'sold' | 'off_market';
