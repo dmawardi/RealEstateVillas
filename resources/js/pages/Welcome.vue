@@ -5,8 +5,6 @@ import SearchHeader from '@/components/ui/navigation/SearchHeader.vue';
 
 <template>
     <BaseLayout>
-            <header class="">
-                <SearchHeader />
-            </header>
+            <SearchHeader />
     </BaseLayout>
 </template>

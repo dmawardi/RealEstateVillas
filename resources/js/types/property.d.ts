@@ -118,7 +118,6 @@ export interface DateRange {
 }
 
 export interface Location {
-    id: number;
     name: string;
     type: 'regency' | 'district' | 'village';
     parent?: string; // For hierarchy display

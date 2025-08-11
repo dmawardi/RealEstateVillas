@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import UpperNavigation from './UpperNavigation.vue';
-import Input from '@/components/ui/form/Input.vue';
 import SearchIcon from '../form/SearchIcon.vue';
 import Modal from '@/components/Modal.vue';
 import PriceFilter from '../filters/PriceFilter.vue';
-import LocationFilter from '../filters/LocationFilter.vue';
 import BookingDateFilter from '@/components/properties/_BookingDateFilter.vue';
 import LocationAutocomplete from '../form/LocationAutocomplete.vue';
+import { Location } from '@/types';
 
 const modalOpen = ref(false);
 const form = ref({
@@ -21,11 +20,7 @@ const form = ref({
     propertyTypes: [] as string[],
     bedrooms: '',
     bathrooms: '',
-    locationFilter: [] as string[],
-    // locationFilter: {
-    //     district: '',
-    //     regency: '',
-    // },
+    locationFilter: [] as Location[],
     minLandSize: '',
     maxLandSize: '',
     carSpaces: '',
@@ -52,7 +47,7 @@ const handleSearch = () => {
         listing_type: form.value.mode,
         bedrooms: form.value.bedrooms,
         bathrooms: form.value.bathrooms,
-        locations: form.value.locationFilter,
+        locations: processLocations(form.value.locationFilter),
         min_price: form.value.priceFilter.minPrice,
         max_price: form.value.priceFilter.maxPrice,
         price_rate: form.value.priceFilter.priceRate,
@@ -76,9 +71,16 @@ const handleSearch = () => {
     console.log('Modal Open:', modalOpen.value);
     // Create the query string
     const queryString = new URLSearchParams(cleanFilters as Record<string, string>).toString();
+    console.log('Query String:', queryString);
     // Redirect to the search results page with query parameters
-    window.location.href = `/properties?${queryString}`;
+    // window.location.href = `/properties?${queryString}`;
 };
+
+function processLocations(locations: Location[]) {
+    // Iterate through the locations and generate an array of strings that uses the type as a prefix
+    return locations.map(location => `${location.type}: ${location.name}`);
+}
+
 </script>
 
 <template>
@@ -120,12 +122,6 @@ const handleSearch = () => {
                 <div class="flex items-center w-full space-x-1">
                     <SearchIcon />
                     <LocationAutocomplete v-model="form.locationFilter" class="flex-grow" />
-                    <!-- <Input
-                        v-model="form.search"
-                        type="text"
-                        placeholder="Search..."
-                        class="rounded-md py-1"
-                    /> -->
                 </div>
                 <!-- Action buttons -->
                 <div class="flex space-x-2 md:flex-shrink-0 justify-end">
