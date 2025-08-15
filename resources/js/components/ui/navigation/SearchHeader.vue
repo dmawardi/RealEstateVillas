@@ -7,6 +7,7 @@ import PriceFilter from '../filters/PriceFilter.vue';
 import BookingDateFilter from '@/components/properties/_BookingDateFilter.vue';
 import LocationAutocomplete from '../form/LocationAutocomplete.vue';
 import { Location } from '@/types';
+import LocationTagDisplay from '../form/LocationTagDisplay.vue';
 
 const modalOpen = ref(false);
 const form = ref({
@@ -81,6 +82,17 @@ function processLocations(locations: Location[]) {
     return locations.map(location => `${location.type}: ${location.name}`);
 }
 
+// Methods for location tags
+const removeLocationFromFilter = (location: Location) => {
+    form.value.locationFilter = form.value.locationFilter.filter(
+        selected => selected.name !== location.name
+    );
+};
+
+const clearAllLocations = () => {
+    form.value.locationFilter = [];
+};
+
 </script>
 
 <template>
@@ -118,7 +130,12 @@ function processLocations(locations: Location[]) {
             </div>
 
             <!-- Search bar -->
-            <div class="bg-white flex flex-col md:flex-row md:items-center md:justify-between w-2/3 px-4 py-2 rounded-md shadow-md space-y-2 md:space-y-0 md:space-x-2">
+            <div
+                :class="[
+                    'bg-white flex flex-col md:flex-row md:items-center md:justify-between w-2/3 px-4 py-2 shadow-md space-y-2 md:space-y-0 md:space-x-2',
+                    form.locationFilter.length ? 'rounded-t-md' : 'rounded-md'
+                ]"
+            >
                 <div class="flex items-center w-full space-x-1">
                     <SearchIcon />
                     <LocationAutocomplete v-model="form.locationFilter" class="flex-grow" />
@@ -138,6 +155,11 @@ function processLocations(locations: Location[]) {
                         Search
                     </button>
                 </div>
+            </div>
+            <div class="bg-white w-2/3 rounded-b-md">
+                <LocationTagDisplay :locations="form.locationFilter"
+                @remove="removeLocationFromFilter" 
+                @clear-all="clearAllLocations" />
             </div>
         </div>
         <Modal v-model:open="modalOpen" title="Filters" closable @close="modalOpen = false" size="lg">
