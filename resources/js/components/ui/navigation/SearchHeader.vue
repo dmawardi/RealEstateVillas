@@ -63,7 +63,11 @@ const handleSearch = () => {
 
     // Remove empty filters
     const cleanFilters = Object.fromEntries(
-        Object.entries(flattenedFilters).filter(([, value]) => value !== '')
+        Object.entries(flattenedFilters).filter(([, value]) => {
+            if (value === '' || value === null || value === undefined) return false;
+            if (Array.isArray(value) && value.length === 0) return false;
+            return true;
+        })
     );
     console.log('Clean Filters:', cleanFilters);
     console.log('Searching for:', form.value.search, 'Mode:', form.value.mode);
@@ -239,31 +243,31 @@ const clearAllLocations = () => {
 
                 <!-- Land Size Filter -->
                 <div>
-                    <label class="block text-sm font-medium mb-2">Land Size (Are)</label>
+                    <label class="block text-sm font-medium mb-2">Land Size</label>
                     <div class="grid grid-cols-2 gap-2">
                         <select 
                             v-model="form.minLandSize"
                             class="px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Min Size</option>
-                            <option value="1">1+ Are</option>
-                            <option value="2">2+ Are</option>
-                            <option value="3">3+ Are</option>
-                            <option value="5">5+ Are</option>
-                            <option value="10">10+ Are</option>
-                            <option value="20">20+ Are</option>
+                            <option value="100">100+ m² (1 Are)</option>
+                            <option value="200">200+ m² (2 Are)</option>
+                            <option value="300">300+ m² (3 Are)</option>
+                            <option value="500">500+ m² (5 Are)</option>
+                            <option value="1000">1,000+ m² (10 Are)</option>
+                            <option value="2000">2,000+ m² (20 Are)</option>
                         </select>
                         <select 
                             v-model="form.maxLandSize"
                             class="px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Max Size</option>
-                            <option value="2">2 Are</option>
-                            <option value="3">3 Are</option>
-                            <option value="5">5 Are</option>
-                            <option value="10">10 Are</option>
-                            <option value="20">20 Are</option>
-                            <option value="50">50+ Are</option>
+                            <option value="200">200 m² (2 Are)</option>
+                            <option value="300">300 m² (3 Are)</option>
+                            <option value="500">500 m² (5 Are)</option>
+                            <option value="1000">1,000 m² (10 Are)</option>
+                            <option value="2000">2,000 m² (20 Are)</option>
+                            <option value="5000">5,000+ m² (50+ Are)</option>
                         </select>
                     </div>
                 </div>
