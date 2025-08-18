@@ -19,57 +19,125 @@ class PropertyController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Property::with(['user', 'features']);
-            
+    $query = Property::with(['user', 'features']);
 
-        // Apply filters
-        if ($request->filled('property_type')) {
-            $query->where('property_type', $request->property_type);
-        }
-
-        if ($request->filled('listing_type')) {
-            $query->where('listing_type', $request->listing_type);
-        }
-
-        if ($request->filled('bedrooms')) {
-            $query->where('bedrooms', '>=', $request->bedrooms);
-        }
-
-        if ($request->filled('village')) {
-            $query->where('village', 'like', '%' . $request->village . '%');
-        }
-
-        // Apply availability filter if both check-in and check-out dates are provided
-        if ($request->filled('check_in_date') && $request->filled('check_out_date')) {
-            $checkInDate = Carbon::parse($request->check_in_date);
-            $checkOutDate = Carbon::parse($request->check_out_date);
-            
-            // Exclude properties that have confirmed bookings overlapping with requested dates
-            $query->whereDoesntHave('bookings', function ($bookingQuery) use ($checkInDate, $checkOutDate) {
-                $bookingQuery->where('status', 'confirmed')
-                    ->where(function ($q) use ($checkInDate, $checkOutDate) {
-                        // Check if the booking overlaps with requested dates
-                        $q->where(function ($q1) use ($checkInDate, $checkOutDate) {
-                            // Booking starts before checkout and ends after checkin
-                            $q1->where('check_in_date', '<', $checkOutDate)
-                               ->where('check_out_date', '>', $checkInDate);
-                        });
-                    });
-            });
-        }
-
-        // Only show active properties
-        $query->where('status', 'active');
-
-        // Paginate the results
-        $properties = $query->latest('listed_at')->paginate(10)->withQueryString();
-
-        // Get current filters for the frontend
-        $filters = $request->only(['property_type', 'listing_type', 'bedrooms', 'village', 'check_in_date', 'check_out_date']);
-
-        // Logic to retrieve and display properties
-        return Inertia::render('properties/Index', compact('properties', 'filters'));
+    // Handle comma-separated property types
+    if ($request->filled('property_type')) {
+        $propertyTypes = explode(',', $request->property_type);
+        $query->whereIn('property_type', $propertyTypes);
     }
+
+    // Handle listing type
+    if ($request->filled('listing_type')) {
+        $query->where('listing_type', $request->listing_type);
+    }
+
+    // Handle bedrooms filter
+    if ($request->filled('bedrooms')) {
+        $query->where('bedrooms', '>=', $request->bedrooms);
+    }
+
+    // Handle bathrooms filter
+    if ($request->filled('bathrooms')) {
+        $query->where('bathrooms', '>=', $request->bathrooms);
+    }
+
+    // Handle land size filters
+    if ($request->filled('min_land_size')) {
+        $query->where('land_size', '>=', $request->min_land_size);
+    }
+
+    if ($request->filled('max_land_size')) {
+        $query->where('land_size', '<=', $request->max_land_size);
+    }
+
+    // Handle car spaces filter
+    if ($request->filled('car_spaces')) {
+        $query->where('car_spaces', '>=', $request->car_spaces);
+    }
+
+    // Handle comma-separated location filters
+    if ($request->filled('villages')) {
+        $villages = explode(',', $request->villages);
+        $query->whereIn('village', $villages);
+    }
+
+    if ($request->filled('districts')) {
+        $districts = explode(',', $request->districts);
+        $query->whereIn('district', $districts);
+    }
+
+    if ($request->filled('regencies')) {
+        $regencies = explode(',', $request->regencies);
+        $query->whereIn('regency', $regencies);
+    }
+
+    // Handle search query (searching across multiple fields)
+    if ($request->filled('search')) {
+        $searchTerm = $request->search;
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('title', 'like', '%' . $searchTerm . '%')
+              ->orWhere('description', 'like', '%' . $searchTerm . '%')
+              ->orWhere('village', 'like', '%' . $searchTerm . '%')
+              ->orWhere('district', 'like', '%' . $searchTerm . '%')
+              ->orWhere('regency', 'like', '%' . $searchTerm . '%');
+        });
+    }
+
+    // Handle comma-separated status filter
+    if ($request->filled('status')) {
+        $statuses = explode(',', $request->status);
+        $query->whereIn('status', $statuses);
+    } else {
+        // Only show active properties by default if no status filter is applied
+        $query->where('status', 'active');
+    }
+
+    // Apply availability filter if both check-in and check-out dates are provided
+    if ($request->filled('check_in_date') && $request->filled('check_out_date')) {
+        $checkInDate = Carbon::parse($request->check_in_date);
+        $checkOutDate = Carbon::parse($request->check_out_date);
+        
+        // Exclude properties that have confirmed bookings overlapping with requested dates
+        $query->whereDoesntHave('bookings', function ($bookingQuery) use ($checkInDate, $checkOutDate) {
+            $bookingQuery->where('status', 'confirmed')
+                ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                    // Check if the booking overlaps with requested dates
+                    $q->where(function ($q1) use ($checkInDate, $checkOutDate) {
+                        // Booking starts before checkout and ends after checkin
+                        $q1->where('check_in_date', '<', $checkOutDate)
+                           ->where('check_out_date', '>', $checkInDate);
+                    });
+                });
+        });
+    }
+
+    // Paginate the results
+    $properties = $query->latest('listed_at')->paginate(10)->withQueryString();
+
+    // Get current filters for the frontend (including the new ones)
+    $filters = $request->only([
+        'property_type', 
+        'listing_type', 
+        'bedrooms', 
+        'bathrooms',
+        'min_price',
+        'max_price', 
+        'price_rate',
+        'min_land_size',
+        'max_land_size',
+        'car_spaces',
+        'villages', 
+        'districts', 
+        'regencies',
+        'search',
+        'status',
+        'check_in_date', 
+        'check_out_date'
+    ]);
+
+    return Inertia::render('properties/Index', compact('properties', 'filters'));
+}
 
     /**
      * Show the form for creating a new property.

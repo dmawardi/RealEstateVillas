@@ -8,6 +8,7 @@ import BookingDateFilter from '@/components/properties/_BookingDateFilter.vue';
 import LocationAutocomplete from '../form/LocationAutocomplete.vue';
 import { Location } from '@/types';
 import LocationTagDisplay from '../form/LocationTagDisplay.vue';
+import { processLocations } from '@/utils';
 
 const modalOpen = ref(false);
 const form = ref({
@@ -16,7 +17,6 @@ const form = ref({
     priceFilter: {
         minPrice: '',
         maxPrice: '',
-        priceRate: 'monthly' as 'weekly' | 'monthly',
     },
     propertyTypes: [] as string[],
     bedrooms: '',
@@ -48,10 +48,8 @@ const handleSearch = () => {
         listing_type: form.value.mode,
         bedrooms: form.value.bedrooms,
         bathrooms: form.value.bathrooms,
-        locations: processLocations(form.value.locationFilter),
         min_price: form.value.priceFilter.minPrice,
         max_price: form.value.priceFilter.maxPrice,
-        price_rate: form.value.priceFilter.priceRate,
         min_land_size: form.value.minLandSize,
         max_land_size: form.value.maxLandSize,
         car_spaces: form.value.carSpaces,
@@ -59,6 +57,8 @@ const handleSearch = () => {
         check_in_date: form.value.dateFilter.checkIn,
         check_out_date: form.value.dateFilter.checkOut,
         search: form.value.search,
+        // explode location filter data
+        ...processLocations(form.value.locationFilter),
     };
 
     // Remove empty filters
@@ -69,22 +69,18 @@ const handleSearch = () => {
             return true;
         })
     );
+    const queryString = new URLSearchParams(cleanFilters as Record<string, string>).toString();
+
     console.log('Clean Filters:', cleanFilters);
     console.log('Searching for:', form.value.search, 'Mode:', form.value.mode);
     console.log('Location Filter:', form.value.locationFilter);
     console.log('Price Filter:', form.value.priceFilter);
     console.log('Modal Open:', modalOpen.value);
     // Create the query string
-    const queryString = new URLSearchParams(cleanFilters as Record<string, string>).toString();
     console.log('Query String:', queryString);
     // Redirect to the search results page with query parameters
-    // window.location.href = `/properties?${queryString}`;
+    window.location.href = `/properties?${queryString}`;
 };
-
-function processLocations(locations: Location[]) {
-    // Iterate through the locations and generate an array of strings that uses the type as a prefix
-    return locations.map(location => `${location.type}: ${location.name}`);
-}
 
 // Methods for location tags
 const removeLocationFromFilter = (location: Location) => {
@@ -233,11 +229,6 @@ const clearAllLocations = () => {
                         <option value="4">4+</option>
                     </select>
                 </div>
-
-                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
-
-                <!-- Location Filter (District/Regency) -->
-                <!-- <LocationFilter v-model="form.locationFilter" /> -->
 
                 <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
 

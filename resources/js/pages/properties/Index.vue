@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import type { BreadcrumbItemType, PaginatedProperties, PropertyFilters } from '@/types';
-import PropertyFilterCard from '@/components/properties/PropertyFilterCard.vue';
+// import PropertyFilterCard from '@/components/properties/PropertyFilterCard.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import PropertyCard from '@/components/properties/PropertyCard.vue';
+import CompactSearchHeader from '@/components/ui/navigation/CompactSearchHeader.vue';
 
 interface Props {
     properties: PaginatedProperties;
@@ -72,7 +73,8 @@ const getCleanLabel = (label: string): string => {
             </div>
 
             <!-- Filters Section -->
-            <PropertyFilterCard :filters="filters" />
+            <CompactSearchHeader :initialFilters="filters" />
+            <!-- <PropertyFilterCard :filters="filters" /> -->
 
             <!-- Properties Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

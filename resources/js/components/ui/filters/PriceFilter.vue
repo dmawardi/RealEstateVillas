@@ -5,7 +5,6 @@ import { computed } from 'vue';
 interface PriceFilterData {
     minPrice: string;
     maxPrice: string;
-    priceRate: 'weekly' | 'monthly';
 }
 
 // Props interface
@@ -23,17 +22,10 @@ const emit = defineEmits<Emits>();
 
 // Computed property to get price options based on selected rate
 const priceOptions = computed(() => {
-    if (props.modelValue.priceRate === 'weekly') {
         return {
-            min: [5000000, 10000000, 15000000, 20000000, 30000000, 40000000],
-            max: [10000000, 15000000, 20000000, 30000000, 40000000, 50000000]
+            min: [200000, 500000, 1000000, 2500000, 5000000, 10000000, 15000000, 20000000],
+            max: [500000, 1000000, 2500000, 5000000, 10000000, 15000000, 20000000, 25000000]
         };
-    } else { // monthly
-        return {
-            min: [5000000, 10000000, 20000000, 30000000, 50000000, 75000000],
-            max: [10000000, 20000000, 30000000, 50000000, 75000000, 100000000]
-        };
-    }
 });
 
 // Helper function to update the model value
@@ -41,15 +33,6 @@ const updateValue = (key: keyof PriceFilterData, value: any) => {
     emit('update:modelValue', {
         ...props.modelValue,
         [key]: value
-    });
-};
-
-// Handle rate change and reset prices
-const handleRateChange = (rate: 'weekly' | 'monthly') => {
-    emit('update:modelValue', {
-        priceRate: rate,
-        minPrice: '',
-        maxPrice: ''
     });
 };
 
@@ -65,32 +48,8 @@ const handleMaxPriceChange = (price: string) => {
 </script>
 
 <template>
-    <div>
-        <label class="block text-sm font-medium mb-2">Price Rate</label>
-        <div class="flex space-x-4 mb-4">
-            <label class="inline-flex items-center">
-                <input
-                    type="radio"
-                    value="weekly"
-                    :checked="modelValue.priceRate === 'weekly'"
-                    @change="handleRateChange('weekly')"
-                    class="form-radio text-blue-600"
-                />
-                <span class="ml-2">Weekly</span>
-            </label>
-            <label class="inline-flex items-center">
-                <input
-                    type="radio"
-                    value="monthly"
-                    :checked="modelValue.priceRate === 'monthly'"
-                    @change="handleRateChange('monthly')"
-                    class="form-radio text-blue-600"
-                />
-                <span class="ml-2">Monthly</span>
-            </label>
-        </div>
-        
-        <label class="block text-sm font-medium mb-2">Price Range</label>
+    <div>        
+        <label class="block text-sm font-medium mb-2">Price Range (Per Day)</label>
         <div class="grid grid-cols-2 gap-2">
             <select
                 :value="modelValue.minPrice"

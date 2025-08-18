@@ -196,7 +196,7 @@ const loadLocations = async () => {
                 
                 // Update reactive state with transformed data
                 allLocations.value = locations;
-                console.log('Locations loaded:', allLocations.value.length);
+                console.log('Locations loaded:', allLocations.value);
             },
             
             // Error callback - handle API failures gracefully
@@ -268,26 +268,6 @@ const addLocation = (location: Location) => {
         // Clear search input after selection
         searchQuery.value = '';
     }
-};
-
-/**
- * Removes a location from the selected list
- * Called when user clicks the × button on a selected location tag
- * 
- * @param locationName - Name of the location to remove
- */
-const removeLocation = (location: Location) => {
-    // Filter out the specified location (creates new array for reactivity)
-    selectedLocations.value = selectedLocations.value.filter(selected => selected.name !== location.name);
-};
-
-/**
- * Clears all selected locations and search query
- * Called when user clicks "Clear all" button
- */
-const clearAll = () => {
-    selectedLocations.value = [];  // Empty the selections array
-    searchQuery.value = '';        // Clear the search input
 };
 
 // ================================================================
