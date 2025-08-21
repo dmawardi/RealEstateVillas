@@ -6,6 +6,7 @@ import Modal from '@/components/Modal.vue';
 import PriceFilter from '../filters/PriceFilter.vue';
 import BookingDateFilter from '@/components/properties/_BookingDateFilter.vue';
 import LocationAutocomplete from '../form/LocationAutocomplete.vue';
+import PropertyTypeFilter from '../filters/PropertyTypeFilter.vue';
 import { Location } from '@/types';
 import LocationTagDisplay from '../form/LocationTagDisplay.vue';
 import { processLocations } from '@/utils';
@@ -13,7 +14,7 @@ import { processLocations } from '@/utils';
 const modalOpen = ref(false);
 const form = ref({
     search: '',
-    mode: 'rent' as 'rent' | 'buy',
+    mode: 'for_rent' as 'for_rent' | 'for_sale',
     priceFilter: {
         minPrice: '',
         maxPrice: '',
@@ -32,7 +33,7 @@ const form = ref({
     }
 });
 
-function selectMode(mode: 'rent' | 'buy') {
+function selectMode(mode: 'for_rent' | 'for_sale') {
     form.value.mode = mode;
 }
 
@@ -105,10 +106,10 @@ const clearAllLocations = () => {
             <div>
                 <div class="flex bg-gray-100 dark:bg-gray-700 rounded-t-lg p-1">
                     <button
-                        @click="selectMode('rent')"
+                        @click="selectMode('for_rent')"
                         :class="[
                             'px-2 md:px-6 py-2 text-sm font-medium transition-all duration-200',
-                            form.mode === 'rent' 
+                            form.mode === 'for_rent' 
                                 ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm rounded-t-md' 
                                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 rounded-t-md'
                         ]"
@@ -116,10 +117,10 @@ const clearAllLocations = () => {
                         Rent
                     </button>
                     <button
-                        @click="selectMode('buy')"
+                        @click="selectMode('for_sale')"
                         :class="[
                             'px-2 md:px-6 py-2 text-sm font-medium transition-all duration-200',
-                            form.mode === 'buy' 
+                            form.mode === 'for_sale' 
                                 ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm rounded-t-md' 
                                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 rounded-t-md'
                         ]"
@@ -168,27 +169,7 @@ const clearAllLocations = () => {
                 <!-- Date filter -->
                  <BookingDateFilter v-model="form.dateFilter" />
                 <!-- Type Filter -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">Property Type</label>
-                    <div class="flex flex-col space-y-1">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" value="villa" class="form-checkbox text-blue-600" />
-                            <span class="ml-2">Villa</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" value="apartment" class="form-checkbox text-blue-600" />
-                            <span class="ml-2">Apartment</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" value="commercial" class="form-checkbox text-blue-600" />
-                            <span class="ml-2">Commercial</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" value="guest_house" class="form-checkbox text-blue-600" />
-                            <span class="ml-2">Guest House</span>
-                        </label>
-                    </div>
-                </div>
+                <PropertyTypeFilter v-model="form.propertyTypes" />
 
                 <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
 

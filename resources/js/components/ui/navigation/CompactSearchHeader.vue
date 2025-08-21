@@ -7,6 +7,7 @@ import BookingDateFilter from '@/components/properties/_BookingDateFilter.vue';
 import LocationAutocomplete from '../form/LocationAutocomplete.vue';
 import { Location } from '@/types';
 import LocationTagDisplay from '../form/LocationTagDisplay.vue';
+import PropertyTypeFilter from '../filters/PropertyTypeFilter.vue';
 import { processLocations } from '@/utils';
 
 // Props to accept initial filter values from the page
@@ -23,7 +24,7 @@ const modalOpen = ref(false);
 // Initialize form with props data or defaults
 const form = ref({
     search: props.initialFilters.search || '',
-    mode: (props.initialFilters.listing_type as 'rent' | 'buy') || 'rent',
+    mode: (props.initialFilters.listing_type as 'for_rent' | 'for_sale') || 'for_rent',
     priceFilter: {
         minPrice: props.initialFilters.min_price || '',
         maxPrice: props.initialFilters.max_price || '',
@@ -70,7 +71,7 @@ const initializeLocationFilter = () => {
 // Initialize location filter on component mount
 initializeLocationFilter();
 
-function selectMode(mode: 'rent' | 'buy') {
+function selectMode(mode: 'for_rent' | 'for_sale') {
     form.value.mode = mode;
 }
 
@@ -128,7 +129,7 @@ const clearAllLocations = () => {
 const clearAllFilters = () => {
     form.value = {
         search: '',
-        mode: 'rent',
+        mode: 'for_rent',
         priceFilter: { minPrice: '', maxPrice: ''},
         propertyTypes: [],
         bedrooms: '',
@@ -152,10 +153,10 @@ const clearAllFilters = () => {
             <div class="flex justify-center mb-3">
                 <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                     <button
-                        @click="selectMode('rent')"
+                        @click="selectMode('for_rent')"
                         :class="[
                             'px-4 py-1.5 text-sm font-medium transition-all duration-200',
-                            form.mode === 'rent' 
+                            form.mode === 'for_rent' 
                                 ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm rounded-md' 
                                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
                         ]"
@@ -163,10 +164,10 @@ const clearAllFilters = () => {
                         Rent
                     </button>
                     <button
-                        @click="selectMode('buy')"
+                        @click="selectMode('for_sale')"
                         :class="[
                             'px-4 py-1.5 text-sm font-medium transition-all duration-200',
-                            form.mode === 'buy' 
+                            form.mode === 'for_sale' 
                                 ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm rounded-md' 
                                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
                         ]"
@@ -236,47 +237,7 @@ const clearAllFilters = () => {
                 <BookingDateFilter v-model="form.dateFilter" />
 
                 <!-- Property Type Filter -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">Property Type</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="inline-flex items-center">
-                            <input 
-                                v-model="form.propertyTypes" 
-                                value="villa" 
-                                type="checkbox" 
-                                class="form-checkbox text-blue-600" 
-                            />
-                            <span class="ml-2">Villa</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input 
-                                v-model="form.propertyTypes" 
-                                value="apartment" 
-                                type="checkbox" 
-                                class="form-checkbox text-blue-600" 
-                            />
-                            <span class="ml-2">Apartment</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input 
-                                v-model="form.propertyTypes" 
-                                value="commercial" 
-                                type="checkbox" 
-                                class="form-checkbox text-blue-600" 
-                            />
-                            <span class="ml-2">Commercial</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input 
-                                v-model="form.propertyTypes" 
-                                value="guest_house" 
-                                type="checkbox" 
-                                class="form-checkbox text-blue-600" 
-                            />
-                            <span class="ml-2">Guest House</span>
-                        </label>
-                    </div>
-                </div>
+                <PropertyTypeFilter v-model="form.propertyTypes" />
 
                 <hr class="border-t border-gray-200 dark:border-gray-600" />
 
