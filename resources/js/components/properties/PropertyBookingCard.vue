@@ -1,22 +1,37 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { Availability, Property, PropertyPricing } from '@/types';
+import type { Property, PropertyPricing } from '@/types';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { formatPrice, formatDate } from '@/utils/formatters'; // Importing formatPrice utility
+import { formatPrice, formatDate } from '@/utils/formatters';
 import BookingModal from '@/components/properties/BookingModal.vue';
+import { api } from '@/services/api';
 
 interface Props {
     property: Property;
-    availability: Availability;
     current_pricing: PropertyPricing;
 }
 
-const { property, availability, current_pricing } = defineProps<Props>();
+interface UnavailablePeriod {
+    start: string;
+    end: string;
+}
 
-// Reactive state - VueDatePicker can return null when cleared
+interface AvailabilityResponse {
+    period_start: string;
+    period_end: string;
+    unavailable_periods: UnavailablePeriod[];
+}
+
+const { property, current_pricing } = defineProps<Props>();
+
+// Reactive state
 const dateRange = ref<[Date, Date] | null>(null);
 const isBookingModalOpen = ref(false);
+const unavailablePeriods = ref<UnavailablePeriod[]>([]);
+const isLoadingAvailability = ref(false);
+const availabilityLoaded = ref(false);
+const availabilityError = ref<string | null>(null);
 
 // Get today's date as Date object
 const today = new Date();
@@ -49,11 +64,12 @@ const getTotalPrice = computed(() => {
     
     return totalPrice;
 });
+
 // Get disabled dates from unavailable periods
 const disabledDates = computed(() => {
     const disabled: Date[] = [];
     
-    availability.unavailable_periods.forEach(period => {
+    unavailablePeriods.value.forEach(period => {
         const start = new Date(period.start);
         const end = new Date(period.end);
         
@@ -64,6 +80,58 @@ const disabledDates = computed(() => {
     
     return disabled;
 });
+
+// Load availability data from API
+const loadAvailability = async () => {
+    if (availabilityLoaded.value || isLoadingAvailability.value) {
+        return;
+    }
+
+    isLoadingAvailability.value = true;
+    availabilityError.value = null;
+
+    try {
+        // Load availability for next 6 months
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + 6);
+
+        // Use the updated API method with proper parameters
+        await api.properties.getAvailability(
+            property.id, 
+            {
+                start: startDate.toISOString().split('T')[0],
+                end: endDate.toISOString().split('T')[0]
+            }, 
+            {
+                // Success callback - handle API response
+                onSuccess: (response: AvailabilityResponse) => {
+                    unavailablePeriods.value = response.unavailable_periods;
+                    availabilityLoaded.value = true;
+                    console.log('Availability loaded:', response);
+                },
+                
+                // Error callback - handle API failures gracefully
+                onError: (errors: any) => {
+                    console.error('Failed to load availability:', errors);
+                    availabilityError.value = 'Failed to load availability data';
+                    unavailablePeriods.value = []; // Fallback to no restrictions
+                }
+            }
+        );
+    } catch (error) {
+        console.error('Error loading availability:', error);
+        availabilityError.value = 'Failed to load availability data';
+        unavailablePeriods.value = [];
+    } finally {
+        isLoadingAvailability.value = false;
+    }
+};
+
+// Handle date picker focus/open event
+const handleDatePickerOpen = () => {
+    loadAvailability();
+};
 
 // Clear button handler
 const clearDates = () => {
@@ -90,6 +158,17 @@ const openBookingModal = () => {
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Dates
                 </label>
+                
+                <!-- Loading state for availability -->
+                <div v-if="isLoadingAvailability" class="text-sm text-blue-600 dark:text-blue-400 mb-2">
+                    Loading availability...
+                </div>
+                
+                <!-- Error state -->
+                <div v-if="availabilityError" class="text-sm text-red-600 dark:text-red-400 mb-2">
+                    {{ availabilityError }}
+                </div>
+
                 <VueDatePicker
                     v-model="dateRange"
                     :min-date="today"
@@ -102,6 +181,8 @@ const openBookingModal = () => {
                     placeholder="Select check-in and check-out dates"
                     format="MMM dd, yyyy"
                     menu-class-name="dp-custom-menu"
+                    @focus="handleDatePickerOpen"
+                    @open="handleDatePickerOpen"
                 />
             </div>
 
@@ -145,10 +226,10 @@ const openBookingModal = () => {
             <div class="space-y-2">
                 <button 
                     @click="openBookingModal"
-                    :disabled="!areDatesValid"
+                    :disabled="!areDatesValid || isLoadingAvailability"
                     class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                    {{ areDatesValid ? 'Continue to Book' : 'Select Dates' }}
+                    {{ isLoadingAvailability ? 'Loading...' : areDatesValid ? 'Continue to Book' : 'Select Dates' }}
                 </button>
             </div>
 
@@ -165,6 +246,7 @@ const openBookingModal = () => {
                 </div>
             </div>
         </div>
+
         <!-- Booking Modal -->
         <BookingModal 
             v-model="isBookingModalOpen"

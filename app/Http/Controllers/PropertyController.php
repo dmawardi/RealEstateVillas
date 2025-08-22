@@ -173,21 +173,10 @@ class PropertyController extends Controller
         $startDate = Carbon::now();
         $endDate = Carbon::now()->addMonths(6);
 
-        $unavailablePeriods = $this->availabilityService->getUnavailablePeriods(
-            $property,
-            $startDate,
-            $endDate
-        );
-
         // Logic to retrieve and display a specific property
         return Inertia::render('properties/Show', [
             'property' => $property,
             'current_pricing' => $currentPricing,
-            'availability' => [
-                'start_date' => $startDate->format('Y-m-d'),
-                'end_date' => $endDate->format('Y-m-d'),
-                'unavailable_periods' => $unavailablePeriods
-            ],
         ]);
     }
     /**
@@ -216,7 +205,8 @@ class PropertyController extends Controller
     }
 
 
-    // Availability related methods
+    // If check-in and check-out dates are provided, check availability for that range and return boolean
+    // Else, return unavailable periods
     public function getAvailability(Property $property, Request $request)
     {
         // For specific date range check

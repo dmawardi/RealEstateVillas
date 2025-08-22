@@ -86,6 +86,16 @@ class Property extends Model
     }
 
     // Helper method to get current pricing
+    /**
+     * Retrieve the current active pricing for the property.
+     *
+     * This method queries the related pricing records and returns the first pricing entry
+     * that is currently valid. A pricing is considered current if:
+     * - Its 'start_date' is either null (no start restriction) or less than or equal to the current date/time.
+     * - Its 'end_date' is either null (no end restriction) or greater than or equal to the current date/time.
+     *
+     * @return \Illuminate\Database\Eloquent\Model|null The current pricing model instance, or null if none is active.
+     */
     public function getCurrentPricing()
     {
         return $this->pricing()
