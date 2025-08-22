@@ -67,29 +67,29 @@ class PropertyController extends Controller
         $query->where('listing_type', $request->listing_type);
     }
 
-    // // Handle bedrooms filter
-    // if ($request->filled('bedrooms')) {
-    //     $query->where('bedrooms', '>=', $request->bedrooms);
-    // }
+    // Handle bedrooms filter
+    if ($request->filled('bedrooms')) {
+        $query->where('bedrooms', '>=', $request->bedrooms);
+    }
 
-    // // Handle bathrooms filter
-    // if ($request->filled('bathrooms')) {
-    //     $query->where('bathrooms', '>=', $request->bathrooms);
-    // }
+    // Handle bathrooms filter
+    if ($request->filled('bathrooms')) {
+        $query->where('bathrooms', '>=', $request->bathrooms);
+    }
 
-    // // Handle land size filters
-    // if ($request->filled('min_land_size')) {
-    //     $query->where('land_size', '>=', $request->min_land_size);
-    // }
+    // Handle land size filters
+    if ($request->filled('min_land_size')) {
+        $query->where('land_size', '>=', $request->min_land_size);
+    }
 
-    // if ($request->filled('max_land_size')) {
-    //     $query->where('land_size', '<=', $request->max_land_size);
-    // }
+    if ($request->filled('max_land_size')) {
+        $query->where('land_size', '<=', $request->max_land_size);
+    }
 
-    // // Handle car spaces filter
-    // if ($request->filled('car_spaces')) {
-    //     $query->where('car_spaces', '>=', $request->car_spaces);
-    // }
+    // Handle car spaces filter
+    if ($request->filled('car_spaces')) {
+        $query->where('car_spaces', '>=', $request->car_spaces);
+    }
 
 
     // Only show active properties by default if no status filter is applied
