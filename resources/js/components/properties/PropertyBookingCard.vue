@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+// Remove this line: import { debounce } from 'lodash-es';
 import type { Property, PropertyPricing } from '@/types';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { formatPrice, formatDate } from '@/utils/formatters';
 import BookingModal from '@/components/properties/BookingModal.vue';
 import { api } from '@/services/api';
+
+// ================================================================
+// INTERFACES & TYPES
+// ================================================================
 
 interface Props {
     property: Property;
@@ -23,49 +28,59 @@ interface AvailabilityResponse {
     unavailable_periods: UnavailablePeriod[];
 }
 
-const { property, current_pricing } = defineProps<Props>();
+interface PriceCalculation {
+    total_price: number;
+    original_price: number;
+    savings: number;
+    discount_percentage: number;
+    nights: number;
+    rate_used: 'nightly' | 'weekly' | 'monthly';
+    rate_per_night: number;
+    original_rate_per_night: number;
+    currency: string;
+    check_in_date: string;
+    check_out_date: string;
+}
 
-// Reactive state
+// ================================================================
+// COMPONENT SETUP
+// ================================================================
+
+const props = defineProps<Props>();
+
+// ================================================================
+// REACTIVE STATE
+// ================================================================
+
+// Date selection
 const dateRange = ref<[Date, Date] | null>(null);
-const isBookingModalOpen = ref(false);
+const today = new Date();
+
+// Availability data
 const unavailablePeriods = ref<UnavailablePeriod[]>([]);
 const isLoadingAvailability = ref(false);
 const availabilityLoaded = ref(false);
 const availabilityError = ref<string | null>(null);
 
-// Get today's date as Date object
-const today = new Date();
+// Price calculation
+const priceCalculation = ref<PriceCalculation | null>(null);
+const isLoadingPrice = ref(false);
+const priceError = ref<string | null>(null);
 
-// Computed properties
+// Modal state
+const isBookingModalOpen = ref(false);
+
+// Debounce timer
+let priceTimer: number | null = null;
+
+// ================================================================
+// COMPUTED PROPERTIES
+// ================================================================
+
 const areDatesValid = computed(() => {
     return dateRange.value && dateRange.value[0] && dateRange.value[1];
 });
 
-const getNights = computed(() => {
-    if (!areDatesValid.value) return 0;
-    const checkIn = dateRange.value![0];
-    const checkOut = dateRange.value![1];
-    return Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-});
-
-const getTotalPrice = computed(() => {
-    if (!areDatesValid.value) {
-        return 0;
-    }
-    
-    // Check if current_pricing exists and has nightly_rate
-    if (!current_pricing || !current_pricing.nightly_rate) {
-        return 0;
-    }
-    
-    const nights = getNights.value;
-    const pricePerNight = current_pricing.nightly_rate;
-    const totalPrice = Math.round(pricePerNight * nights);
-    
-    return totalPrice;
-});
-
-// Get disabled dates from unavailable periods
 const disabledDates = computed(() => {
     const disabled: Date[] = [];
     
@@ -81,94 +96,175 @@ const disabledDates = computed(() => {
     return disabled;
 });
 
-// Load availability data from API
+const hasDiscount = computed(() => {
+    return priceCalculation.value && priceCalculation.value.savings > 0;
+});
+
+const canProceedToBooking = computed(() => {
+    return areDatesValid.value && 
+           priceCalculation.value && 
+           !isLoadingPrice.value && 
+           !isLoadingAvailability.value;
+});
+
+// ================================================================
+// API METHODS
+// ================================================================
+
 const loadAvailability = async () => {
-    if (availabilityLoaded.value || isLoadingAvailability.value) {
-        return;
-    }
+    if (availabilityLoaded.value || isLoadingAvailability.value) return;
 
     isLoadingAvailability.value = true;
     availabilityError.value = null;
 
     try {
-        // Load availability for next 6 months
         const startDate = new Date();
         const endDate = new Date();
         endDate.setMonth(endDate.getMonth() + 6);
 
-        // Use the updated API method with proper parameters
         await api.properties.getAvailability(
-            property.id, 
+            props.property.id,
             {
                 start: startDate.toISOString().split('T')[0],
                 end: endDate.toISOString().split('T')[0]
-            }, 
+            },
             {
-                // Success callback - handle API response
                 onSuccess: (response: AvailabilityResponse) => {
                     unavailablePeriods.value = response.unavailable_periods;
                     availabilityLoaded.value = true;
-                    console.log('Availability loaded:', response);
                 },
-                
-                // Error callback - handle API failures gracefully
                 onError: (errors: any) => {
                     console.error('Failed to load availability:', errors);
-                    availabilityError.value = 'Failed to load availability data';
-                    unavailablePeriods.value = []; // Fallback to no restrictions
+                    availabilityError.value = 'Failed to load availability';
+                    unavailablePeriods.value = [];
                 }
             }
         );
     } catch (error) {
         console.error('Error loading availability:', error);
-        availabilityError.value = 'Failed to load availability data';
+        availabilityError.value = 'Failed to load availability';
         unavailablePeriods.value = [];
     } finally {
         isLoadingAvailability.value = false;
     }
 };
 
-// Handle date picker focus/open event
+const calculatePrice = async () => {
+    if (!areDatesValid.value) {
+        priceCalculation.value = null;
+        return;
+    }
+
+    isLoadingPrice.value = true;
+    priceError.value = null;
+
+    try {
+        await api.properties.calculatePrice(
+            props.property.id,
+            {
+                check_in_date: dateRange.value![0].toISOString().split('T')[0],
+                check_out_date: dateRange.value![1].toISOString().split('T')[0]
+            },
+            {
+                onSuccess: (response: PriceCalculation) => {
+                    priceCalculation.value = response;
+
+                    console.log('Price calculation response:', response);
+                },
+                onError: (errors: any) => {
+                    console.error('Failed to calculate price:', errors);
+                    priceError.value = 'Failed to calculate price';
+                    priceCalculation.value = null;
+                }
+            }
+        );
+    } catch (error) {
+        console.error('Error calculating price:', error);
+        priceError.value = 'Failed to calculate price';
+        priceCalculation.value = null;
+    } finally {
+        isLoadingPrice.value = false;
+    }
+};
+
+// ================================================================
+// PURE JS DEBOUNCE
+// ================================================================
+
+const debouncedCalculatePrice = () => {
+    // Clear existing timer
+    if (priceTimer) {
+        clearTimeout(priceTimer);
+    }
+    
+    // Set new timer
+    priceTimer = setTimeout(() => {
+        calculatePrice();
+    }, 500);
+};
+
+// ================================================================
+// EVENT HANDLERS
+// ================================================================
+
 const handleDatePickerOpen = () => {
     loadAvailability();
 };
 
-// Clear button handler
 const clearDates = () => {
     dateRange.value = null;
+    priceCalculation.value = null;
+    
+    // Clear any pending price calculation
+    if (priceTimer) {
+        clearTimeout(priceTimer);
+        priceTimer = null;
+    }
 };
 
-// Open booking modal
 const openBookingModal = () => {
-    if (areDatesValid.value && getTotalPrice.value > 0) {
+    if (canProceedToBooking.value) {
         isBookingModalOpen.value = true;
     }
 };
+
+// ================================================================
+// WATCHERS
+// ================================================================
+
+watch(dateRange, () => {
+    if (areDatesValid.value) {
+        debouncedCalculatePrice();
+    } else {
+        priceCalculation.value = null;
+    }
+}, { deep: true });
 </script>
 
 <template>
+    <!-- Template remains exactly the same -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
             Book This Property
         </h3>
 
-        <!-- Date Picker -->
         <div class="space-y-4">
+            <!-- Date Selection -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Dates
                 </label>
                 
-                <!-- Loading state for availability -->
+                <!-- Status Messages -->
                 <div v-if="isLoadingAvailability" class="text-sm text-blue-600 dark:text-blue-400 mb-2">
                     Loading availability...
                 </div>
                 
-                <!-- Error state -->
                 <div v-if="availabilityError" class="text-sm text-red-600 dark:text-red-400 mb-2">
                     {{ availabilityError }}
                 </div>
 
+                <!-- Date Picker -->
                 <VueDatePicker
                     v-model="dateRange"
                     :min-date="today"
@@ -186,18 +282,61 @@ const openBookingModal = () => {
                 />
             </div>
 
-            <!-- Date Summary -->
-            <div v-if="areDatesValid" class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3">
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 dark:text-gray-400">
-                        {{ getNights }} night{{ getNights !== 1 ? 's' : '' }}
-                    </span>
-                    <span class="font-medium text-gray-900 dark:text-gray-100">
-                        {{ formatPrice(getTotalPrice) }}
-                    </span>
+            <!-- Price Summary -->
+            <div v-if="areDatesValid" class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
+                <!-- Loading Price -->
+                <div v-if="isLoadingPrice" class="text-center text-blue-600 dark:text-blue-400">
+                    Calculating price...
                 </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ formatDate(dateRange![0]) }} - {{ formatDate(dateRange![1]) }}
+                
+                <!-- Price Error -->
+                <div v-else-if="priceError" class="text-center text-red-600 dark:text-red-400">
+                    {{ priceError }}
+                </div>
+                
+                <!-- Price Display -->
+                <div v-else-if="priceCalculation" class="space-y-3">
+                    <!-- Date Range -->
+                    <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+                        {{ formatDate(dateRange![0]) }} - {{ formatDate(dateRange![1]) }}
+                    </div>
+                    
+                    <!-- Nights -->
+                    <div class="text-center text-lg font-medium text-gray-900 dark:text-gray-100">
+                        {{ priceCalculation.nights }} night{{ priceCalculation.nights !== 1 ? 's' : '' }}
+                    </div>
+                    
+                    <!-- Pricing -->
+                    <div class="space-y-2">
+                        <!-- Show discount if applicable -->
+                        <div v-if="hasDiscount" class="text-center">
+                            <div class="text-sm text-gray-500 dark:text-gray-400 line-through">
+                                {{ formatPrice(priceCalculation.original_price) }}
+                            </div>
+                            <div class="text-xl font-bold text-green-600 dark:text-green-400">
+                                {{ formatPrice(priceCalculation.total_price) }}
+                            </div>
+                            <div class="text-sm text-green-600 dark:text-green-400">
+                                Save {{ formatPrice(priceCalculation.savings) }} ({{ priceCalculation.discount_percentage }}% off)
+                            </div>
+                        </div>
+                        
+                        <!-- No discount -->
+                        <div v-else class="text-center">
+                            <div class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                                {{ formatPrice(priceCalculation.total_price) }}
+                            </div>
+                        </div>
+                        
+                        <!-- Rate Information -->
+                        <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+                            <span class="capitalize">{{ priceCalculation.rate_used }}</span> rate: 
+                            {{ formatPrice(priceCalculation.rate_per_night) }}/night
+                            <span v-if="hasDiscount" class="ml-2">
+                                (was {{ formatPrice(priceCalculation.original_rate_per_night) }}/night)
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -222,27 +361,41 @@ const openBookingModal = () => {
                 </button>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="space-y-2">
-                <button 
-                    @click="openBookingModal"
-                    :disabled="!areDatesValid || isLoadingAvailability"
-                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                    {{ isLoadingAvailability ? 'Loading...' : areDatesValid ? 'Continue to Book' : 'Select Dates' }}
-                </button>
-            </div>
+            <!-- Action Button -->
+            <button 
+                @click="openBookingModal"
+                :disabled="!canProceedToBooking"
+                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+                <span v-if="isLoadingPrice || isLoadingAvailability">
+                    Loading...
+                </span>
+                <span v-else-if="!areDatesValid">
+                    Select Dates
+                </span>
+                <span v-else>
+                    Continue to Book
+                </span>
+            </button>
 
-            <!-- Pricing Info -->
-            <div v-if="property.rental_price_weekly" class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                    Starting from
+            <!-- Starting Rates Info -->
+            <div v-if="current_pricing" class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    Starting rates
                 </div>
-                <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {{ formatPrice(property.rental_price_weekly) }}/week
-                </div>
-                <div v-if="property.rental_price_monthly" class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ formatPrice(property.rental_price_monthly) }}/month
+                <div class="space-y-1">
+                    <div v-if="current_pricing.nightly_rate" class="flex justify-between text-sm">
+                        <span>Nightly:</span>
+                        <span class="font-medium">{{ formatPrice(current_pricing.nightly_rate) }}</span>
+                    </div>
+                    <div v-if="current_pricing.weekly_rate" class="flex justify-between text-sm">
+                        <span>Weekly (7+ nights):</span>
+                        <span class="font-medium">{{ formatPrice(current_pricing.weekly_rate) }}/night</span>
+                    </div>
+                    <div v-if="current_pricing.monthly_rate" class="flex justify-between text-sm">
+                        <span>Monthly (30+ nights):</span>
+                        <span class="font-medium">{{ formatPrice(current_pricing.monthly_rate) }}/night</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -253,8 +406,8 @@ const openBookingModal = () => {
             :property="property" 
             :check-in-date="dateRange?.[0] || null"
             :check-out-date="dateRange?.[1] || null"
-            :total-price="getTotalPrice"
-            :nights="getNights"
+            :total-price="priceCalculation?.total_price || 0"
+            :nights="priceCalculation?.nights || 0"
         />
     </div>
 </template>

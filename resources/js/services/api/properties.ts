@@ -41,6 +41,17 @@ export class PropertyApi extends ApiService {
         
         return this.get(`/api/properties/${id}/availability?${queryParams.toString()}`, options);
     }
+
+    // Query for calculated rental price using check in check out date
+    // Automatically applies any relevant discounts or promotions
+    static calculatePrice(id: number, params: { check_in_date: string; check_out_date: string }, options = {}) {
+        const queryParams = new URLSearchParams({
+            check_in_date: params.check_in_date,
+            check_out_date: params.check_out_date
+        });
+        
+        return this.get(`/api/properties/${id}/price?${queryParams.toString()}`, options);
+    }
     static getAllLocations(options = {}) {
         return this.get('/api/properties/locations', options);
     }

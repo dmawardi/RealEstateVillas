@@ -245,7 +245,65 @@ class PropertyController extends Controller
         ]);
     }
 
-    // New method to get all unique locations (villages) of properties
+    
+    /**
+     * Calculate the total price for a property booking based on check-in and check-out dates.
+     *
+     * Validates the request, retrieves the appropriate pricing for the date range,
+     * calculates the total price, original price, savings, and discount percentage.
+     * Returns a JSON response with all relevant pricing details.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Property  $property
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function calculatePrice(Request $request, Property $property)
+    {
+        $request->validate([
+            'check_in_date' => 'required|date|after_or_equal:today',
+            'check_out_date' => 'required|date|after:check_in_date',
+        ]);
+
+        $checkIn = Carbon::parse($request->check_in_date);
+        $checkOut = Carbon::parse($request->check_out_date);
+        $nights = $checkIn->diffInDays($checkOut);
+
+        // Get current valid pricing for the given date range
+        $pricing = $property->getCurrentPricing($checkIn, $checkOut);
+        
+        if (!$pricing) {
+            return response()->json([
+                'error' => 'No pricing available for selected dates'
+            ], 400);
+        }
+
+        // Use the actual calculateTotalPrice method from PropertyPrice model
+        $calculation = $pricing->calculateTotalPrice($nights);
+        
+        // Calculate original price (ALWAYS use nightly rate for comparison)
+        $originalTotal = $nights * $pricing->nightly_rate;
+        
+        // Calculate savings - only when using weekly/monthly rates
+        $actualTotal = $calculation['total_price'];
+        $savings = $originalTotal - $actualTotal;
+        $discountPercentage = $savings > 0 ? round(($savings / $originalTotal) * 100) : 0;
+        
+        return response()->json([
+            'total_price' => $actualTotal,
+            'original_price' => $originalTotal,
+            'savings' => max(0, $savings), // Ensure never negative
+            'discount_percentage' => $discountPercentage,
+            'nights' => $nights, // Use actual nights, not from calculation
+            'rate_used' => $calculation['rate_used'],
+            'rate_per_night' => $calculation['rate_per_night'],
+            'original_rate_per_night' => $pricing->nightly_rate,
+            'currency' => $pricing->currency,
+            'check_in_date' => $checkIn->toDateString(),
+            'check_out_date' => $checkOut->toDateString(),
+        ]);
+    }
+
+    // Method to get all unique locations (villages) of properties
     public function getAllLocations()
     {
         // Get all unique villages, districts, or regencies from active properties

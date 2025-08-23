@@ -4,5 +4,13 @@ use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
 
 // Property API routes
+// 
+// Return all locations for search autocomplete
 Route::get('/properties/locations', [PropertyController::class, 'getAllLocations']);
+
+// Returns calculated price by accepting check in and checkout date
+// Automatically applies any relevant discounts or promotions
+Route::get('/properties/{property}/price', [PropertyController::class, 'calculatePrice']);
+
+// Property availability
 Route::get('/properties/{property}/availability', [PropertyController::class, 'getAvailability']);
