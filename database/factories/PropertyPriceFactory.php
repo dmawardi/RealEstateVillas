@@ -16,10 +16,14 @@ class PropertyPriceFactory extends Factory
      */
     public function definition(): array
     {
+        $nightlyRate = $this->faker->numberBetween(500000, 5000000);
+        // Industry convention: progressive discounts
+        $weeklyRate = $nightlyRate * 0.85;   // 15% discount for 7+ nights
+        $monthlyRate = $nightlyRate * 0.70;  // 30% discount for 30+ nights
         return [
-            'nightly_rate' => $this->faker->numberBetween(500000, 5000000),
-            'weekly_rate' => $this->faker->numberBetween(7500000, 20000000),
-            'monthly_rate' => $this->faker->numberBetween(10000000, 80000000),
+            'nightly_rate' => $nightlyRate,
+            'weekly_rate' => $weeklyRate,
+            'monthly_rate' => $monthlyRate,
             'currency' => 'IDR', // Default currency
             'start_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'end_date' => $this->faker->dateTimeBetween('now', '+1 year'),

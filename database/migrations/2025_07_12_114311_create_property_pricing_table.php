@@ -20,9 +20,15 @@ return new class extends Migration
             $table->string('currency', 3)->default('IDR');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+
+                // Add minimum stay requirements
+            $table->integer('min_days_for_weekly')->default(7);
+            $table->integer('min_days_for_monthly')->default(30);
             
             // Foreign key to properties table
             $table->foreignId('property_id')->constrained('properties')->onDelete('cascade');
+            // Indexes for performance
+            $table->index(['property_id', 'start_date', 'end_date']);
         });
     }
 
