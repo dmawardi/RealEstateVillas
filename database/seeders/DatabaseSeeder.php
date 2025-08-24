@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
        Property::factory(50)
             ->withFeatures() // This will attach 1-5 random features to each property
             ->withPricing() // This will create pricing for each property
-            ->withAttachments(3) // This will create attachments for each property
+            ->withAttachments(10) // This will create attachments for each property
             ->withBookings(3) // This will create bookings for each property
             ->create();
     }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick, watchEffect } from 'vue';
 import { PropertyAttachment } from '@/types';
 
 interface Props {
@@ -12,6 +12,13 @@ const attachments = props.attachments || [];
 // Track the currently selected image index
 const selectedImageIndex = ref(0);
 
+// Thumbnail scroll container ref
+const thumbnailContainer = ref<HTMLElement | null>(null);
+
+// Scroll state
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+
 // Select an image by index
 const selectImage = (index: number) => {
     selectedImageIndex.value = index;
@@ -20,6 +27,57 @@ const selectImage = (index: number) => {
 // Get the currently selected image
 const selectedImage = computed(() => {
     return attachments.length > 0 ? attachments[selectedImageIndex.value] : null;
+});
+
+// Check scroll state
+const checkScrollState = () => {
+    if (!thumbnailContainer.value) return;
+    
+    const container = thumbnailContainer.value;
+    const scrollLeft = container.scrollLeft;
+    const maxScrollLeft = container.scrollWidth - container.clientWidth;
+    
+    canScrollLeft.value = scrollLeft > 0;
+    canScrollRight.value = scrollLeft < maxScrollLeft;
+};
+
+// Scroll thumbnails left
+const scrollLeft = () => {
+    if (!thumbnailContainer.value) return;
+    
+    thumbnailContainer.value.scrollBy({
+        left: -200,
+        behavior: 'smooth'
+    });
+    
+    // Check scroll state after animation
+    setTimeout(checkScrollState, 300);
+};
+
+// Scroll thumbnails right
+const scrollRight = () => {
+    if (!thumbnailContainer.value) return;
+    
+    thumbnailContainer.value.scrollBy({
+        left: 200,
+        behavior: 'smooth'
+    });
+    
+    // Check scroll state after animation
+    setTimeout(checkScrollState, 300);
+};
+
+// Initialize scroll state after component mounts
+const initializeScrollState = async () => {
+    await nextTick();
+    checkScrollState();
+};
+
+// Watch for attachments changes and reinitialize
+watchEffect(() => {
+    if (attachments.length > 1) {
+        initializeScrollState();
+    }
 });
 </script>
 
@@ -49,26 +107,55 @@ const selectedImage = computed(() => {
             </div>
         </div>
 
-        <!-- Image Thumbnails -->
+        <!-- Image Thumbnails with Scroll Controls -->
         <div v-if="attachments.length > 1" class="p-4 bg-gray-50 dark:bg-gray-900">
-            <div class="flex gap-2 overflow-x-auto scrollbar-hide">
+            <div class="relative">
+                <!-- Left Scroll Button -->
                 <button
-                    v-for="(attachment, index) in attachments"
-                    :key="attachment.id"
-                    @click="selectImage(index)"
-                    :class="[
-                        'flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:opacity-80',
-                        selectedImageIndex === index 
-                            ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800' 
-                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                    ]"
+                    v-if="canScrollLeft"
+                    @click="scrollLeft"
+                    class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full p-2 shadow-md transition-all duration-200 hover:shadow-lg"
                 >
-                    <img 
-                        :src="attachment.path" 
-                        :alt="attachment.title"
-                        class="w-full h-full object-cover"
-                        loading="lazy"
-                    />
+                    <svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+
+                <!-- Thumbnail Container -->
+                <div 
+                    ref="thumbnailContainer"
+                    @scroll="checkScrollState"
+                    class="flex gap-2 overflow-x-auto scrollbar-hide px-8"
+                >
+                    <button
+                        v-for="(attachment, index) in attachments"
+                        :key="attachment.id"
+                        @click="selectImage(index)"
+                        :class="[
+                            'flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:opacity-80',
+                            selectedImageIndex === index 
+                                ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800' 
+                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                        ]"
+                    >
+                        <img 
+                            :src="attachment.path" 
+                            :alt="attachment.title"
+                            class="w-full h-full object-cover"
+                            loading="lazy"
+                        />
+                    </button>
+                </div>
+
+                <!-- Right Scroll Button -->
+                <button
+                    v-if="canScrollRight"
+                    @click="scrollRight"
+                    class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full p-2 shadow-md transition-all duration-200 hover:shadow-lg"
+                >
+                    <svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
                 </button>
             </div>
         </div>
