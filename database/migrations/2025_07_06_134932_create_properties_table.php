@@ -25,8 +25,6 @@ return new class extends Migration
             // Pricing
             $table->integer('price')->nullable(); // in rupiah
             $table->enum('price_type', ['fixed', 'negotiable', 'auction', 'poa'])->default('fixed');
-            $table->integer('rental_price_weekly')->nullable();
-            $table->integer('rental_price_monthly')->nullable();
             
             // Address Information - Bali specific
             $table->string('street_number')->nullable();

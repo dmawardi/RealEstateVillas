@@ -31,16 +31,10 @@ class PropertyFactory extends Factory
         
         // Generate price based on property type and listing type
         $price = null;
-        $rentalWeekly = null;
-        $rentalMonthly = null;
         
         if ($listingType === 'for_sale' || $listingType === 'sold') {
             // Bali property prices - adjusted for local market
             $price = $this->faker->numberBetween(1000000000, 25000000000); // 1B - 25B IDR
-        } elseif ($listingType === 'for_rent') {
-            // Bali rental prices
-            $rentalMonthly = $this->faker->numberBetween(8000000, 100000000); // 8M - 100M IDR per month
-            $rentalWeekly = intval($rentalMonthly / 4);
         }
         
         // Generate bedrooms/bathrooms based on property type
@@ -62,8 +56,6 @@ class PropertyFactory extends Factory
             // Pricing
             'price' => $price,
             'price_type' => $this->faker->randomElement($priceTypes),
-            'rental_price_weekly' => $rentalWeekly,
-            'rental_price_monthly' => $rentalMonthly,
             
             // Address Information - Bali specific
             'street_number' => $this->faker->buildingNumber(),
