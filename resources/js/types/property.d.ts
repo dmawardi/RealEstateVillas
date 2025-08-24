@@ -49,6 +49,7 @@ export interface Feature {
 
 export interface PropertyAttachment {
     id: number;
+    title: string;
     path: string;
     original_filename: string;
     file_type: string;

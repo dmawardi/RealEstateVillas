@@ -41,7 +41,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Main Content -->
                 <div class="lg:col-span-2 space-y-8">
-                    <PropertyImages :property="property" />
+                    <PropertyImages :attachments="property.attachments ?? []" />
                     <!-- Property Details -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                         <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">

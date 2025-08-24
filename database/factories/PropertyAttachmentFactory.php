@@ -21,6 +21,7 @@ class PropertyAttachmentFactory extends Factory
         $imagePlaceholder = \Illuminate\Support\Facades\Storage::disk('public')->path($imagePlaceholderPath);
         return [
             'property_id' => \App\Models\Property::factory(),
+            'title' => $this->faker->words(3, true),
             'path' => $imagePlaceholder,
             'original_filename' => $this->faker->word . '.jpg',
             'file_type' => 'image/jpeg',

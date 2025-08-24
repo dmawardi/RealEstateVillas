@@ -17,6 +17,7 @@ return new class extends Migration
              // Foreign key to properties table
             $table->foreignId('property_id')->constrained()->onDelete('cascade');
             
+            $table->string('title'); // Title or name of the image
             $table->string('path'); // Path to the stored image
             $table->string('original_filename')->nullable(); // Original filename
             $table->string('file_type'); // File MIME type
