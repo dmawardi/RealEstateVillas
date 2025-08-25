@@ -4,7 +4,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import CompactSearchHeader from '@/components/ui/navigation/CompactSearchHeader.vue';
 import { PropertyFilters, PaginatedProperties } from '@/types';
 import { formatPrice } from '@/utils';
-import { onMounted } from 'vue';
 
 interface Props {
     properties: PaginatedProperties;
@@ -52,7 +51,7 @@ function formatPaginationLabel(label: string): string {
         </header>
 
         <!-- Search -->
-        <CompactSearchHeader :initialFilters="filters" routeURL="/admin/properties" />
+        <CompactSearchHeader :initialFilters="filters" routeURL="/admin/properties" :useTextSearch="true" />
 
         <!-- Properties Table -->
         <div class="mx-4 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">

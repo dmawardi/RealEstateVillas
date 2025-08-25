@@ -73,7 +73,7 @@ const getCleanLabel = (label: string): string => {
             </div>
 
             <!-- Filters Section -->
-            <CompactSearchHeader :initialFilters="filters" />
+            <CompactSearchHeader :initialFilters="filters" routeURL="/properties" :useTextSearch="false" />
             <!-- <PropertyFilterCard :filters="filters" /> -->
 
             <!-- Properties Grid -->

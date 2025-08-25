@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Property;
 use App\Models\PropertyPrice;
 use App\Models\PropertyAttachment;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,38 +30,116 @@ class AdminPropertyController extends Controller
     public function index(Request $request)
     {
         // Build query with eager loading for performance
-        $query = Property::with(['user', 'pricing', 'attachments'])
-            ->orderBy('created_at', 'desc');
+    $query = Property::with(['user', 'pricing', 'attachments', 'features'])
+        ->orderBy('created_at', 'desc');
 
-        // Apply search filter across multiple fields
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('property_id', 'like', "%{$search}%")
-                  ->orWhere('street_name', 'like', "%{$search}%")
-                  ->orWhere('district', 'like', "%{$search}%");
-            });
-        }
+    // Apply search filter across multiple fields
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%")
+              ->orWhere('property_id', 'like', "%{$search}%")
+              ->orWhere('street_name', 'like', "%{$search}%")
+              ->orWhere('district', 'like', "%{$search}%");
+        });
+    }
 
-        // Apply property type filter
-        if ($request->filled('property_type')) {
-            $query->where('property_type', $request->property_type);
-        }
+    // Handle comma-separated location filters with OR logic
+    $hasLocationFilter = $request->filled('villages') || $request->filled('districts') || $request->filled('regencies');
 
-        // Apply listing type filter
-        if ($request->filled('listing_type')) {
-            $query->where('listing_type', $request->listing_type);
-        }
+    if ($hasLocationFilter) {
+        $query->where(function ($locationQuery) use ($request) {
+            $hasCondition = false;
+            
+            if ($request->filled('villages')) {
+                $villages = explode(',', $request->villages);
+                $locationQuery->whereIn('village', $villages);
+                $hasCondition = true;
+            }
+            
+            if ($request->filled('districts')) {
+                $districts = explode(',', $request->districts);
+                if ($hasCondition) {
+                    $locationQuery->orWhereIn('district', $districts);
+                } else {
+                    $locationQuery->whereIn('district', $districts);
+                }
+                $hasCondition = true;
+            }
+            
+            if ($request->filled('regencies')) {
+                $regencies = explode(',', $request->regencies);
+                if ($hasCondition) {
+                    $locationQuery->orWhereIn('regency', $regencies);
+                } else {
+                    $locationQuery->whereIn('regency', $regencies);
+                }
+            }
+        });
+    }
 
-        // Apply status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+    // Handle comma-separated property types
+    if ($request->filled('property_type')) {
+        $propertyTypes = explode(',', $request->property_type);
+        $query->whereIn('property_type', $propertyTypes);
+    }
 
-        // Paginate results
-        $properties = $query->paginate(15)->withQueryString();
+    // Apply listing type filter
+    if ($request->filled('listing_type')) {
+        $query->where('listing_type', $request->listing_type);
+    }
+
+    // Apply status filter (admin can see all statuses, not just active)
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Handle bedrooms filter
+    if ($request->filled('bedrooms')) {
+        $query->where('bedrooms', '>=', $request->bedrooms);
+    }
+
+    // Handle bathrooms filter
+    if ($request->filled('bathrooms')) {
+        $query->where('bathrooms', '>=', $request->bathrooms);
+    }
+
+    // Handle land size filters
+    if ($request->filled('min_land_size')) {
+        $query->where('land_size', '>=', $request->min_land_size);
+    }
+
+    if ($request->filled('max_land_size')) {
+        $query->where('land_size', '<=', $request->max_land_size);
+    }
+
+    // Handle car spaces filter
+    if ($request->filled('car_spaces')) {
+        $query->where('car_spaces', '>=', $request->car_spaces);
+    }
+
+    // Apply availability filter if both check-in and check-out dates are provided
+    if ($request->filled('check_in_date') && $request->filled('check_out_date')) {
+        $checkInDate = Carbon::parse($request->check_in_date);
+        $checkOutDate = Carbon::parse($request->check_out_date);
+        
+        // Exclude properties that have confirmed bookings overlapping with requested dates
+        $query->whereDoesntHave('bookings', function ($bookingQuery) use ($checkInDate, $checkOutDate) {
+            $bookingQuery->where('status', 'confirmed')
+                ->where(function ($q) use ($checkInDate, $checkOutDate) {
+                    // Check if the booking overlaps with requested dates
+                    $q->where(function ($q1) use ($checkInDate, $checkOutDate) {
+                        // Booking starts before checkout and ends after checkin
+                        $q1->where('check_in_date', '<', $checkOutDate)
+                           ->where('check_out_date', '>', $checkInDate);
+                    });
+                });
+        });
+    }
+
+    // Paginate results
+    $properties = $query->paginate(15)->withQueryString();
 
         return Inertia::render('admin/properties/Index', [
             'properties' => $properties,

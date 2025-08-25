@@ -14,11 +14,13 @@ import { processLocations } from '@/utils';
 interface Props {
     initialFilters?: Record<string, any>;
     routeURL: string;
+    useTextSearch: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     initialFilters: () => ({}),
-    routeURL: '/properties'
+    routeURL: '/properties',
+    useTextSearch: false
 });
 
 const modalOpen = ref(false);
@@ -145,6 +147,11 @@ const clearAllFilters = () => {
     };
     handleSearch();
 };
+
+const clearSearch = () => {
+    form.value.search = '';
+    handleSearch();
+};
 </script>
 
 <template>
@@ -228,6 +235,54 @@ const clearAllFilters = () => {
                         @remove="removeLocationFromFilter" 
                         @clear-all="clearAllLocations"
                     />
+                </div>
+            </div>
+        </div>
+         <!-- Text Search Input -->
+        <div class="" v-if="useTextSearch">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Text Search
+                </label>
+                <div class="relative">
+                    <!-- Search Input -->
+                    <input
+                        v-model="form.search"
+                        type="text"
+                        placeholder="Search by title, property ID, street name, or district..."
+                        class="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
+                               bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                               focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                               placeholder-gray-400 dark:placeholder-gray-500"
+                    />
+                    
+                    <!-- Search Icon -->
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    
+                    <!-- Clear Button -->
+                    <button
+                        v-if="form.search"
+                        @click="clearSearch"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Search Info -->
+                <div class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span>
+                        {{ form.search ? `Searching for: "${form.search}"` : 'Enter text to search properties...' }}
+                    </span>
+                    <span class="text-gray-400 dark:text-gray-500">
+                        Press Enter to search • Esc to clear
+                    </span>
                 </div>
             </div>
         </div>
