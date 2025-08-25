@@ -1,37 +1,71 @@
 // resources/js/types/property.ts
 export interface Property {
     id: number;
+    
+    // Basic Property Information
     title: string;
     description: string;
-    property_type: string;
-    listing_type: string;
-    status: string;
-    price?: number;
-    rental_price_monthly?: number;
-    rental_price_weekly?: number;
+    property_type: PropertyType;
+    listing_type: ListingType;
+    status: PropertyStatus;
+    
+    // Pricing - Updated to match migration
+    price?: number; // integer in migration
+    price_type: PriceType;
+    
+    // Address Information - Bali specific structure
     street_number?: string;
     street_name: string;
-    village?: string;
-    district: string;
-    regency: string;
-    state: string;
+    village?: string; // Desa/Kelurahan
+    district: string; // Kecamatan
+    regency: string; // Kabupaten/Kota
+    state: string; // Provinsi (default: 'Bali')
     postcode: string;
-    country: string;
+    country: string; // default: 'Indonesia'
+    latitude?: number; // decimal(10,8)
+    longitude?: number; // decimal(11,8)
+    
+    // Property Specifications
     bedrooms?: number;
     bathrooms?: number;
     car_spaces?: number;
-    land_size?: number;
-    floor_area?: number;
+    land_size?: number; // decimal(10,2) in square meters
+    floor_area?: number; // decimal(10,2) in square meters
     year_built?: number;
-    attachments?: PropertyAttachment[];
-    amenities?: Record<string, any>;
-    features?: Feature[];
-    user: User;
+    
+    // Amenities & Details
+    amenities?: Record<string, any>; // JSON field
+    zoning?: string;
+    is_featured: boolean;
+    is_premium: boolean;
+    available_date?: string; // date
+    inspection_times?: string; // text field
+    
+    // Media
+    floor_plan?: string; // path to floor plan
+    virtual_tour_url?: string;
+    video_url?: string;
+    
+    // Agent Information
+    user_id: number;
     agent_name: string;
     agent_phone?: string;
     agent_email?: string;
     agency_name?: string;
-    view_count: number;
+    
+    // Listing Management
+    property_id: string; // unique custom property reference
+    listed_at?: string; // timestamp
+    days_on_market: number; // integer, default 0
+    view_count: number; // integer, default 0
+    
+    // Relationships
+    user: User;
+    attachments?: PropertyAttachment[];
+    features?: Feature[];
+    pricing?: PropertyPricing[]; // hasMany relationship
+    
+    // Timestamps
     created_at: string;
     updated_at: string;
 }

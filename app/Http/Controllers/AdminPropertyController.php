@@ -62,7 +62,7 @@ class AdminPropertyController extends Controller
         // Paginate results
         $properties = $query->paginate(15)->withQueryString();
 
-        return Inertia::render('Admin/Properties/Index', [
+        return Inertia::render('admin/properties/Index', [
             'properties' => $properties,
             'filters' => $request->only(['search', 'property_type', 'listing_type', 'status']),
             'propertyTypes' => $this->getPropertyTypes(),

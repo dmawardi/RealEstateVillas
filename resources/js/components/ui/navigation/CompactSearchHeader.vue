@@ -13,10 +13,12 @@ import { processLocations } from '@/utils';
 // Props to accept initial filter values from the page
 interface Props {
     initialFilters?: Record<string, any>;
+    routeURL: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    initialFilters: () => ({})
+    initialFilters: () => ({}),
+    routeURL: '/properties'
 });
 
 const modalOpen = ref(false);
@@ -112,7 +114,7 @@ const handleSearch = () => {
     );
 
     const queryString = new URLSearchParams(cleanFilters as Record<string, string>).toString();
-    window.location.href = `/properties?${queryString}`;
+    window.location.href = `${props.routeURL}?${queryString}`;
 };
 
 // Methods for location tags
