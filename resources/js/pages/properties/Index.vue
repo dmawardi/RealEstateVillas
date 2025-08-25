@@ -74,7 +74,6 @@ const getCleanLabel = (label: string): string => {
 
             <!-- Filters Section -->
             <CompactSearchHeader :initialFilters="filters" routeURL="/properties" :useTextSearch="false" />
-            <!-- <PropertyFilterCard :filters="filters" /> -->
 
             <!-- Properties Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
