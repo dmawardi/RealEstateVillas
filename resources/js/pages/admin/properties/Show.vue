@@ -6,6 +6,9 @@ import { formatPrice, formatDate } from '@/utils';
 import { ref } from 'vue';
 import PropertyOverview from '@/components/properties/admin/PropertyOverview.vue';
 import PropertyAddressLocation from '@/components/properties/admin/PropertyAddressLocation.vue';
+import PropertyImages from '@/components/properties/PropertyImages.vue';
+import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
+
 
 interface Booking {
     id: number;
@@ -38,11 +41,6 @@ const showImageModal = ref(false);
 const selectedImage = ref<PropertyAttachment | null>(null);
 
 // Helper functions
-const openImageModal = (attachment: PropertyAttachment) => {
-    selectedImage.value = attachment;
-    showImageModal.value = true;
-};
-
 const deleteProperty = () => {
     if (confirm(`Are you sure you want to delete "${property.title}"? This action cannot be undone.`)) {
         router.delete(route('admin.properties.destroy', property.id));
@@ -154,56 +152,14 @@ const togglePremium = () => {
                     />
 
                     <!-- Property Images -->
-                    <div v-if="property.attachments.length > 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Property Images</h2>
-                        </div>
-                        <div class="p-6">
-                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <div 
-                                    v-for="attachment in property.attachments" 
-                                    :key="attachment.id"
-                                    class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer hover:opacity-75 transition-opacity"
-                                    @click="openImageModal(attachment)"
-                                >
-                                    <img 
-                                        :src="attachment.path" 
-                                        :alt="attachment.title"
-                                        class="w-full h-full object-cover"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <PropertyImages
+                        :attachments="property.attachments"
+                    />
 
                     <!-- Features -->
-                    <div v-if="property.features && property.features.length > 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Property Features</h2>
-                        </div>
-                        <div class="p-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div 
-                                    v-for="feature in property.features" 
-                                    :key="feature.id"
-                                    class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                                >
-                                    <div class="flex-shrink-0">
-                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ feature.name }}</p>
-                                        <p v-if="feature.pivot.quantity > 1" class="text-xs text-gray-500 dark:text-gray-400">
-                                            Quantity: {{ feature.pivot.quantity }}
-                                        </p>
-                                        <p v-if="feature.pivot.notes" class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ feature.pivot.notes }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <PropertyFeatures
+                        :property="property"
+                    />
                 </div>
 
                 <!-- Sidebar - 1 column -->
