@@ -70,7 +70,6 @@ return new class extends Migration
             $table->string('video_url')->nullable();
             
             // Agent Information
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // listing agent
             $table->string('agent_name');
             $table->string('agent_phone')->nullable();
             $table->string('agent_email')->nullable();

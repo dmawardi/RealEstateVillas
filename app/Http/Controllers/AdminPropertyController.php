@@ -30,7 +30,7 @@ class AdminPropertyController extends Controller
     public function index(Request $request)
     {
         // Build query with eager loading for performance
-    $query = Property::with(['user', 'pricing', 'attachments', 'features'])
+    $query = Property::with(['pricing', 'attachments', 'features'])
         ->orderBy('created_at', 'desc');
 
     // Apply search filter across multiple fields
@@ -323,19 +323,33 @@ class AdminPropertyController extends Controller
     {
         // Load all relationships for complete property view
         $property->load([
-            'user', 
             'pricing', 
             'attachments' => function($query) {
                 $query->orderBy('order');
             },
+            'features',
             'bookings' => function($query) {
-                $query->where('status', 'confirmed')
-                      ->orderBy('check_in_date');
+                $query
+                    ->orderBy('check_in_date', 'desc');
             }
         ]);
 
-        return Inertia::render('Admin/Properties/Show', [
+        // Get current pricing for rental properties
+        $currentPricing = $property->pricing()
+            ->where(function($query) {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            })
+            ->first();
+
+        return Inertia::render('admin/properties/Show', [
             'property' => $property,
+            'current_pricing' => $currentPricing,
+            'map_api_key' => config('services.google.maps_api_key'),
+            'propertyTypes' => $this->getPropertyTypes(),
+            'listingTypes' => $this->getListingTypes(),
+            'statusOptions' => $this->getStatusOptions(),
+            'priceTypes' => $this->getPriceTypes(),
         ]);
     }
 

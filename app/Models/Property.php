@@ -28,13 +28,6 @@ class Property extends Model
             ->withPivot('quantity', 'notes')
             ->withTimestamps();
     }
-    /**
-     * The user that manages the property.
-     */
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 
     /**
      * The pricing information for the property.

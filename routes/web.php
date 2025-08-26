@@ -27,6 +27,7 @@ Route::get('dashboard', function () {
 // Properties
 Route::get('admin/properties', [AdminPropertyController::class, 'index'])->middleware(['auth', 'verified'])->name('admin.properties.index');
 Route::get('admin/properties/create', [AdminPropertyController::class, 'create'])->middleware(['auth', 'verified'])->name('admin.properties.create');
+Route::get('admin/properties/{property}', [AdminPropertyController::class, 'show'])->middleware(['auth', 'verified'])->name('admin.properties.show');
 Route::post('admin/properties', [AdminPropertyController::class, 'store'])->middleware(['auth', 'verified'])->name('admin.properties.store');
 Route::get('admin/properties/{property}/edit', [AdminPropertyController::class, 'edit'])->middleware(['auth', 'verified'])->name('admin.properties.edit');
 Route::put('admin/properties/{property}', [AdminPropertyController::class, 'update'])->middleware(['auth', 'verified'])->name('admin.properties.update');

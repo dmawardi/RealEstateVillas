@@ -101,6 +101,9 @@ function formatPaginationLabel(label: string): string {
                                 {{ property.id }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                <Link :href="route('admin.properties.show', property.id)" class="text-green-600 hover:text-green-500 mr-2">
+                                    View
+                                </Link>
                                 <Link :href="route('admin.properties.edit', property.id)" class="text-blue-600 hover:text-blue-500">
                                     Edit
                                 </Link>

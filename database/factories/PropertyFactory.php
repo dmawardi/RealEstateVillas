@@ -93,7 +93,6 @@ class PropertyFactory extends Factory
             'video_url' => $this->faker->optional(0.2)->url(),
             
             // Agent Information
-            'user_id' => User::factory(),
             'agent_name' => $this->faker->name(),
             'agent_phone' => $this->faker->phoneNumber(),
             'agent_email' => $this->faker->email(),
