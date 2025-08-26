@@ -109,7 +109,7 @@ onMounted(() => {
                     :apiKey="map_api_key" 
                     :width="600" 
                     :height="400" 
-                    :zoom="14" />
+                    :zoom="16" />
             </div>
         </div>
     </BaseLayout>
