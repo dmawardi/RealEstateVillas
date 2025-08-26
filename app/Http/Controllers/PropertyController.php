@@ -177,6 +177,7 @@ class PropertyController extends Controller
         return Inertia::render('properties/Show', [
             'property' => $property,
             'current_pricing' => $currentPricing,
+            'map_api_key' => config('services.google.maps_api_key'),
         ]);
     }
     /**

@@ -5,16 +5,19 @@ import PropertyHeader from '@/components/properties/PropertyHeader.vue';
 import PropertyImages from '@/components/properties/PropertyImages.vue';
 import PropertyInfoBar from '@/components/properties/PropertyInfoBar.vue';
 import PropertyKeyStats from '@/components/properties/PropertyKeyStats.vue';
+import StaticMap from '@/components/ui/map/StaticMap.vue';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import type { BreadcrumbItemType, Property, PropertyPricing } from '@/types';
 import { Head } from '@inertiajs/vue3';
+import { onMounted } from 'vue';
 
 interface Props {
     property: Property;
     current_pricing: PropertyPricing;
+    map_api_key: string;
 }
 
-const { property, current_pricing } = defineProps<Props>();
+const { property, current_pricing, map_api_key } = defineProps<Props>();
 
 // Generate breadcrumbs with actual property data
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -27,7 +30,9 @@ const breadcrumbs: BreadcrumbItemType[] = [
         href: `/properties/${property.id}`,
     },
 ];
-
+onMounted(() => {
+    console.log('Property data:', property);
+});
 </script>
 
 <template>
@@ -98,6 +103,13 @@ const breadcrumbs: BreadcrumbItemType[] = [
                     <!-- Property Info -->
                     <PropertyInfoBar :property="property" />
                 </div>
+                <StaticMap 
+                    :lat="Number(property.latitude)" 
+                    :lng="Number(property.longitude)" 
+                    :apiKey="map_api_key" 
+                    :width="600" 
+                    :height="400" 
+                    :zoom="14" />
             </div>
         </div>
     </BaseLayout>
