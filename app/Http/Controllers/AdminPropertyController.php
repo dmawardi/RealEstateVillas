@@ -366,7 +366,7 @@ class AdminPropertyController extends Controller
             $query->orderBy('order');
         }]);
 
-        return Inertia::render('Admin/Properties/Edit', [
+        return Inertia::render('admin/properties/Edit', [
             'property' => $property,
             'propertyTypes' => $this->getPropertyTypes(),
             'listingTypes' => $this->getListingTypes(),
