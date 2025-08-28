@@ -70,6 +70,25 @@ export interface Property {
     updated_at: string;
 }
 
+interface Booking {
+    id: number;
+    check_in_date: string;
+    check_out_date: string;
+    status: string;
+    booking_type: string;
+    source: string;
+    first_name: string;
+    last_name?: string;
+    email: string;
+    phone?: string;
+    number_of_guests: number;
+    total_price?: number;
+    special_requests?: string;
+    notes?: string;
+    external_booking_id?: string;
+    created_at: string;
+}
+
 export interface Feature {
     id: number;
     name: string;

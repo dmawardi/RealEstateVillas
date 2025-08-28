@@ -8,16 +8,9 @@ import PropertyOverview from '@/components/properties/admin/PropertyOverview.vue
 import PropertyAddressLocation from '@/components/properties/admin/PropertyAddressLocation.vue';
 import PropertyImages from '@/components/properties/PropertyImages.vue';
 import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
+import PropertyBookings from '@/components/properties/admin/PropertyBookings.vue';
+import { Booking } from '@/types';
 
-
-interface Booking {
-    id: number;
-    check_in_date: string;
-    check_out_date: string;
-    status: string;
-    total_amount: number;
-    created_at: string;
-}
 
 interface Props {
     property: Property & {
@@ -160,6 +153,8 @@ const togglePremium = () => {
                     <PropertyFeatures
                         :property="property"
                     />
+
+                    <PropertyBookings :bookings="property.bookings" />
                 </div>
 
                 <!-- Sidebar - 1 column -->
@@ -243,36 +238,6 @@ const togglePremium = () => {
                             <div>
                                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</span>
                                 <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ formatDate(new Date(property.updated_at)) }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Bookings -->
-                    <div v-if="property.bookings && property.bookings.length > 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Bookings</h2>
-                        </div>
-                        <div class="p-6">
-                            <div class="space-y-4">
-                                <div 
-                                    v-for="booking in property.bookings.slice(0, 5)" 
-                                    :key="booking.id"
-                                    class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                                >
-                                    <div class="mt-2">
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">
-                                            {{ formatDate(new Date(booking.check_in_date)) }} - {{ formatDate(new Date(booking.check_out_date)) }}
-                                        </p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">
-                                            Total: {{ formatPrice(booking.total_amount) }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="property.bookings.length > 5" class="mt-4 text-center">
-                                <button class="text-sm text-blue-600 hover:text-blue-800">
-                                    View All Bookings ({{ property.bookings.length }})
-                                </button>
                             </div>
                         </div>
                     </div>
