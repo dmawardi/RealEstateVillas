@@ -7,6 +7,7 @@ import { ref, computed } from 'vue';
 // Update the path below to match the actual location and casing of your BasicInformation.vue file
 import BasicInformation from '@/components/properties/admin/forms/BasicInformation.vue';
 import Location from '@/components/properties/admin/forms/Location.vue';
+import Specifications from '@/components/properties/admin/forms/Specifications.vue';
 
 interface Props {
     property: Property & {
@@ -53,19 +54,19 @@ const form = useForm({
     
     // Property Specifications - as a nested object
     specifications: {
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        car_spaces: property.car_spaces,
-        land_size: property.land_size,
-        floor_area: property.floor_area,
-        year_built: property.year_built,
-        zoning: property.zoning,
-        amenities: property.amenities || {
-            schools_nearby: [],
-            transport: [],
-            shopping: [],
-            parks: [],
-            medical: []
+        bedrooms: property.bedrooms ?? null,
+        bathrooms: property.bathrooms ?? null,
+        car_spaces: property.car_spaces ?? null,
+        land_size: property.land_size ?? null,
+        floor_area: property.floor_area ?? null,
+        year_built: property.year_built ?? null,
+        zoning: property.zoning ?? null,
+        amenities: {
+            schools_nearby: property.amenities?.schools_nearby ?? [],
+            transport: property.amenities?.transport ?? [],
+            shopping: property.amenities?.shopping ?? [],
+            parks: property.amenities?.parks ?? [],
+            medical: property.amenities?.medical ?? []
         },
     },
     
@@ -125,17 +126,6 @@ const handleFloorPlanUpload = (event: Event) => {
     if (target.files && target.files[0]) {
         form.media.floor_plan = target.files[0];
     }
-};
-
-const addAmenityItem = (category: string) => {
-    if (!form.specifications.amenities[category]) {
-        form.specifications.amenities[category] = [];
-    }
-    form.specifications.amenities[category].push('');
-};
-
-const removeAmenityItem = (category: string, index: number) => {
-    form.specifications.amenities[category].splice(index, 1);
 };
 
 const submit = () => {
@@ -266,156 +256,11 @@ const hasFieldError = (field: string) => {
                         </div>
 
                         <!-- Specifications Tab -->
-                        <div v-show="activeTab === 'specifications'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Property Specifications</h2>
-                            </div>
-                            <div class="p-6 space-y-6">
-                                <!-- Basic Specs -->
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div>
-                                        <label for="bedrooms" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Bedrooms
-                                        </label>
-                                        <input
-                                            id="bedrooms"
-                                            v-model.number="form.specifications.bedrooms"
-                                            type="number"
-                                            min="0"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="bathrooms" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Bathrooms
-                                        </label>
-                                        <input
-                                            id="bathrooms"
-                                            v-model.number="form.specifications.bathrooms"
-                                            type="number"
-                                            min="0"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="car_spaces" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Car Spaces
-                                        </label>
-                                        <input
-                                            id="car_spaces"
-                                            v-model.number="form.specifications.car_spaces"
-                                            type="number"
-                                            min="0"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <!-- Size Specifications -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="land_size" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Land Size (m²)
-                                        </label>
-                                        <input
-                                            id="land_size"
-                                            v-model.number="form.specifications.land_size"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="floor_area" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Floor Area (m²)
-                                        </label>
-                                        <input
-                                            id="floor_area"
-                                            v-model.number="form.specifications.floor_area"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <!-- Additional Details -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="year_built" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Year Built
-                                        </label>
-                                        <input
-                                            id="year_built"
-                                            v-model.number="form.specifications.year_built"
-                                            type="number"
-                                            min="1800"
-                                            :max="new Date().getFullYear()"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="zoning" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Zoning
-                                        </label>
-                                        <input
-                                            id="zoning"
-                                            v-model="form.specifications.zoning"
-                                            type="text"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="Residential, Commercial, etc."
-                                        />
-                                    </div>
-                                </div>
-
-                                <!-- Amenities Section -->
-                                <div>
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Nearby Amenities</h3>
-                                    <div class="space-y-4">
-                                        <div v-for="(category, categoryKey) in { 
-                                            schools_nearby: 'Schools', 
-                                            transport: 'Transport', 
-                                            shopping: 'Shopping', 
-                                            parks: 'Parks & Recreation', 
-                                            medical: 'Medical Facilities' 
-                                        }" :key="categoryKey">
-                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                {{ category }}
-                                            </label>
-                                            <div class="space-y-2">
-                                                <div v-for="(item, index) in form.specifications.amenities[categoryKey]" :key="index" class="flex gap-2">
-                                                    <input
-                                                        v-model="form.specifications.amenities[categoryKey][index]"
-                                                        type="text"
-                                                        class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                        :placeholder="`Add ${category.toLowerCase()} information`"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        @click="removeAmenityItem(categoryKey, index)"
-                                                        class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    @click="addAmenityItem(categoryKey)"
-                                                    class="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
-                                                >
-                                                    Add {{ category }}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div v-show="activeTab === 'specifications'">
+                            <Specifications
+                                v-model="form.specifications"
+                                :errors="form.errors"
+                            />
                         </div>
 
                         <!-- Pricing Tab -->
