@@ -6,6 +6,7 @@ import { Property, PropertyPricing, PropertyAttachment } from '@/types';
 import { ref, computed } from 'vue';
 // Update the path below to match the actual location and casing of your BasicInformation.vue file
 import BasicInformation from '@/components/properties/admin/forms/BasicInformation.vue';
+import Location from '@/components/properties/admin/forms/Location.vue';
 
 interface Props {
     property: Property & {
@@ -38,16 +39,16 @@ const form = useForm({
     
     // Location Information - as a nested object
     location: {
-        street_number: property.street_number,
-        street_name: property.street_name,
-        village: property.village,
-        district: property.district,
-        regency: property.regency,
-        state: property.state,
-        postcode: property.postcode,
-        country: property.country,
-        latitude: property.latitude,
-        longitude: property.longitude,
+        street_number: property.street_number ?? null,
+        street_name: property.street_name ?? null,
+        village: property.village ?? null,
+        district: property.district ?? null,
+        regency: property.regency ?? null,
+        state: property.state ?? null,
+        postcode: property.postcode ?? null,
+        country: property.country ?? null,
+        latitude: property.latitude ?? null,
+        longitude: property.longitude ?? null,
     },
     
     // Property Specifications - as a nested object
@@ -260,157 +261,8 @@ const hasFieldError = (field: string) => {
                         </div>
 
                         <!-- Location Tab -->
-                        <div v-show="activeTab === 'location'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Location & Address</h2>
-                            </div>
-                            <div class="p-6 space-y-6">
-                                <!-- Street Address -->
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div>
-                                        <label for="street_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Street Number
-                                        </label>
-                                        <input
-                                            id="street_number"
-                                            v-model="form.location.street_number"
-                                            type="text"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="123"
-                                        />
-                                    </div>
-
-                                    <div class="md:col-span-3">
-                                        <label for="street_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Street Name *
-                                        </label>
-                                        <input
-                                            id="street_name"
-                                            v-model="form.location.street_name"
-                                            type="text"
-                                            :class="[
-                                                'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
-                                                hasFieldError('location.street_name') ? 'border-red-300' : ''
-                                            ]"
-                                            placeholder="Jalan Raya Ubud"
-                                        />
-                                        <p v-if="getFieldError('location.street_name')" class="mt-1 text-sm text-red-600">{{ getFieldError('location.street_name') }}</p>
-                                    </div>
-                                </div>
-
-                                <!-- Bali-specific Address Structure -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="village" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Village (Desa/Kelurahan)
-                                        </label>
-                                        <input
-                                            id="village"
-                                            v-model="form.location.village"
-                                            type="text"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="Ubud"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="district" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            District (Kecamatan) *
-                                        </label>
-                                        <input
-                                            id="district"
-                                            v-model="form.location.district"
-                                            type="text"
-                                            :class="[
-                                                'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
-                                                hasFieldError('location.district') ? 'border-red-300' : ''
-                                            ]"
-                                            placeholder="Ubud"
-                                        />
-                                        <p v-if="getFieldError('location.district')" class="mt-1 text-sm text-red-600">{{ getFieldError('location.district') }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div>
-                                        <label for="regency" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Regency (Kabupaten) *
-                                        </label>
-                                        <input
-                                            id="regency"
-                                            v-model="form.location.regency"
-                                            type="text"
-                                            :class="[
-                                                'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
-                                                hasFieldError('location.regency') ? 'border-red-300' : ''
-                                            ]"
-                                            placeholder="Gianyar"
-                                        />
-                                        <p v-if="getFieldError('location.regency')" class="mt-1 text-sm text-red-600">{{ getFieldError('location.regency') }}</p>
-                                    </div>
-
-                                    <div>
-                                        <label for="state" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            State (Provinsi)
-                                        </label>
-                                        <input
-                                            id="state"
-                                            v-model="form.location.state"
-                                            type="text"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="Bali"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="postcode" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Postcode *
-                                        </label>
-                                        <input
-                                            id="postcode"
-                                            v-model="form.location.postcode"
-                                            type="text"
-                                            :class="[
-                                                'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
-                                                hasFieldError('location.postcode') ? 'border-red-300' : ''
-                                            ]"
-                                            placeholder="80571"
-                                        />
-                                        <p v-if="getFieldError('location.postcode')" class="mt-1 text-sm text-red-600">{{ getFieldError('location.postcode') }}</p>
-                                    </div>
-                                </div>
-
-                                <!-- GPS Coordinates -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="latitude" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Latitude
-                                        </label>
-                                        <input
-                                            id="latitude"
-                                            v-model="form.location.latitude"
-                                            type="number"
-                                            step="any"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="-8.5068"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="longitude" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Longitude
-                                        </label>
-                                        <input
-                                            id="longitude"
-                                            v-model="form.location.longitude"
-                                            type="number"
-                                            step="any"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="115.2625"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                        <div v-show="activeTab === 'location'">
+                            <Location v-model="form.location" :errors="form.errors" />
                         </div>
 
                         <!-- Specifications Tab -->

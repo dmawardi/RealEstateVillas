@@ -17,7 +17,7 @@ interface Props {
     propertyTypes: Record<string, string>;
     listingTypes: Record<string, string>;
     statusOptions: Record<string, string>;
-    errors?: Record<string, string>;
+    errors?: Record<string, string | undefined>;
 }
 
 interface Emits {
