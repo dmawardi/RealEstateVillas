@@ -9,6 +9,7 @@ import Location from '@/components/properties/admin/forms/Location.vue';
 import Specifications from '@/components/properties/admin/forms/Specifications.vue';
 import Pricing from '@/components/properties/admin/forms/Pricing.vue';
 import MediaAttachments from '@/components/properties/admin/forms/MediaAttachments.vue';
+import Agent from '@/components/properties/admin/forms/Agent.vue';
 
 interface Props {
     property: Property & {
@@ -92,10 +93,10 @@ const form = useForm({
     
     // Agent Information - as a nested object
     agent: {
-        agent_name: property.agent_name,
-        agent_phone: property.agent_phone,
-        agent_email: property.agent_email,
-        agency_name: property.agency_name,
+        agent_name: property.agent_name ?? null,
+        agent_phone: property.agent_phone ?? null,
+        agent_email: property.agent_email ?? null,
+        agency_name: property.agency_name ?? null,
     },
 });
 
@@ -127,15 +128,6 @@ const handleDeleteAttachment = (attachmentId: number) => {
     // For example, make an API call to delete the attachment
     console.log('Delete attachment:', attachmentId);
     // router.delete(route('admin.attachments.destroy', attachmentId));
-};
-
-// Validation helpers
-const getFieldError = (field: string) => {
-    return form.errors[field as keyof typeof form.errors];
-};
-
-const hasFieldError = (field: string) => {
-    return !!form.errors[field as keyof typeof form.errors];
 };
 </script>
 
@@ -275,71 +267,11 @@ const hasFieldError = (field: string) => {
                         </div>
 
                         <!-- Agent Information Tab -->
-                        <div v-show="activeTab === 'agent'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Agent Information</h2>
-                            </div>
-                            <div class="p-6 space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="agent_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Agent Name *
-                                        </label>
-                                        <input
-                                            id="agent_name"
-                                            v-model="form.agent.agent_name"
-                                            type="text"
-                                            :class="[
-                                                'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
-                                                hasFieldError('agent.agent_name') ? 'border-red-300' : ''
-                                            ]"
-                                            placeholder="John Smith"
-                                        />
-                                        <p v-if="getFieldError('agent.agent_name')" class="mt-1 text-sm text-red-600">{{ getFieldError('agent.agent_name') }}</p>
-                                    </div>
-
-                                    <div>
-                                        <label for="agency_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Agency Name
-                                        </label>
-                                        <input
-                                            id="agency_name"
-                                            v-model="form.agent.agency_name"
-                                            type="text"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="Bali Real Estate Co."
-                                        />
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="agent_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Agent Phone
-                                        </label>
-                                        <input
-                                            id="agent_phone"
-                                            v-model="form.agent.agent_phone"
-                                            type="tel"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="+62 812 3456 7890"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="agent_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Agent Email
-                                        </label>
-                                        <input
-                                            id="agent_email"
-                                            v-model="form.agent.agent_email"
-                                            type="email"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="agent@example.com"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                        <div v-show="activeTab === 'agent'">
+                            <Agent
+                                v-model="form.agent"
+                                :errors="form.errors"
+                            />
                         </div>
                     </form>
                 </div>
