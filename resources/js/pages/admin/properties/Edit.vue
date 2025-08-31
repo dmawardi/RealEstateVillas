@@ -8,6 +8,7 @@ import BasicInformation from '@/components/properties/admin/forms/BasicInformati
 import Location from '@/components/properties/admin/forms/Location.vue';
 import Specifications from '@/components/properties/admin/forms/Specifications.vue';
 import Pricing from '@/components/ui/form/Pricing.vue';
+import MediaAttachments from '@/components/properties/admin/forms/MediaAttachments.vue';
 
 interface Props {
     property: Property & {
@@ -83,8 +84,8 @@ const form = useForm({
     
     // Media Information - as a nested object
     media: {
-        virtual_tour_url: property.virtual_tour_url,
-        video_url: property.video_url,
+        virtual_tour_url: property.virtual_tour_url ?? null,
+        video_url: property.video_url ?? null,
         floor_plan: null as File | null,
         images: [] as File[],
     },
@@ -110,20 +111,6 @@ const tabs = [
 ];
 
 // Helper functions
-function handleImageUpload(event: Event) {
-    const target = event.target as HTMLInputElement;
-    if (target.files) {
-        form.media.images = Array.from(target.files);
-    }
-}
-
-const handleFloorPlanUpload = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    if (target.files && target.files[0]) {
-        form.media.floor_plan = target.files[0];
-    }
-};
-
 const submit = () => {
     form.put(route('admin.properties.update', property.id), {
         preserveScroll: true,
@@ -133,6 +120,13 @@ const submit = () => {
             form.media.floor_plan = null;
         }
     });
+};
+
+const handleDeleteAttachment = (attachmentId: number) => {
+    // You can implement the deletion logic here
+    // For example, make an API call to delete the attachment
+    console.log('Delete attachment:', attachmentId);
+    // router.delete(route('admin.attachments.destroy', attachmentId));
 };
 
 // Validation helpers
@@ -270,102 +264,14 @@ const hasFieldError = (field: string) => {
                         </div>
 
                         <!-- Media & Images Tab -->
-                        <div v-show="activeTab === 'media'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Media & Images</h2>
-                            </div>
-                            <div class="p-6 space-y-6">
-                                <!-- Existing Images -->
-                                <div v-if="property.attachments && property.attachments.length > 0">
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Existing Images</h3>
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                        <div 
-                                            v-for="attachment in property.attachments" 
-                                            :key="attachment.id"
-                                            class="relative aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden"
-                                        >
-                                            <img 
-                                                :src="attachment.path" 
-                                                :alt="attachment.title"
-                                                class="w-full h-full object-cover"
-                                            />
-                                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
-                                                <button
-                                                    type="button"
-                                                    class="opacity-0 hover:opacity-100 bg-red-500 text-white p-2 rounded-full transition-opacity"
-                                                    title="Delete Image"
-                                                >
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Add New Images -->
-                                <div>
-                                    <label for="images" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Add New Images
-                                    </label>
-                                    <input
-                                        id="images"
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        @change="handleImageUpload"
-                                        class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                    />
-                                    <p class="mt-1 text-sm text-gray-500">Upload up to 20 images (max 5MB each)</p>
-                                </div>
-
-                                <!-- Floor Plan -->
-                                <div>
-                                    <label for="floor_plan" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Floor Plan
-                                    </label>
-                                    <input
-                                        id="floor_plan"
-                                        type="file"
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        @change="handleFloorPlanUpload"
-                                        class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                    />
-                                    <p v-if="property.floor_plan" class="mt-1 text-sm text-gray-500">
-                                        Current: {{ property.floor_plan.split('/').pop() }}
-                                    </p>
-                                </div>
-
-                                <!-- Virtual Tour and Video URLs -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="virtual_tour_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Virtual Tour URL
-                                        </label>
-                                        <input
-                                            id="virtual_tour_url"
-                                            v-model="form.media.virtual_tour_url"
-                                            type="url"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="https://..."
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="video_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Video URL
-                                        </label>
-                                        <input
-                                            id="video_url"
-                                            v-model="form.media.video_url"
-                                            type="url"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="https://youtube.com/..."
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                        <div v-show="activeTab === 'media'">
+                            <MediaAttachments
+                                v-model="form.media"
+                                :existing-attachments="property.attachments"
+                                :existing-floor-plan="property.floor_plan"
+                                :errors="form.errors"
+                                @delete-attachment="handleDeleteAttachment"
+                            />
                         </div>
 
                         <!-- Agent Information Tab -->
