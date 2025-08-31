@@ -425,7 +425,6 @@ class AdminPropertyController extends Controller
             'agent_email' => 'nullable|email|max:255',
             'agency_name' => 'nullable|string|max:255',
             'nightly_rate' => 'nullable|integer|min:0',
-            'weekly_rate' => 'nullable|integer|min:0',
             'monthly_rate' => 'nullable|integer|min:0',
             'images' => 'nullable|array|max:20',
             'images.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',

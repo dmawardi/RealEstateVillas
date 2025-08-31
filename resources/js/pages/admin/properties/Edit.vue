@@ -1,9 +1,9 @@
 <script setup lang="ts">
+// filepath: /Users/d/Web Development/projects/RealEstate/resources/js/pages/admin/properties/Edit.vue
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Property, PropertyPricing, PropertyAttachment } from '@/types';
-import { ref } from 'vue';
-// Update the path below to match the actual location and casing of your BasicInformation.vue file
+import { ref, computed } from 'vue';
 import BasicInformation from '@/components/properties/admin/forms/BasicInformation.vue';
 import Location from '@/components/properties/admin/forms/Location.vue';
 import Specifications from '@/components/properties/admin/forms/Specifications.vue';
@@ -27,77 +27,188 @@ const { property, propertyTypes, listingTypes, priceTypes, statusOptions } = def
 // Get current pricing for form initialization
 const currentPricing = property.pricing?.[0];
 
-// Form setup with nested structure
+// Form setup with FLATTENED structure to match controller expectations
 const form = useForm({
-    // Basic Information - as a nested object
-    basic_information: {
-        title: property.title,
-        description: property.description,
-        property_type: property.property_type,
-        listing_type: property.listing_type,
-        status: property.status,
-        is_featured: property.is_featured,
-        is_premium: property.is_premium,
+    // Basic Information - flattened
+    title: property.title,
+    description: property.description,
+    property_type: property.property_type,
+    listing_type: property.listing_type,
+    status: property.status,
+    is_featured: property.is_featured,
+    is_premium: property.is_premium,
+    
+    // Location - flattened
+    street_number: property.street_number ?? null,
+    street_name: property.street_name ?? null,
+    village: property.village ?? null,
+    district: property.district ?? null,
+    regency: property.regency ?? null,
+    state: property.state ?? null,
+    postcode: property.postcode ?? null,
+    country: property.country ?? null,
+    latitude: property.latitude ?? null,
+    longitude: property.longitude ?? null,
+    
+    // Specifications - flattened
+    bedrooms: property.bedrooms ?? null,
+    bathrooms: property.bathrooms ?? null,
+    car_spaces: property.car_spaces ?? null,
+    land_size: property.land_size ?? null,
+    floor_area: property.floor_area ?? null,
+    year_built: property.year_built ?? null,
+    zoning: property.zoning ?? null,
+    amenities: {
+        schools_nearby: property.amenities?.schools_nearby ?? [],
+        transport: property.amenities?.transport ?? [],
+        shopping: property.amenities?.shopping ?? [],
+        parks: property.amenities?.parks ?? [],
+        medical: property.amenities?.medical ?? []
     },
     
-    // Location Information - as a nested object
-    location: {
-        street_number: property.street_number ?? null,
-        street_name: property.street_name ?? null,
-        village: property.village ?? null,
-        district: property.district ?? null,
-        regency: property.regency ?? null,
-        state: property.state ?? null,
-        postcode: property.postcode ?? null,
-        country: property.country ?? null,
-        latitude: property.latitude ?? null,
-        longitude: property.longitude ?? null,
-    },
+    // Pricing - flattened
+    price: property.price || null,
+    price_type: property.price_type || null,
+    nightly_rate: currentPricing?.nightly_rate || null,
+    weekly_rate: currentPricing?.weekly_rate || null,
+    monthly_rate: currentPricing?.monthly_rate || null,
+    available_date: property.available_date ?? null,
+    inspection_times: property.inspection_times ?? null,
     
-    // Property Specifications - as a nested object
-    specifications: {
-        bedrooms: property.bedrooms ?? null,
-        bathrooms: property.bathrooms ?? null,
-        car_spaces: property.car_spaces ?? null,
-        land_size: property.land_size ?? null,
-        floor_area: property.floor_area ?? null,
-        year_built: property.year_built ?? null,
-        zoning: property.zoning ?? null,
-        amenities: {
-            schools_nearby: property.amenities?.schools_nearby ?? [],
-            transport: property.amenities?.transport ?? [],
-            shopping: property.amenities?.shopping ?? [],
-            parks: property.amenities?.parks ?? [],
-            medical: property.amenities?.medical ?? []
-        },
-    },
+    // Media - flattened
+    virtual_tour_url: property.virtual_tour_url ?? null,
+    video_url: property.video_url ?? null,
+    floor_plan: null as File | null,
+    images: [] as File[],
     
-    // Pricing Information - as a nested object
-    pricing: {
-        price: property.price || null,
-        price_type: property.price_type || null,
-        nightly_rate: currentPricing?.nightly_rate || null,
-        weekly_rate: currentPricing?.weekly_rate || null,
-        monthly_rate: currentPricing?.monthly_rate || null,
-        available_date: property.available_date ?? null,
-        inspection_times: property.inspection_times ?? null,
-    },
-    
-    // Media Information - as a nested object
-    media: {
-        virtual_tour_url: property.virtual_tour_url ?? null,
-        video_url: property.video_url ?? null,
-        floor_plan: null as File | null,
-        images: [] as File[],
-    },
-    
-    // Agent Information - as a nested object
-    agent: {
-        agent_name: property.agent_name ?? null,
-        agent_phone: property.agent_phone ?? null,
-        agent_email: property.agent_email ?? null,
-        agency_name: property.agency_name ?? null,
-    },
+    // Agent - flattened
+    agent_name: property.agent_name ?? null,
+    agent_phone: property.agent_phone ?? null,
+    agent_email: property.agent_email ?? null,
+    agency_name: property.agency_name ?? null,
+});
+
+// Create computed properties for component v-models (to maintain nested interface)
+const basicInformation = computed({
+    get: () => ({
+        title: form.title,
+        description: form.description,
+        property_type: form.property_type,
+        listing_type: form.listing_type,
+        status: form.status,
+        is_featured: form.is_featured,
+        is_premium: form.is_premium,
+    }),
+    set: (value) => {
+        form.title = value.title;
+        form.description = value.description;
+        form.property_type = value.property_type;
+        form.listing_type = value.listing_type;
+        form.status = value.status;
+        form.is_featured = value.is_featured;
+        form.is_premium = value.is_premium;
+    }
+});
+
+const location = computed({
+    get: () => ({
+        street_number: form.street_number,
+        street_name: form.street_name,
+        village: form.village,
+        district: form.district,
+        regency: form.regency,
+        state: form.state,
+        postcode: form.postcode,
+        country: form.country,
+        latitude: form.latitude,
+        longitude: form.longitude,
+    }),
+    set: (value) => {
+        form.street_number = value.street_number;
+        form.street_name = value.street_name;
+        form.village = value.village;
+        form.district = value.district;
+        form.regency = value.regency;
+        form.state = value.state;
+        form.postcode = value.postcode;
+        form.country = value.country;
+        form.latitude = value.latitude;
+        form.longitude = value.longitude;
+    }
+});
+
+const specifications = computed({
+    get: () => ({
+        bedrooms: form.bedrooms,
+        bathrooms: form.bathrooms,
+        car_spaces: form.car_spaces,
+        land_size: form.land_size,
+        floor_area: form.floor_area,
+        year_built: form.year_built,
+        zoning: form.zoning,
+        amenities: form.amenities,
+    }),
+    set: (value) => {
+        form.bedrooms = value.bedrooms;
+        form.bathrooms = value.bathrooms;
+        form.car_spaces = value.car_spaces;
+        form.land_size = value.land_size;
+        form.floor_area = value.floor_area;
+        form.year_built = value.year_built;
+        form.zoning = value.zoning;
+        form.amenities = value.amenities;
+    }
+});
+
+const pricing = computed({
+    get: () => ({
+        price: form.price,
+        price_type: form.price_type,
+        nightly_rate: form.nightly_rate,
+        weekly_rate: form.weekly_rate,
+        monthly_rate: form.monthly_rate,
+        available_date: form.available_date,
+        inspection_times: form.inspection_times,
+    }),
+    set: (value) => {
+        form.price = value.price;
+        form.price_type = value.price_type;
+        form.nightly_rate = value.nightly_rate;
+        form.weekly_rate = value.weekly_rate;
+        form.monthly_rate = value.monthly_rate;
+        form.available_date = value.available_date;
+        form.inspection_times = value.inspection_times;
+    }
+});
+
+const media = computed({
+    get: () => ({
+        virtual_tour_url: form.virtual_tour_url,
+        video_url: form.video_url,
+        floor_plan: form.floor_plan,
+        images: form.images,
+    }),
+    set: (value) => {
+        form.virtual_tour_url = value.virtual_tour_url;
+        form.video_url = value.video_url;
+        form.floor_plan = value.floor_plan;
+        form.images = value.images;
+    }
+});
+
+const agent = computed({
+    get: () => ({
+        agent_name: form.agent_name,
+        agent_phone: form.agent_phone,
+        agent_email: form.agent_email,
+        agency_name: form.agency_name,
+    }),
+    set: (value) => {
+        form.agent_name = value.agent_name;
+        form.agent_phone = value.agent_phone;
+        form.agent_email = value.agent_email;
+        form.agency_name = value.agency_name;
+    }
 });
 
 // Form sections state
@@ -111,23 +222,40 @@ const tabs = [
     { id: 'agent', name: 'Agent Info', icon: '👤' },
 ];
 
-// Helper functions
+// Submit function using form.put() - the correct Inertia approach
 const submit = () => {
+    console.log("Form data being sent:", form.data());
+
+    // Use form.put() for web routes - Inertia handles everything
     form.put(route('admin.properties.update', property.id), {
         preserveScroll: true,
+        preserveState: true,
         onSuccess: () => {
-            // Reset image files after successful upload
-            form.media.images = [];
-            form.media.floor_plan = null;
+            // Reset file fields after successful upload
+            form.images = [];
+            form.floor_plan = null;
+            console.log('Property updated successfully');
+        },
+        onError: (errors) => {
+            console.error('Validation errors:', errors);
+            // Errors are automatically handled by Inertia and mapped to form.errors
+        },
+        onFinish: () => {
+            console.log('Request completed');
         }
     });
 };
 
 const handleDeleteAttachment = (attachmentId: number) => {
-    // You can implement the deletion logic here
-    // For example, make an API call to delete the attachment
+    // For attachment deletion, you'd need a separate route
+    // Example: DELETE /admin/properties/{property}/attachments/{attachment}
     console.log('Delete attachment:', attachmentId);
-    // router.delete(route('admin.attachments.destroy', attachmentId));
+    
+    // If you have a deletion route, use router.delete:
+    // router.delete(route('admin.properties.attachments.destroy', [property.id, attachmentId]), {
+    //     preserveScroll: true,
+    //     onSuccess: () => console.log('Attachment deleted successfully')
+    // });
 };
 </script>
 
@@ -221,10 +349,10 @@ const handleDeleteAttachment = (attachmentId: number) => {
                 <!-- Form Content -->
                 <div class="lg:col-span-3">
                     <form @submit.prevent="submit" class="space-y-8">
-                        <!-- Basic Information Tab - Using Component -->
+                        <!-- Basic Information Tab -->
                         <div v-show="activeTab === 'basic'">
                             <BasicInformation
-                                v-model="form.basic_information"
+                                v-model="basicInformation"
                                 :property-types="propertyTypes"
                                 :listing-types="listingTypes"
                                 :status-options="statusOptions"
@@ -234,13 +362,16 @@ const handleDeleteAttachment = (attachmentId: number) => {
 
                         <!-- Location Tab -->
                         <div v-show="activeTab === 'location'">
-                            <Location v-model="form.location" :errors="form.errors" />
+                            <Location 
+                                v-model="location" 
+                                :errors="form.errors" 
+                            />
                         </div>
 
                         <!-- Specifications Tab -->
                         <div v-show="activeTab === 'specifications'">
                             <Specifications
-                                v-model="form.specifications"
+                                v-model="specifications"
                                 :errors="form.errors"
                             />
                         </div>
@@ -248,9 +379,9 @@ const handleDeleteAttachment = (attachmentId: number) => {
                         <!-- Pricing Tab -->
                         <div v-show="activeTab === 'pricing'">
                             <Pricing
-                                v-model="form.pricing"
+                                v-model="pricing"
                                 :price-types="priceTypes"
-                                :listing-type="form.basic_information.listing_type"
+                                :listing-type="form.listing_type"
                                 :errors="form.errors"
                             />
                         </div>
@@ -258,7 +389,7 @@ const handleDeleteAttachment = (attachmentId: number) => {
                         <!-- Media & Images Tab -->
                         <div v-show="activeTab === 'media'">
                             <MediaAttachments
-                                v-model="form.media"
+                                v-model="media"
                                 :existing-attachments="property.attachments"
                                 :existing-floor-plan="property.floor_plan"
                                 :errors="form.errors"
@@ -269,7 +400,7 @@ const handleDeleteAttachment = (attachmentId: number) => {
                         <!-- Agent Information Tab -->
                         <div v-show="activeTab === 'agent'">
                             <Agent
-                                v-model="form.agent"
+                                v-model="agent"
                                 :errors="form.errors"
                             />
                         </div>
