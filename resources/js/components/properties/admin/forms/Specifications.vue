@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// filepath: /Users/d/Web Development/projects/RealEstate/resources/js/components/properties/admin/forms/Specifications.vue
 import { computed } from 'vue';
 
 interface AmenitiesData {

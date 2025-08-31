@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// filepath: /Users/d/Web Development/projects/RealEstate/resources/js/pages/admin/properties/Edit.vue
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Property, PropertyPricing, PropertyAttachment } from '@/types';
