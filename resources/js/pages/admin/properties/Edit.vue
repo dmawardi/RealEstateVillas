@@ -3,11 +3,12 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Property, PropertyPricing, PropertyAttachment } from '@/types';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 // Update the path below to match the actual location and casing of your BasicInformation.vue file
 import BasicInformation from '@/components/properties/admin/forms/BasicInformation.vue';
 import Location from '@/components/properties/admin/forms/Location.vue';
 import Specifications from '@/components/properties/admin/forms/Specifications.vue';
+import Pricing from '@/components/ui/form/Pricing.vue';
 
 interface Props {
     property: Property & {
@@ -72,13 +73,13 @@ const form = useForm({
     
     // Pricing Information - as a nested object
     pricing: {
-        price: property.price,
-        price_type: property.price_type,
+        price: property.price || null,
+        price_type: property.price_type || null,
         nightly_rate: currentPricing?.nightly_rate || null,
         weekly_rate: currentPricing?.weekly_rate || null,
         monthly_rate: currentPricing?.monthly_rate || null,
-        available_date: property.available_date,
-        inspection_times: property.inspection_times,
+        available_date: property.available_date ?? null,
+        inspection_times: property.inspection_times ?? null,
     },
     
     // Media Information - as a nested object
@@ -109,17 +110,13 @@ const tabs = [
     { id: 'agent', name: 'Agent Info', icon: '👤' },
 ];
 
-// Computed properties
-const isRentalProperty = computed(() => form.basic_information.listing_type === 'for_rent');
-const showRentalPricing = computed(() => isRentalProperty.value);
-
 // Helper functions
-const handleImageUpload = (event: Event) => {
+function handleImageUpload(event: Event) {
     const target = event.target as HTMLInputElement;
     if (target.files) {
         form.media.images = Array.from(target.files);
     }
-};
+}
 
 const handleFloorPlanUpload = (event: Event) => {
     const target = event.target as HTMLInputElement;
@@ -264,119 +261,13 @@ const hasFieldError = (field: string) => {
                         </div>
 
                         <!-- Pricing Tab -->
-                        <div v-show="activeTab === 'pricing'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pricing Information</h2>
-                            </div>
-                            <div class="p-6 space-y-6">
-                                <!-- Sale Price (for sale properties) -->
-                                <div v-if="!isRentalProperty" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Price (IDR)
-                                        </label>
-                                        <input
-                                            id="price"
-                                            v-model.number="form.pricing.price"
-                                            type="number"
-                                            min="0"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="500000000"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="price_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Price Type
-                                        </label>
-                                        <select
-                                            id="price_type"
-                                            v-model="form.pricing.price_type"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        >
-                                            <option v-for="(label, value) in priceTypes" :key="value" :value="value">
-                                                {{ label }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Rental Pricing (for rental properties) -->
-                                <div v-if="showRentalPricing">
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Rental Rates</h3>
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div>
-                                            <label for="nightly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Nightly Rate (IDR)
-                                            </label>
-                                            <input
-                                                id="nightly_rate"
-                                                v-model.number="form.pricing.nightly_rate"
-                                                type="number"
-                                                min="0"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                placeholder="500000"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label for="weekly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Weekly Rate (IDR)
-                                            </label>
-                                            <input
-                                                id="weekly_rate"
-                                                v-model.number="form.pricing.weekly_rate"
-                                                type="number"
-                                                min="0"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                placeholder="3000000"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label for="monthly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                Monthly Rate (IDR)
-                                            </label>
-                                            <input
-                                                id="monthly_rate"
-                                                v-model.number="form.pricing.monthly_rate"
-                                                type="number"
-                                                min="0"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                placeholder="10000000"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Additional Pricing Info -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label for="available_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Available Date
-                                        </label>
-                                        <input
-                                            id="available_date"
-                                            v-model="form.pricing.available_date"
-                                            type="date"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label for="inspection_times" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Inspection Times
-                                        </label>
-                                        <textarea
-                                            id="inspection_times"
-                                            v-model="form.pricing.inspection_times"
-                                            rows="3"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            placeholder="Saturday 10am-11am, Sunday 2pm-3pm"
-                                        ></textarea>
-                                    </div>
-                                </div>
-                            </div>
+                        <div v-show="activeTab === 'pricing'">
+                            <Pricing
+                                v-model="form.pricing"
+                                :price-types="priceTypes"
+                                :listing-type="form.basic_information.listing_type"
+                                :errors="form.errors"
+                            />
                         </div>
 
                         <!-- Media & Images Tab -->
