@@ -7,7 +7,7 @@ import { ref } from 'vue';
 import BasicInformation from '@/components/properties/admin/forms/BasicInformation.vue';
 import Location from '@/components/properties/admin/forms/Location.vue';
 import Specifications from '@/components/properties/admin/forms/Specifications.vue';
-import Pricing from '@/components/ui/form/Pricing.vue';
+import Pricing from '@/components/properties/admin/forms/Pricing.vue';
 import MediaAttachments from '@/components/properties/admin/forms/MediaAttachments.vue';
 
 interface Props {
