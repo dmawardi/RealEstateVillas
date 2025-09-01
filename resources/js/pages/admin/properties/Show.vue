@@ -39,18 +39,6 @@ const deleteProperty = () => {
         router.delete(route('admin.properties.destroy', property.id));
     }
 };
-
-const toggleFeatured = () => {
-    router.post(route('admin.properties.toggle-featured', property.id), {}, {
-        preserveScroll: true
-    });
-};
-
-const togglePremium = () => {
-    router.post(route('admin.properties.toggle-premium', property.id), {}, {
-        preserveScroll: true
-    });
-};
 </script>
 
 <template>
@@ -92,20 +80,6 @@ const togglePremium = () => {
                     
                     <!-- Action Buttons -->
                     <div class="flex space-x-3">
-                        <button
-                            @click="toggleFeatured"
-                            :class="property.is_featured ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-gray-600 hover:bg-gray-700'"
-                            class="text-white px-4 py-2 rounded-lg transition-colors duration-200"
-                        >
-                            {{ property.is_featured ? 'Remove Featured' : 'Mark Featured' }}
-                        </button>
-                        <button
-                            @click="togglePremium"
-                            :class="property.is_premium ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-600 hover:bg-gray-700'"
-                            class="text-white px-4 py-2 rounded-lg transition-colors duration-200"
-                        >
-                            {{ property.is_premium ? 'Remove Premium' : 'Mark Premium' }}
-                        </button>
                         <Link 
                             :href="route('admin.properties.edit', property.id)"
                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
