@@ -55,4 +55,9 @@ export class PropertyApi extends ApiService {
     static getAllLocations(options = {}) {
         return this.get('/api/properties/locations', options);
     }
+
+     // Property Attachments
+    static deleteAttachment(attachmentId: number, options = {}) {
+        return this.delete(`/api/attachments/${attachmentId}`, options);
+    }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // filepath: /Users/d/Web Development/projects/RealEstate/resources/js/pages/admin/properties/Edit.vue
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Property, PropertyPricing, PropertyAttachment } from '@/types';
 import { ref, computed } from 'vue';
@@ -10,6 +10,7 @@ import Specifications from '@/components/properties/admin/forms/Specifications.v
 import Pricing from '@/components/properties/admin/forms/Pricing.vue';
 import MediaAttachments from '@/components/properties/admin/forms/MediaAttachments.vue';
 import Agent from '@/components/properties/admin/forms/Agent.vue';
+import { api } from '@/services/api';
 
 interface Props {
     property: Property & {
@@ -246,16 +247,20 @@ const submit = () => {
     });
 };
 
-const handleDeleteAttachment = (attachmentId: number) => {
-    // For attachment deletion, you'd need a separate route
-    // Example: DELETE /admin/properties/{property}/attachments/{attachment}
-    console.log('Delete attachment:', attachmentId);
-    
-    // If you have a deletion route, use router.delete:
-    // router.delete(route('admin.properties.attachments.destroy', [property.id, attachmentId]), {
-    //     preserveScroll: true,
-    //     onSuccess: () => console.log('Attachment deleted successfully')
-    // });
+const handleDeleteAttachment = async (attachmentId: number) => {
+    try {
+        // Use the API service to delete the attachment
+        const response = await api.properties.deleteAttachment(attachmentId);
+
+        console.log('Attachment deleted successfully:', response);
+
+        // Option 1: Refresh the current page to get updated data
+        router.reload({ only: ['property'] });
+        
+    } catch (error) {
+        console.error('Failed to delete attachment:', error);
+        // Handle error appropriately - show error message to user
+    }
 };
 </script>
 
