@@ -39,7 +39,7 @@ export class PropertyApi extends ApiService {
             end: params.end
         });
         
-        return this.get(`/api/properties/${id}/availability?${queryParams.toString()}`, options);
+        return this.get(`/properties/${id}/availability?${queryParams.toString()}`, options);
     }
 
     // Query for calculated rental price using check in check out date

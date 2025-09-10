@@ -14,7 +14,7 @@ export class ApiService {
         const { onSuccess, onError, onFinish } = options;
 
         try {
-            const response = await fetch(url, {
+            const response = await fetch('/api' + url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
