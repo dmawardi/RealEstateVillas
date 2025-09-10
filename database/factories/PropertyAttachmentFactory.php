@@ -19,6 +19,7 @@ class PropertyAttachmentFactory extends Factory
         // Grab image_placeholder from the storage disk
         $imagePlaceholderPath = '/images/image_placeholder.jpg';
         $imagePlaceholder = \Illuminate\Support\Facades\Storage::disk('public')->path($imagePlaceholderPath);
+
         return [
             'property_id' => \App\Models\Property::factory(),
             'title' => $this->faker->words(3, true),
@@ -29,6 +30,7 @@ class PropertyAttachmentFactory extends Factory
             'caption' => $this->faker->sentence,
             'is_visible_to_customer' => true, // Default to visible
             'is_active' => true, // Default to active
+            'order' => $this->faker->numberBetween(1, 100)
         ];
     }
 }

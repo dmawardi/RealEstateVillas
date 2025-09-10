@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('caption')->nullable(); // Optional caption/description
             $table->boolean('is_visible_to_customer')->default(true); // Whether customer can see it
             $table->boolean('is_active')->default(true); // Soft delete flag
+            $table->integer('order')->default(0); // Order of the attachment
         });
     }
 

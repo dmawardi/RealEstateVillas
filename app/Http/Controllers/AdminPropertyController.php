@@ -474,19 +474,7 @@ class AdminPropertyController extends Controller
 
             // Handle new image uploads
             if ($request->hasFile('images')) {
-                $existingCount = $property->attachments()->count();
-                
-                foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('property-images', 'public');
-                    
-                    PropertyAttachment::create([
-                        'property_id' => $property->id,
-                        'title' => "Property Image " . ($existingCount + $index + 1),
-                        'path' => Storage::url($path),
-                        'type' => 'image',
-                        'order' => $existingCount + $index,
-                    ]);
-                }
+                $this->handleAttachments($request->file('images'), $property);
             }
 
             DB::commit();
@@ -647,6 +635,50 @@ class AdminPropertyController extends Controller
         } while (Property::where('property_id', $propertyId)->exists());
 
         return $propertyId;
+    }
+
+    // S3 Helper functions
+    // This method handles the S3 upload of an image
+    private function handleS3Upload($file, $propertyId)
+    {
+        // Handle S3 upload logic here
+        $path = $file->store('properties/' . $propertyId . "/attachments" , 's3');
+        return $path;
+    }
+    // This method takes the validated request, the job request object, and user
+    // and handles the image attachments
+    private function handleAttachments($attachments, $property)
+    {
+        // Check if the request has images
+        foreach ($attachments as $attachment) {
+            // Handle S3 upload logic here
+            $path = $this->handleS3Upload($attachment, $property->id);
+            // Create a new PropertyAttachment instance
+            $propertyAttachment = new PropertyAttachment();
+
+            // Based on file type, determine category of attachment
+            if (in_array($attachment->getClientMimeType(), ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])) {
+                $type = 'document';
+            } else {
+                $type = 'image';
+            }
+
+            // Fill the attachment details
+            $propertyAttachment->fill([
+                'property_id' => $property->id,
+                'title' => $attachment->getClientOriginalName(),
+                'path' => $path,
+                'original_filename' => $attachment->getClientOriginalName(),
+                'file_type' => $attachment->getClientMimeType(),
+                'file_size' => $attachment->getSize(),
+                'type' => $type,
+                'caption' => null,
+                'is_visible_to_customer' => false,
+                'is_active' => true,
+            ]);
+            
+            $propertyAttachment->save();
+        }
     }
 
     /**
