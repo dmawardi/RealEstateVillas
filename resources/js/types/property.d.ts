@@ -111,6 +111,7 @@ export interface PropertyAttachment {
     caption?: string;
     is_visible_to_customer: boolean;
     is_active: boolean;
+    order: number;
 }
 
 export interface User {

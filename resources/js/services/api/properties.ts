@@ -50,14 +50,14 @@ export class PropertyApi extends ApiService {
             check_out_date: params.check_out_date
         });
         
-        return this.get(`/api/properties/${id}/price?${queryParams.toString()}`, options);
+        return this.get(`/properties/${id}/price?${queryParams.toString()}`, options);
     }
     static getAllLocations(options = {}) {
-        return this.get('/api/properties/locations', options);
+        return this.get('/properties/locations', options);
     }
 
      // Property Attachments
     static deleteAttachment(attachmentId: number, options = {}) {
-        return this.delete(`/api/attachments/${attachmentId}`, options);
+        return this.delete(`/attachments/${attachmentId}`, options);
     }
 }

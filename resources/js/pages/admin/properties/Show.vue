@@ -10,6 +10,7 @@ import PropertyImages from '@/components/properties/PropertyImages.vue';
 import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
 import PropertyBookings from '@/components/properties/admin/PropertyBookings.vue';
 import { Booking } from '@/types';
+import PropertyAttachments from '@/components/properties/admin/PropertyAttachments.vue';
 
 
 interface Props {
@@ -120,6 +121,11 @@ const deleteProperty = () => {
 
                     <!-- Property Images -->
                     <PropertyImages
+                        :attachments="property.attachments"
+                    />
+
+                    <PropertyAttachments
+                        :property-id="property.id"
                         :attachments="property.attachments"
                     />
 

@@ -16,9 +16,7 @@ class PropertyAttachmentFactory extends Factory
      */
     public function definition(): array
     {
-        // Grab image_placeholder from the storage disk
-        $imagePlaceholderPath = '/images/image_placeholder.jpg';
-        $imagePlaceholder = \Illuminate\Support\Facades\Storage::disk('public')->path($imagePlaceholderPath);
+        $imagePlaceholder = $this->faker->imageUrl(800, 600, 'real-estate', true, 'property');
 
         return [
             'property_id' => \App\Models\Property::factory(),
@@ -30,7 +28,8 @@ class PropertyAttachmentFactory extends Factory
             'caption' => $this->faker->sentence,
             'is_visible_to_customer' => true, // Default to visible
             'is_active' => true, // Default to active
-            'order' => $this->faker->numberBetween(1, 100)
+            'order' => $this->faker->numberBetween(1, 100),
+            'type' => 'image', // (eg. image, document, floor_plan)
         ];
     }
 }
