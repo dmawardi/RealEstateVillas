@@ -14,16 +14,26 @@ export class ApiService {
         const { onSuccess, onError, onFinish } = options;
 
         try {
+            // Determine if this is a FormData request
+            const isFormData = data instanceof FormData;
+            
+            const headers: Record<string, string> = {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                // Get CSRF token from meta tag
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            };
+
+            // Only set Content-Type for non-FormData requests
+            if (!isFormData) {
+                headers['Content-Type'] = 'application/json';
+            }
+
             const response = await fetch('/api' + url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    // Get CSRF token from meta tag
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                },
-                body: data ? JSON.stringify(data) : undefined,
+                headers,
+                // For FormData, send directly; for others, stringify
+                body: data ? (isFormData ? data : JSON.stringify(data)) : undefined,
             });
 
             if (!response.ok) {
@@ -57,5 +67,9 @@ export class ApiService {
 
     static delete(url: string, options: ApiOptions = {}) {
         return this.makeRequest('DELETE', url, undefined, options);
+    }
+
+    static patch(url: string, data: any, options: ApiOptions = {}) {
+        return this.makeRequest('PATCH', url, data, options);
     }
 }

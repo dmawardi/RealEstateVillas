@@ -53,12 +53,16 @@ class PropertyAttachmentController extends Controller
 
     public function store(Request $request, Property $property)
     {
+        Log::info('Storing attachment for property', ['property_id' => $property->id]);
+        Log::info('Request data', $request->all());
         // Updated validation to handle both single and multiple files
         $validated = $request->validate([
-            // Support both single file and multiple files
-            'file' => 'required_without:files|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
-            'files' => 'required_without:file|array|min:1|max:10',
+            // Primary validation for multiple files
+            'files' => 'required|array|min:1|max:10',
             'files.*' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
+            
+            // Optional single file (for backward compatibility)
+            'file' => 'sometimes|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
             
             // Optional fields
             'title' => 'nullable|string|max:255',

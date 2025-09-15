@@ -93,7 +93,7 @@ const cancelEditing = () => {
 const saveEdit = async (attachmentId: number) => {
     try {
         // Fixed: Use the proper API pattern like LocationAutocomplete
-        await api.attachments.updateAttachment(props.propertyId, attachmentId, editForm.value, {
+        await api.attachments.updateAttachment(attachmentId, editForm.value, {
             onSuccess: (response: any) => {
                 if (response.success) {
                     emit('attachment-updated', response.data.attachment);
@@ -114,7 +114,6 @@ const deleteAttachment = async (attachmentId: number) => {
     if (!confirm('Are you sure you want to delete this attachment?')) return;
     
     try {
-        // Fixed: Use the proper API pattern like LocationAutocomplete
         await api.attachments.deleteAttachment(attachmentId, {
             onSuccess: (response: any) => {
                 if (response.success) {
