@@ -135,7 +135,7 @@ class PropertyAttachmentController extends Controller
                     ];
 
                     Log::info('Attachment uploaded successfully', [
-                        'attachment_id' => $attachment->id,
+                        'attachment' => $attachment,
                         'property_id' => $property->id,
                         'filename' => $file->getClientOriginalName()
                     ]);

@@ -19,7 +19,7 @@ class PropertyController extends Controller
      */
     public function index(Request $request)
     {
-    $query = Property::with(['user', 'features']);
+    $query = Property::with(['features']);
 
     // Handle comma-separated location filters with OR logic
     $hasLocationFilter = $request->filled('villages') || $request->filled('districts') || $request->filled('regencies');
