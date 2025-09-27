@@ -164,7 +164,7 @@ class PropertyController extends Controller
      */
     public function show(Property $property)
     {
-        $property->load(['user', 'features', 'attachments', 'pricing']);
+        $property->load(['features', 'attachments', 'pricing']);
 
         // Get current pricing
         $currentPricing = $property->getCurrentPricing();
