@@ -183,7 +183,7 @@ const handleFileUpload = async () => {
         Array.from(selectedFiles.value).forEach(file => {
             formData.append('files[]', file);
         });
-        formData.append('is_visible_to_customer', 'true');
+        formData.append('is_visible_to_customer', '0');
         
         // Simulate progress for better UX
         const progressInterval = setInterval(() => {
@@ -192,7 +192,6 @@ const handleFileUpload = async () => {
             }
         }, 200);
         
-        // Fixed: Use the proper API pattern like LocationAutocomplete
         await api.attachments.createAttachment(props.propertyId, formData, {
             onSuccess: (response: any) => {
                 clearInterval(progressInterval);

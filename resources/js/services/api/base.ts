@@ -15,16 +15,21 @@ export class ApiService {
 
         try {
             // Determine if this is a FormData request
-            const isFormData = data instanceof FormData;
+            const isFormData = data instanceof FormData;            
             
             const headers: Record<string, string> = {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                // Get CSRF token from meta tag
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
             };
 
+            // Get CSRF token from meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken) {
+                headers['X-CSRF-TOKEN'] = csrfToken;
+            }
+
             // Only set Content-Type for non-FormData requests
+            // For FormData, let the browser set the Content-Type with boundary
             if (!isFormData) {
                 headers['Content-Type'] = 'application/json';
             }

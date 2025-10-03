@@ -6,7 +6,6 @@ import { formatPrice, formatDate } from '@/utils';
 import { ref } from 'vue';
 import PropertyOverview from '@/components/properties/admin/PropertyOverview.vue';
 import PropertyAddressLocation from '@/components/properties/admin/PropertyAddressLocation.vue';
-import PropertyImages from '@/components/properties/PropertyImages.vue';
 import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
 import PropertyBookings from '@/components/properties/admin/PropertyBookings.vue';
 import { Booking } from '@/types';
@@ -117,11 +116,6 @@ const deleteProperty = () => {
                     <PropertyAddressLocation
                         :property="property"
                         :map-api-key="map_api_key"
-                    />
-
-                    <!-- Property Images -->
-                    <PropertyImages
-                        :attachments="property.attachments"
                     />
 
                     <PropertyAttachments

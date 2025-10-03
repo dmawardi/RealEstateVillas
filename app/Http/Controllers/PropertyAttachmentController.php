@@ -55,14 +55,77 @@ class PropertyAttachmentController extends Controller
     {
         Log::info('Storing attachment for property', ['property_id' => $property->id]);
         Log::info('Request data', $request->all());
-        // Updated validation to handle both single and multiple files
+        Log::info('Request files', $request->allFiles());
+        Log::info('Has files array:', ['has_files' => $request->hasFile('files')]);
+
+        // Check if files array is present and not empty
+        // Additional debugging for the empty file issue
+        if ($request->hasFile('files')) {
+            $files = $request->file('files');
+            Log::info('Files debug info:', [
+                'files_count' => count($files),
+                'files_details' => collect($files)->map(function($file, $index) {
+                    return [
+                        'index' => $index,
+                        'original_name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getClientMimeType(),
+                        'is_valid' => $file->isValid(),
+                        'error_code' => $file->getError(),
+                        'temp_path' => $file->getRealPath(),
+                        'path_name' => $file->getPathname()
+                    ];
+                })->toArray()
+            ]);
+        }
+        
+        // Check if files array is present and not empty
+        if (!$request->hasFile('files')) {
+            Log::error('No files found in request');
+            return response()->json([
+                'success' => false,
+                'message' => 'No files were uploaded'
+            ], 422);
+        }
+        
+        // Get files and check if they're valid
+        $files = $request->file('files');
+        
+        // Check for empty or invalid files
+        foreach ($files as $index => $file) {
+            if (!$file->isValid()) {
+                Log::error("File {$index} is invalid:", [
+                    'error_code' => $file->getError(),
+                    'size' => $file->getSize(),
+                    'name' => $file->getClientOriginalName()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => "File '{$file->getClientOriginalName()}' is invalid or corrupted"
+                ], 422);
+            }
+            
+            if ($file->getSize() == 0) {
+                Log::error("File {$index} is empty:", [
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => "File '{$file->getClientOriginalName()}' is empty"
+                ], 422);
+            }
+        }
+
+        Log::info('is_visible_to_customer:', ['value' => $request->input('is_visible_to_customer')]);
+        
+        // Simplified validation - focus on files array only
         $validated = $request->validate([
             // Primary validation for multiple files
             'files' => 'required|array|min:1|max:10',
-            'files.*' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
-            
-            // Optional single file (for backward compatibility)
-            'file' => 'sometimes|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
+            'files.*' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx,webp|max:10024', // Max 10MB per file
             
             // Optional fields
             'title' => 'nullable|string|max:255',
@@ -72,55 +135,35 @@ class PropertyAttachmentController extends Controller
             'caption' => 'nullable|string|max:500',
             'captions' => 'nullable|array',
             'captions.*' => 'nullable|string|max:500',
-            'is_visible_to_customer' => 'nullable|boolean',
+            'is_visible_to_customer' => 'sometimes|nullable|boolean',
             'order' => 'nullable|integer|min:0',
         ]);
 
         try {
-            $uploadedAttachments = [];
-            $errors = [];
+            Log::info('Processing ' . count($files) . ' files');
             
-            // Handle both single file and multiple files
-            $files = [];
-            if ($request->hasFile('file')) {
-                // Single file upload (backward compatibility)
-                $files = [$request->file('file')];
-            } elseif ($request->hasFile('files')) {
-                // Multiple file upload
-                $files = $request->file('files');
-            }
-
+            // Debug each file before processing
             foreach ($files as $index => $file) {
-                try {
-                    // Handle S3 upload using your existing method
-                    $path = $this->handleS3Upload($file, $property->id);
+                Log::info("File {$index}:", [
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime' => $file->getClientMimeType(),
+                    'is_valid' => $file->isValid(),
+                    'error' => $file->getError(),
+                    'temp_path' => $file->getRealPath()
+                ]);
+            }
+            
+            $this->handleAttachments($files, $property);
 
-                    // Get next order number for this attachment
-                    $order = $this->getNextOrderNumber($property);
-
-                    // Determine file type
-                    $fileType = $validated['type'] ?? $this->determineFileType($file->getClientMimeType());
-
-                    // Get title and caption for this specific file
-                    $title = $this->getFileTitle($validated, $index, $file);
-                    $caption = $this->getFileCaption($validated, $index);
-
-                    // Create a new PropertyAttachment instance (using your existing pattern)
-                    $attachment = new PropertyAttachment();
-                    $attachment->property_id = $property->id;
-                    $attachment->title = $title;
-                    $attachment->path = $path;
-                    $attachment->original_filename = $file->getClientOriginalName();
-                    $attachment->file_type = $file->getClientMimeType();
-                    $attachment->file_size = $file->getSize();
-                    $attachment->type = $fileType;
-                    $attachment->caption = $caption;
-                    $attachment->is_visible_to_customer = $validated['is_visible_to_customer'] ?? true;
-                    $attachment->is_active = true;
-                    $attachment->order = $validated['order'] ?? $order;
-                    $attachment->save();
-
-                    $uploadedAttachments[] = [
+            // Get the newly created attachments for the response
+            $uploadedAttachments = $property->attachments()
+                ->where('is_active', true)
+                ->orderBy('created_at', 'desc')
+                ->take(count($files))
+                ->get()
+                ->map(function ($attachment) {
+                    return [
                         'id' => $attachment->id,
                         'title' => $attachment->title,
                         'path' => $attachment->path,
@@ -133,65 +176,30 @@ class PropertyAttachmentController extends Controller
                         'order' => $attachment->order,
                         'created_at' => $attachment->created_at,
                     ];
+                });
 
-                    Log::info('Attachment uploaded successfully', [
-                        'attachment' => $attachment,
-                        'property_id' => $property->id,
-                        'filename' => $file->getClientOriginalName()
-                    ]);
-
-                } catch (\Exception $e) {
-                    $errors[] = [
-                        'file' => $file->getClientOriginalName(),
-                        'error' => $e->getMessage()
-                    ];
-                    
-                    Log::error('Failed to upload individual attachment', [
-                        'property_id' => $property->id,
-                        'file' => $file->getClientOriginalName(),
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
-
-            // Return results based on upload type
-            if (count($files) === 1 && !empty($uploadedAttachments)) {
-                // Single file upload - return single attachment (backward compatibility)
-                return response()->json([
-                    'success' => true,
-                    'data' => $uploadedAttachments[0]
-                ]);
-            }
-
-            // Multiple file upload - return batch results
-            if (empty($uploadedAttachments) && !empty($errors)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'All uploads failed',
-                    'errors' => $errors
-                ], 422);
-            }
-
-            $message = count($uploadedAttachments) . ' file(s) uploaded successfully';
-            if (count($errors) > 0) {
-                $message .= ', ' . count($errors) . ' file(s) failed';
-            }
+            Log::info('Attachments uploaded successfully', [
+                'property_id' => $property->id,
+                'files_count' => count($files),
+                'uploaded_count' => $uploadedAttachments->count()
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => $message,
+                'message' => $uploadedAttachments->count() . ' file(s) uploaded successfully',
                 'data' => [
                     'attachments' => $uploadedAttachments,
-                    'uploaded_count' => count($uploadedAttachments),
-                    'failed_count' => count($errors),
-                    'errors' => $errors
+                    'uploaded_count' => $uploadedAttachments->count(),
+                    'failed_count' => 0,
+                    'errors' => []
                 ]
             ], 201);
 
         } catch (\Exception $e) {
             Log::error('Failed to store property attachment', [
                 'property_id' => $property->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
@@ -260,41 +268,51 @@ class PropertyAttachmentController extends Controller
         
         return 'document'; // Default to document
     }
-
     /**
-     * Helper method to get title for a specific file
+     * Handle multiple attachments upload
      */
-    private function getFileTitle(array $validated, int $index, $file): string
+    private function handleAttachments($attachments, $property)
     {
-        // For single file upload, use the 'title' field
-        if (isset($validated['title']) && count($validated) === 1) {
-            return $validated['title'];
-        }
-        
-        // For multiple files, use titles array or default to filename
-        if (isset($validated['titles'][$index])) {
-            return $validated['titles'][$index];
-        }
-        
-        // Default to original filename without extension
-        return pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-    }
+        foreach ($attachments as $attachment) {
+            try {
+                // Handle S3 upload using your existing method
+                $path = $this->handleS3Upload($attachment, $property->id);
 
-    /**
-     * Helper method to get caption for a specific file
-     */
-    private function getFileCaption(array $validated, int $index): ?string
-    {
-        // For single file upload, use the 'caption' field
-        if (isset($validated['caption'])) {
-            return $validated['caption'];
+                // Get next order number for this attachment
+                $order = $this->getNextOrderNumber($property);
+
+                // Determine file type
+                $fileType = $this->determineFileType($attachment->getClientMimeType());
+
+                // Create a new PropertyAttachment instance
+                $propertyAttachment = new PropertyAttachment();
+                $propertyAttachment->property_id = $property->id;
+                $propertyAttachment->title = pathinfo($attachment->getClientOriginalName(), PATHINFO_FILENAME);
+                $propertyAttachment->path = $path;
+                $propertyAttachment->original_filename = $attachment->getClientOriginalName();
+                $propertyAttachment->file_type = $attachment->getClientMimeType();
+                $propertyAttachment->file_size = $attachment->getSize();
+                $propertyAttachment->type = $fileType;
+                $propertyAttachment->caption = null;
+                $propertyAttachment->is_visible_to_customer = true;
+                $propertyAttachment->is_active = true;
+                // Set order to 0 for PDFs, otherwise use the next order number
+                $propertyAttachment->order = $fileType == 'pdf' ? 0 : $order;
+                $propertyAttachment->save();
+
+                Log::info('Individual attachment saved', [
+                    'id' => $propertyAttachment->id,
+                    'filename' => $attachment->getClientOriginalName(),
+                    'size' => $attachment->getSize()
+                ]);
+
+            } catch (\Exception $e) {
+                Log::error('Failed to process individual attachment', [
+                    'filename' => $attachment->getClientOriginalName(),
+                    'error' => $e->getMessage()
+                ]);
+                throw $e; // Re-throw to be caught by parent try-catch
+            }
         }
-        
-        // For multiple files, use captions array
-        if (isset($validated['captions'][$index])) {
-            return $validated['captions'][$index];
-        }
-        
-        return null;
     }
 }

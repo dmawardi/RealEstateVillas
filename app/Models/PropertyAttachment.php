@@ -38,6 +38,7 @@ class PropertyAttachment extends Model
             'file_size' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'is_visible_to_customer' => 'boolean',
         ];
     }
 }
