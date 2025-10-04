@@ -170,6 +170,82 @@ class PropertyAttachmentController extends Controller
         }
     }
 
+    /**
+     * Update an attachment (only database fields, not the file itself)
+     */
+    public function update(Request $request, PropertyAttachment $attachment)
+    {
+        // Validate the request - only allow updating non-file fields
+        $request->validate([
+            'title' => 'nullable|string|max:255',
+            'caption' => 'nullable|string|max:500',
+            'type' => 'nullable|string|in:image,document,floor_plan',
+            'is_visible_to_customer' => 'nullable|boolean',
+            'order' => 'nullable|integer|min:0',
+        ]);
+
+        try {
+            // Get only the fields that can be updated (exclude file-related fields)
+            $updateData = $request->only([
+                'title',
+                'caption', 
+                'type',
+                'is_visible_to_customer',
+                'order'
+            ]);
+
+            // Remove any null values to avoid overwriting existing data with nulls
+            $updateData = array_filter($updateData, function($value) {
+                return $value !== null;
+            });
+
+            // Update the attachment
+            $attachment->update($updateData);
+
+            Log::info('Attachment updated successfully', [
+                'attachment_id' => $attachment->id,
+                'property_id' => $attachment->property_id,
+                'updated_fields' => array_keys($updateData),
+                'original_filename' => $attachment->original_filename
+            ]);
+
+            // Return the updated attachment
+            return response()->json([
+                'success' => true,
+                'message' => 'Attachment updated successfully',
+                'data' => [
+                    'attachment' => [
+                        'id' => $attachment->id,
+                        'title' => $attachment->title,
+                        'path' => $attachment->path,
+                        'original_filename' => $attachment->original_filename,
+                        'file_type' => $attachment->file_type,
+                        'file_size' => $attachment->file_size,
+                        'type' => $attachment->type,
+                        'caption' => $attachment->caption,
+                        'is_visible_to_customer' => $attachment->is_visible_to_customer,
+                        'order' => $attachment->order,
+                        'created_at' => $attachment->created_at,
+                        'updated_at' => $attachment->updated_at,
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to update attachment', [
+                'attachment_id' => $attachment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update attachment',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function destroy(Request $request, $id)
     {
         $attachment = PropertyAttachment::findOrFail($id);
