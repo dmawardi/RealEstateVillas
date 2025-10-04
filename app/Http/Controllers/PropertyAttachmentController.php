@@ -53,35 +53,8 @@ class PropertyAttachmentController extends Controller
 
     public function store(Request $request, Property $property)
     {
-        Log::info('Storing attachment for property', ['property_id' => $property->id]);
-        Log::info('Request data', $request->all());
-        Log::info('Request files', $request->allFiles());
-        Log::info('Has files array:', ['has_files' => $request->hasFile('files')]);
-
-        // Check if files array is present and not empty
-        // Additional debugging for the empty file issue
-        if ($request->hasFile('files')) {
-            $files = $request->file('files');
-            Log::info('Files debug info:', [
-                'files_count' => count($files),
-                'files_details' => collect($files)->map(function($file, $index) {
-                    return [
-                        'index' => $index,
-                        'original_name' => $file->getClientOriginalName(),
-                        'size' => $file->getSize(),
-                        'mime_type' => $file->getClientMimeType(),
-                        'is_valid' => $file->isValid(),
-                        'error_code' => $file->getError(),
-                        'temp_path' => $file->getRealPath(),
-                        'path_name' => $file->getPathname()
-                    ];
-                })->toArray()
-            ]);
-        }
-        
         // Check if files array is present and not empty
         if (!$request->hasFile('files')) {
-            Log::error('No files found in request');
             return response()->json([
                 'success' => false,
                 'message' => 'No files were uploaded'
@@ -94,12 +67,6 @@ class PropertyAttachmentController extends Controller
         // Check for empty or invalid files
         foreach ($files as $index => $file) {
             if (!$file->isValid()) {
-                Log::error("File {$index} is invalid:", [
-                    'error_code' => $file->getError(),
-                    'size' => $file->getSize(),
-                    'name' => $file->getClientOriginalName()
-                ]);
-                
                 return response()->json([
                     'success' => false,
                     'message' => "File '{$file->getClientOriginalName()}' is invalid or corrupted"
@@ -107,21 +74,34 @@ class PropertyAttachmentController extends Controller
             }
             
             if ($file->getSize() == 0) {
-                Log::error("File {$index} is empty:", [
-                    'name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize()
-                ]);
-                
                 return response()->json([
                     'success' => false,
                     'message' => "File '{$file->getClientOriginalName()}' is empty"
                 ], 422);
             }
+
+            // Check if file with same original_filename already exists for this property
+            $existingAttachment = $property->attachments()
+                ->where('is_active', true)
+                ->where('original_filename', $file->getClientOriginalName())
+                ->first();
+
+            if ($existingAttachment) {
+                $duplicateFiles[] = $file->getClientOriginalName();
+            }
         }
 
-        Log::info('is_visible_to_customer:', ['value' => $request->input('is_visible_to_customer')]);
+        // If there are duplicate files, return error with all duplicates listed
+        if (!empty($duplicateFiles)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The following files already exist and would be overwritten: ' . implode(', ', $duplicateFiles),
+                'duplicate_files' => $duplicateFiles,
+                'error_type' => 'duplicate_files'
+            ], 422);
+        }
         
-        // Simplified validation - focus on files array only
+        // Validation
         $validated = $request->validate([
             // Primary validation for multiple files
             'files' => 'required|array|min:1|max:10',
@@ -139,21 +119,7 @@ class PropertyAttachmentController extends Controller
             'order' => 'nullable|integer|min:0',
         ]);
 
-        try {
-            Log::info('Processing ' . count($files) . ' files');
-            
-            // Debug each file before processing
-            foreach ($files as $index => $file) {
-                Log::info("File {$index}:", [
-                    'name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize(),
-                    'mime' => $file->getClientMimeType(),
-                    'is_valid' => $file->isValid(),
-                    'error' => $file->getError(),
-                    'temp_path' => $file->getRealPath()
-                ]);
-            }
-            
+        try {            
             $this->handleAttachments($files, $property);
 
             // Get the newly created attachments for the response
@@ -177,12 +143,6 @@ class PropertyAttachmentController extends Controller
                         'created_at' => $attachment->created_at,
                     ];
                 });
-
-            Log::info('Attachments uploaded successfully', [
-                'property_id' => $property->id,
-                'files_count' => count($files),
-                'uploaded_count' => $uploadedAttachments->count()
-            ]);
 
             return response()->json([
                 'success' => true,
