@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { PropertyAttachment } from '@/types';
 import { api } from '@/services/api';
+import Documents from '@/components/properties/admin/attachments/Documents.vue';
+import Images from '@/components/properties/admin/attachments/Images.vue';
+import AllAttachments from '@/components/properties/admin/attachments/AllAttachments.vue';
 
 interface Props {
     propertyId: number;
@@ -13,23 +16,32 @@ const emit = defineEmits(['attachment-updated', 'attachment-deleted', 'attachmen
 
 // Component state
 const editingAttachment = ref<number | null>(null);
+const savingAttachment = ref<number | null>(null);
 const editForm = ref({
     title: '',
     caption: '',
     type: '',
-    is_visible_to_customer: true
+    is_visible_to_customer: true,
+    order: 0
 });
+
+// Collapsible sections state
+const sectionsCollapsed = ref({
+    allAttachments: false,
+    documents: false,
+    images: false
+});
+
+// Upload state
+const uploading = ref(false);
+const selectedFiles = ref<FileList | null>(null);
+const uploadProgress = ref(0);
+const uploadStatus = ref<'idle' | 'uploading' | 'success' | 'error'>('idle');
 
 // Image modal state
 const showImageModal = ref(false);
 const selectedImage = ref<PropertyAttachment | null>(null);
 const currentImageIndex = ref(0);
-
-// Upload state - Enhanced
-const uploading = ref(false);
-const selectedFiles = ref<FileList | null>(null);
-const uploadProgress = ref(0);
-const uploadStatus = ref<'idle' | 'uploading' | 'success' | 'error'>('idle');
 
 // Computed categories
 const imageAttachments = computed(() => 
@@ -40,17 +52,18 @@ const imageAttachments = computed(() =>
 
 const documentAttachments = computed(() => 
     props.attachments
-        .filter(att => att.type === 'document')
+        .filter(att => att.type === 'document' || att.type === 'floor_plan')
         .sort((a, b) => a.order - b.order)
 );
 
-const floorPlanAttachments = computed(() => 
-    props.attachments
-        .filter(att => att.type === 'floor_plan')
-        .sort((a, b) => a.order - b.order)
-);
+// All attachment types for editing
+const attachmentTypes = [
+    { value: 'image', label: 'Image' },
+    { value: 'document', label: 'Document' },
+    { value: 'floor_plan', label: 'Floor Plan' }
+];
 
-// Computed for upload button text and state
+// Upload button computed properties
 const uploadButtonText = computed(() => {
     if (uploading.value) {
         return `Uploading... ${uploadProgress.value}%`;
@@ -74,66 +87,101 @@ const uploadButtonClass = computed(() => {
     return `${baseClasses} bg-blue-600 hover:bg-blue-700 text-white`;
 });
 
+// Section toggle functions
+const toggleSection = (section: 'allAttachments' | 'documents' | 'images') => {
+    sectionsCollapsed.value[section] = !sectionsCollapsed.value[section];
+};
+
 // Edit functions
 const startEditing = (attachment: PropertyAttachment) => {
     editingAttachment.value = attachment.id;
     editForm.value = {
-        title: attachment.title,
+        title: attachment.title || '',
         caption: attachment.caption || '',
-        type: attachment.type,
-        is_visible_to_customer: attachment.is_visible_to_customer
+        type: attachment.type || 'document',
+        is_visible_to_customer: attachment.is_visible_to_customer ?? true,
+        order: attachment.order || 0
     };
 };
 
 const cancelEditing = () => {
     editingAttachment.value = null;
-    editForm.value = { title: '', caption: '', type: '', is_visible_to_customer: true };
+    savingAttachment.value = null;
+    editForm.value = { 
+        title: '', 
+        caption: '', 
+        type: '', 
+        is_visible_to_customer: true, 
+        order: 0 
+    };
 };
 
 const saveEdit = async (attachmentId: number) => {
+    savingAttachment.value = attachmentId;
+    
     try {
-        // Fixed: Use the proper API pattern like LocationAutocomplete
         await api.attachments.updateAttachment(attachmentId, editForm.value, {
             onSuccess: (response: any) => {
                 if (response.success) {
                     emit('attachment-updated', response.data.attachment);
                     editingAttachment.value = null;
+                    console.log('✅ Attachment updated successfully');
+                } else {
+                    console.error('❌ Update failed:', response.message);
+                    alert(`Failed to update attachment: ${response.message}`);
                 }
             },
             onError: (errors: any) => {
-                console.error('Failed to update attachment:', errors);
+                console.error('❌ Failed to update attachment:', errors);
+                
+                if (errors.message) {
+                    alert(`Failed to update attachment: ${errors.message}`);
+                } else if (errors.errors) {
+                    const errorMessages = Object.values(errors.errors).flat();
+                    alert(`Validation errors: ${errorMessages.join(', ')}`);
+                } else {
+                    alert('Failed to update attachment. Please try again.');
+                }
             }
         });
     } catch (error) {
-        console.error('Failed to update attachment:', error);
+        console.error('❌ Unexpected error updating attachment:', error);
+        alert('An unexpected error occurred. Please try again.');
+    } finally {
+        savingAttachment.value = null;
     }
 };
 
 // Delete function
 const deleteAttachment = async (attachmentId: number) => {
-    if (!confirm('Are you sure you want to delete this attachment?')) return;
+    if (!confirm('Are you sure you want to delete this attachment? This action cannot be undone.')) return;
     
     try {
         await api.attachments.deleteAttachment(attachmentId, {
             onSuccess: (response: any) => {
                 if (response.success) {
                     emit('attachment-deleted', attachmentId);
+                    console.log('✅ Attachment deleted successfully');
                 }
             },
             onError: (errors: any) => {
-                console.error('Failed to delete attachment:', errors);
+                console.error('❌ Failed to delete attachment:', errors);
+                alert('Failed to delete attachment. Please try again.');
             }
         });
     } catch (error) {
-        console.error('Failed to delete attachment:', error);
+        console.error('❌ Failed to delete attachment:', error);
+        alert('An unexpected error occurred while deleting.');
     }
 };
 
 // Image modal functions
 const openImageModal = (attachment: PropertyAttachment) => {
-    selectedImage.value = attachment;
-    currentImageIndex.value = imageAttachments.value.findIndex(img => img.id === attachment.id);
-    showImageModal.value = true;
+    if (attachment.type === 'image') {
+        selectedImage.value = attachment;
+        currentImageIndex.value = imageAttachments.value.findIndex(img => img.id === attachment.id);
+        showImageModal.value = true;
+    }
 };
 
 const closeImageModal = () => {
@@ -155,14 +203,13 @@ const previousImage = () => {
     }
 };
 
-// File selection handler - NEW
+// File upload functions
 const handleFileSelection = (event: Event) => {
     const target = event.target as HTMLInputElement;
     selectedFiles.value = target.files;
     uploadStatus.value = 'idle';
     uploadProgress.value = 0;
     
-    // Log selected files for debugging
     if (selectedFiles.value) {
         console.log(`Selected ${selectedFiles.value.length} file(s):`, 
             Array.from(selectedFiles.value).map(f => ({ name: f.name, size: f.size, type: f.type }))
@@ -170,7 +217,6 @@ const handleFileSelection = (event: Event) => {
     }
 };
 
-// File upload handler - Enhanced
 const handleFileUpload = async () => {
     if (!selectedFiles.value || selectedFiles.value.length === 0) return;
     
@@ -185,7 +231,6 @@ const handleFileUpload = async () => {
         });
         formData.append('is_visible_to_customer', '0');
         
-        // Simulate progress for better UX
         const progressInterval = setInterval(() => {
             if (uploadProgress.value < 90) {
                 uploadProgress.value += Math.random() * 10;
@@ -199,9 +244,8 @@ const handleFileUpload = async () => {
                 
                 if (response.success) {
                     uploadStatus.value = 'success';
-                    emit('attachments-reordered'); // Refresh the attachments
+                    emit('attachments-reordered');
                     
-                    // Reset form after a brief delay
                     setTimeout(() => {
                         const fileInput = document.getElementById('file-upload') as HTMLInputElement;
                         if (fileInput) fileInput.value = '';
@@ -217,17 +261,25 @@ const handleFileUpload = async () => {
                 clearInterval(progressInterval);
                 uploadStatus.value = 'error';
                 console.error('Failed to upload attachments:', errors);
+                
+                if (errors.error_type === 'duplicate_files') {
+                    alert(`${errors.message}\n\nSome files already exist. Please rename them or delete the existing files first.`);
+                } else if (errors.message) {
+                    alert(`Upload failed: ${errors.message}`);
+                } else {
+                    alert('Upload failed. Please try again.');
+                }
             }
         });
     } catch (error) {
         uploadStatus.value = 'error';
         console.error('Failed to upload attachments:', error);
+        alert('An unexpected error occurred during upload.');
     } finally {
         uploading.value = false;
     }
 };
 
-// Clear selection handler - NEW
 const clearSelection = () => {
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
@@ -236,15 +288,7 @@ const clearSelection = () => {
     uploadProgress.value = 0;
 };
 
-// File type icons
-const getFileIcon = (attachment: PropertyAttachment) => {
-    if (attachment.type === 'image') return '🖼️';
-    if (attachment.file_type === 'application/pdf') return '📄';
-    if (attachment.file_type?.includes('word')) return '📝';
-    return '📎';
-};
-
-// File size formatting
+// Utility functions
 const formatFileSize = (bytes: number) => {
     const units = ['B', 'KB', 'MB', 'GB'];
     let size = bytes;
@@ -273,10 +317,11 @@ const formatFileSize = (bytes: number) => {
                     <input
                         type="file"
                         multiple
-                        accept="image/*,.pdf,.doc,.docx"
+                        accept="image/*,.pdf,.doc,.docx,.webp"
                         @change="handleFileSelection"
                         class="hidden"
                         id="file-upload"
+                        title="Maximum file size: 10MB per file"
                     />
                     
                     <!-- Select Files Button -->
@@ -297,7 +342,6 @@ const formatFileSize = (bytes: number) => {
                         :disabled="uploading"
                         :class="uploadButtonClass"
                     >
-                        <!-- Upload Icon or Spinner -->
                         <svg 
                             v-if="!uploading && uploadStatus !== 'success'" 
                             class="w-4 h-4" 
@@ -308,7 +352,6 @@ const formatFileSize = (bytes: number) => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                         
-                        <!-- Success Icon -->
                         <svg 
                             v-else-if="uploadStatus === 'success'" 
                             class="w-4 h-4 text-green-600" 
@@ -319,7 +362,6 @@ const formatFileSize = (bytes: number) => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                         
-                        <!-- Loading Spinner -->
                         <div 
                             v-else 
                             class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
@@ -376,7 +418,7 @@ const formatFileSize = (bytes: number) => {
                     </div>
                 </div>
 
-                <!-- Success Message -->
+                <!-- Success/Error Messages -->
                 <div v-if="uploadStatus === 'success'" class="mt-2 text-xs text-green-700 dark:text-green-300 flex items-center">
                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -384,7 +426,6 @@ const formatFileSize = (bytes: number) => {
                     Upload completed successfully!
                 </div>
 
-                <!-- Error Message -->
                 <div v-if="uploadStatus === 'error'" class="mt-2 text-xs text-red-700 dark:text-red-300 flex items-center">
                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -392,452 +433,116 @@ const formatFileSize = (bytes: number) => {
                     Upload failed. Please try again.
                 </div>
             </div>
+
+            <!-- File Size Limit Notice -->
+            <div class="text-xs text-gray-500 mt-2">
+                Maximum file size: 10MB per file. Supported formats: Images (JPG, PNG, WebP), PDF, DOC, DOCX
+            </div>
         </div>
 
         <div class="p-6 space-y-8">
-            <!-- Images Section -->
-            <div v-if="imageAttachments.length > 0" class="space-y-4">
+            <!-- All Attachments Section (Collapsible) -->
+            <div v-if="attachments.length > 0" class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                        🖼️ Images
-                        <span class="ml-2 text-sm text-gray-500">({{ imageAttachments.length }})</span>
-                    </h3>
-                </div>
-
-                <!-- Main Image -->
-                <div v-if="imageAttachments.length > 0" class="space-y-3">
-                    <div class="aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden relative group">
-                        <img 
-                            :src="imageAttachments[0].path" 
-                            :alt="imageAttachments[0].title"
-                            class="w-full h-full object-cover cursor-pointer"
-                            @click="openImageModal(imageAttachments[0])"
-                        />
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-                            <button 
-                                @click="openImageModal(imageAttachments[0])"
-                                class="bg-white bg-opacity-80 text-gray-800 px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
-                            >
-                                View Full Size
-                            </button>
-                        </div>
-                        <div class="absolute top-2 right-2">
-                            <span class="bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">Main Image</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Main Image Edit Card -->
-                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                        <div v-if="editingAttachment !== imageAttachments[0].id" class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ imageAttachments[0].title }}</h4>
-                                <p v-if="imageAttachments[0].caption" class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ imageAttachments[0].caption }}</p>
-                                <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                                    <span>{{ formatFileSize(imageAttachments[0].file_size) }}</span>
-                                    <span :class="imageAttachments[0].is_visible_to_customer ? 'text-green-600' : 'text-red-600'">
-                                        {{ imageAttachments[0].is_visible_to_customer ? 'Visible' : 'Hidden' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <!-- <button @click="toggleVisibility(imageAttachments[0].id)" class="text-gray-500 hover:text-gray-700 p-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="imageAttachments[0].is_visible_to_customer ? 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' : 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21'" />
-                                    </svg>
-                                </button> -->
-                                <button @click="startEditing(imageAttachments[0])" class="text-blue-600 hover:text-blue-800 p-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </button>
-                                <button @click="deleteAttachment(imageAttachments[0].id)" class="text-red-600 hover:text-red-800 p-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Edit Form -->
-                        <div v-else class="space-y-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                                <input 
-                                    v-model="editForm.title"
-                                    type="text"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Caption</label>
-                                <textarea 
-                                    v-model="editForm.caption"
-                                    rows="2"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                ></textarea>
-                            </div>
-                            <div>
-                                <label class="flex items-center">
-                                    <input 
-                                        v-model="editForm.is_visible_to_customer"
-                                        type="checkbox"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Visible to customers</span>
-                                </label>
-                            </div>
-                            <div class="flex space-x-2 pt-2">
-                                <button 
-                                    @click="saveEdit(imageAttachments[0].id)"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Save
-                                </button>
-                                <button 
-                                    @click="cancelEditing"
-                                    class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded text-sm"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Additional Images Grid -->
-                <div v-if="imageAttachments.length > 1" class="space-y-4">
-                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Additional Images</h4>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        <div 
-                            v-for="(attachment) in imageAttachments.slice(1)" 
-                            :key="attachment.id"
-                            class="group relative"
+                    <button
+                        @click="toggleSection('allAttachments')"
+                        class="flex items-center space-x-2 text-base font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
+                        <svg 
+                            class="w-5 h-5 transition-transform duration-200"
+                            :class="{ 'rotate-90': !sectionsCollapsed.allAttachments }"
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
                         >
-                            <!-- Image Thumbnail -->
-                            <div class="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-2">
-                                <img 
-                                    :src="attachment.path" 
-                                    :alt="attachment.title"
-                                    class="w-full h-full object-cover cursor-pointer"
-                                    @click="openImageModal(attachment)"
-                                />
-                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-                                    <button 
-                                        @click="openImageModal(attachment)"
-                                        class="bg-white bg-opacity-80 text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200"
-                                    >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Image Details Card -->
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-                                <div v-if="editingAttachment !== attachment.id">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1 min-w-0">
-                                            <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ attachment.title }}</h5>
-                                            <p v-if="attachment.caption" class="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{{ attachment.caption }}</p>
-                                            <div class="flex items-center justify-between mt-2">
-                                                <span class="text-xs text-gray-500">{{ formatFileSize(attachment.file_size) }}</span>
-                                                <span :class="attachment.is_visible_to_customer ? 'text-green-600' : 'text-red-600'" class="text-xs">
-                                                    {{ attachment.is_visible_to_customer ? '👁️' : '🚫' }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                        <!-- <button @click="toggleVisibility(attachment.id)" class="text-gray-500 hover:text-gray-700 p-1">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="attachment.is_visible_to_customer ? 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' : 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21'" />
-                                            </svg>
-                                        </button> -->
-                                        <button @click="startEditing(attachment)" class="text-blue-600 hover:text-blue-800 p-1">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        </button>
-                                        <button @click="deleteAttachment(attachment.id)" class="text-red-600 hover:text-red-800 p-1">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Edit Form for Additional Images -->
-                                <div v-else class="space-y-2">
-                                    <input 
-                                        v-model="editForm.title"
-                                        type="text"
-                                        placeholder="Title"
-                                        class="w-full text-sm rounded border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                    />
-                                    <textarea 
-                                        v-model="editForm.caption"
-                                        placeholder="Caption"
-                                        rows="2"
-                                        class="w-full text-sm rounded border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                    ></textarea>
-                                    <label class="flex items-center text-xs">
-                                        <input 
-                                            v-model="editForm.is_visible_to_customer"
-                                            type="checkbox"
-                                            class="rounded border-gray-300 text-blue-600"
-                                        />
-                                        <span class="ml-1">Visible</span>
-                                    </label>
-                                    <div class="flex space-x-1">
-                                        <button 
-                                            @click="saveEdit(attachment.id)"
-                                            class="bg-blue-600 text-white px-2 py-1 rounded text-xs"
-                                        >
-                                            Save
-                                        </button>
-                                        <button 
-                                            @click="cancelEditing"
-                                            class="bg-gray-300 text-gray-700 px-2 py-1 rounded text-xs"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span>All Attachments ({{ attachments.length }})</span>
+                    </button>
                 </div>
+
+                <AllAttachments 
+                    v-show="!sectionsCollapsed.allAttachments"
+                    :attachments="attachments"
+                    :editing-attachment="editingAttachment"
+                    :saving-attachment="savingAttachment"
+                    :attachment-types="attachmentTypes"
+                    v-model:edit-form="editForm"
+                    @start-editing="startEditing"
+                    @cancel-editing="cancelEditing"
+                    @save-edit="saveEdit"
+                    @delete-attachment="deleteAttachment"
+                    @open-image-modal="openImageModal"
+                />
             </div>
 
-            <!-- Documents Section -->
+            <!-- Documents Section (Collapsible) -->
             <div v-if="documentAttachments.length > 0" class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                        📄 Documents
-                        <span class="ml-2 text-sm text-gray-500">({{ documentAttachments.length }})</span>
-                    </h3>
-                </div>
-
-                <div class="space-y-3">
-                    <div 
-                        v-for="attachment in documentAttachments" 
-                        :key="attachment.id"
-                        class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+                    <button
+                        @click="toggleSection('documents')"
+                        class="flex items-center space-x-2 text-base font-medium text-gray-900 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                     >
-                        <div v-if="editingAttachment !== attachment.id" class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="text-2xl">{{ getFileIcon(attachment) }}</div>
-                                <div class="flex-1">
-                                    <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ attachment.title }}</h4>
-                                    <p v-if="attachment.caption" class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ attachment.caption }}</p>
-                                    <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                                        <span>{{ attachment.original_filename }}</span>
-                                        <span>{{ formatFileSize(attachment.file_size) }}</span>
-                                        <span :class="attachment.is_visible_to_customer ? 'text-green-600' : 'text-red-600'">
-                                            {{ attachment.is_visible_to_customer ? 'Visible' : 'Hidden' }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <a 
-                                    :href="attachment.path" 
-                                    target="_blank"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Download
-                                </a>
-                            </div>
-                            <div class="flex items-center space-x-2 ml-4">
-                                <!-- <button @click="toggleVisibility(attachment.id)" class="text-gray-500 hover:text-gray-700 p-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="attachment.is_visible_to_customer ? 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' : 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21'" />
-                                    </svg>
-                                </button> -->
-                                <button @click="startEditing(attachment)" class="text-blue-600 hover:text-blue-800 p-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </button>
-                                <button @click="deleteAttachment(attachment.id)" class="text-red-600 hover:text-red-800 p-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Edit Form for Documents -->
-                        <div v-else class="space-y-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                                <input 
-                                    v-model="editForm.title"
-                                    type="text"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Caption</label>
-                                <textarea 
-                                    v-model="editForm.caption"
-                                    rows="2"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                ></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
-                                <select 
-                                    v-model="editForm.type"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                >
-                                    <option value="document">Document</option>
-                                    <option value="floor_plan">Floor Plan</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="flex items-center">
-                                    <input 
-                                        v-model="editForm.is_visible_to_customer"
-                                        type="checkbox"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Visible to customers</span>
-                                </label>
-                            </div>
-                            <div class="flex space-x-2 pt-2">
-                                <button 
-                                    @click="saveEdit(attachment.id)"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Save
-                                </button>
-                                <button 
-                                    @click="cancelEditing"
-                                    class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded text-sm"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                        <svg 
+                            class="w-5 h-5 transition-transform duration-200"
+                            :class="{ 'rotate-90': !sectionsCollapsed.documents }"
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span>📄 Documents & Floor Plans ({{ documentAttachments.length }})</span>
+                    </button>
                 </div>
+
+                <Documents
+                    v-show="!sectionsCollapsed.documents"
+                    :documents="documentAttachments"
+                    :editing-attachment="editingAttachment"
+                    :saving-attachment="savingAttachment"
+                    :attachment-types="attachmentTypes"
+                    v-model:edit-form="editForm"
+                    @start-editing="startEditing"
+                    @cancel-editing="cancelEditing"
+                    @save-edit="saveEdit"
+                    @delete-attachment="deleteAttachment"
+                />
             </div>
 
-            <!-- Floor Plans Section -->
-            <div v-if="floorPlanAttachments.length > 0" class="space-y-4">
+            <!-- Images Section (Collapsible) -->
+            <div v-if="imageAttachments.length > 0" class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                        📐 Floor Plans
-                        <span class="ml-2 text-sm text-gray-500">({{ floorPlanAttachments.length }})</span>
-                    </h3>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div 
-                        v-for="attachment in floorPlanAttachments" 
-                        :key="attachment.id"
-                        class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+                    <button
+                        @click="toggleSection('images')"
+                        class="flex items-center space-x-2 text-base font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
-                        <!-- Floor Plan Preview -->
-                        <div class="aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-3">
-                            <img 
-                                v-if="attachment.file_type?.startsWith('image/')"
-                                :src="attachment.path" 
-                                :alt="attachment.title"
-                                class="w-full h-full object-contain cursor-pointer"
-                                @click="openImageModal(attachment)"
-                            />
-                            <div v-else class="flex items-center justify-center h-full">
-                                <div class="text-center">
-                                    <div class="text-4xl mb-2">📐</div>
-                                    <p class="text-sm text-gray-500">{{ attachment.original_filename }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Floor Plan Details -->
-                        <div v-if="editingAttachment !== attachment.id">
-                            <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-1">{{ attachment.title }}</h4>
-                            <p v-if="attachment.caption" class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ attachment.caption }}</p>
-                            <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
-                                <span>{{ formatFileSize(attachment.file_size) }}</span>
-                                <span :class="attachment.is_visible_to_customer ? 'text-green-600' : 'text-red-600'">
-                                    {{ attachment.is_visible_to_customer ? 'Visible' : 'Hidden' }}
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <a 
-                                    :href="attachment.path" 
-                                    target="_blank"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    View/Download
-                                </a>
-                                <div class="flex items-center space-x-2">
-                                    <!-- <button @click="toggleVisibility(attachment.id)" class="text-gray-500 hover:text-gray-700 p-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="attachment.is_visible_to_customer ? 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' : 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21'" />
-                                        </svg>
-                                    </button> -->
-                                    <button @click="startEditing(attachment)" class="text-blue-600 hover:text-blue-800 p-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                    </button>
-                                    <button @click="deleteAttachment(attachment.id)" class="text-red-600 hover:text-red-800 p-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Edit Form for Floor Plans -->
-                        <div v-else class="space-y-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                                <input 
-                                    v-model="editForm.title"
-                                    type="text"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Caption</label>
-                                <textarea 
-                                    v-model="editForm.caption"
-                                    rows="2"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                ></textarea>
-                            </div>
-                            <div>
-                                <label class="flex items-center">
-                                    <input 
-                                        v-model="editForm.is_visible_to_customer"
-                                        type="checkbox"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Visible to customers</span>
-                                </label>
-                            </div>
-                            <div class="flex space-x-2 pt-2">
-                                <button 
-                                    @click="saveEdit(attachment.id)"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Save
-                                </button>
-                                <button 
-                                    @click="cancelEditing"
-                                    class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded text-sm"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                        <svg 
+                            class="w-5 h-5 transition-transform duration-200"
+                            :class="{ 'rotate-90': !sectionsCollapsed.images }"
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span>🖼️ Images ({{ imageAttachments.length }})</span>
+                    </button>
                 </div>
+
+                <Images
+                    v-show="!sectionsCollapsed.images"
+                    :images="imageAttachments"
+                    :editing-attachment="editingAttachment"
+                    :saving-attachment="savingAttachment"
+                    :attachment-types="attachmentTypes"
+                    v-model:edit-form="editForm"
+                    @start-editing="startEditing"
+                    @cancel-editing="cancelEditing"
+                    @save-edit="saveEdit"
+                    @delete-attachment="deleteAttachment"
+                    @open-image-modal="openImageModal"
+                />
             </div>
 
             <!-- No Attachments Message -->
@@ -858,7 +563,6 @@ const formatFileSize = (bytes: number) => {
                 @click="closeImageModal"
             >
                 <div class="relative max-w-full max-h-full p-4" @click.stop>
-                    <!-- Main Image -->
                     <img 
                         v-if="selectedImage"
                         :src="selectedImage.path" 
@@ -866,7 +570,6 @@ const formatFileSize = (bytes: number) => {
                         class="max-w-full max-h-full object-contain rounded-lg"
                     />
                     
-                    <!-- Image Info -->
                     <div class="absolute bottom-4 left-4 right-4 text-center">
                         <div class="bg-black bg-opacity-50 text-white px-4 py-2 rounded-lg">
                             <p class="text-sm font-medium">{{ selectedImage?.title || 'Property Image' }}</p>
@@ -874,7 +577,6 @@ const formatFileSize = (bytes: number) => {
                         </div>
                     </div>
 
-                    <!-- Navigation Arrows -->
                     <button 
                         v-if="currentImageIndex > 0"
                         @click="previousImage"
@@ -895,7 +597,6 @@ const formatFileSize = (bytes: number) => {
                         </svg>
                     </button>
 
-                    <!-- Close Button -->
                     <button 
                         @click="closeImageModal"
                         class="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all"

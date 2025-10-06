@@ -23,6 +23,6 @@ Route::get('/properties/{property}/attachments', [PropertyAttachmentController::
 // Create
 Route::post('/properties/{property}/attachments', [PropertyAttachmentController::class, 'store']);
 // Update
-Route::put('/properties/{property}/attachments/{attachment}', [PropertyAttachmentController::class, 'update']);
+Route::put('/attachments/{attachment}', [PropertyAttachmentController::class, 'update']);
 // Delete
 Route::delete('/attachments/{attachment}', [PropertyAttachmentController::class, 'destroy']);

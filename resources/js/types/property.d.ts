@@ -112,6 +112,8 @@ export interface PropertyAttachment {
     is_visible_to_customer: boolean;
     is_active: boolean;
     order: number;
+    updated_at: string;
+    created_at: string;
 }
 
 export interface User {
