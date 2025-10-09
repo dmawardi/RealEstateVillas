@@ -9,7 +9,7 @@ interface Props {
     attachmentTypes: Array<{ value: string; label: string }>;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 const emit = defineEmits(['start-editing', 'cancel-editing', 'save-edit', 'delete-attachment']);
 
 // Use defineModel to create a two-way binding for the edit form
