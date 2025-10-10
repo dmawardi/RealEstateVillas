@@ -334,6 +334,25 @@ class AdminPropertyController extends Controller
             }
         ]);
 
+        // Map through attachments to generate signed URLs for secure access
+        $attachmentsWithUrls = $property->attachments->map(function ($attachment) {
+            return [
+                'id' => $attachment->id,
+                'title' => $attachment->title,
+                'path' => $attachment->path,              // Keep for storage reference
+                'url' => $attachment->url,                // ✅ This uses getUrlAttribute()
+                'original_filename' => $attachment->original_filename,
+                'file_type' => $attachment->file_type,
+                'file_size' => $attachment->file_size,
+                'type' => $attachment->type,
+                'caption' => $attachment->caption,
+                'is_visible_to_customer' => $attachment->is_visible_to_customer,
+                'order' => $attachment->order,
+                'created_at' => $attachment->created_at,
+                'updated_at' => $attachment->updated_at,
+            ];
+        });
+
         // Get current pricing for rental properties
         $currentPricing = $property->pricing()
             ->where(function($query) {
@@ -344,6 +363,7 @@ class AdminPropertyController extends Controller
 
         return Inertia::render('admin/properties/Show', [
             'property' => $property,
+            'attachments' => $attachmentsWithUrls,
             'current_pricing' => $currentPricing,
             'map_api_key' => config('services.google.maps_api_key'),
             'propertyTypes' => $this->getPropertyTypes(),

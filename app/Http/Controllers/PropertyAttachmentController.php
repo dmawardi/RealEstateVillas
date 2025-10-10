@@ -273,10 +273,12 @@ class PropertyAttachmentController extends Controller
             'disk' => 's3',
             'visibility' => 'public'
         ]);
-        
-        // Build the full S3 URL
-        $s3Url = env('AWS_URL') . '/' . $path;
-        return $s3Url;
+
+        if (!$path) {
+            throw new \Exception('S3 upload failed - store returned false.');
+        }
+
+        return $path;
     }
 
     /**
