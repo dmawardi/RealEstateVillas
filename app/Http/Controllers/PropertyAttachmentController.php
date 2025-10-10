@@ -269,8 +269,14 @@ class PropertyAttachmentController extends Controller
     private function handleS3Upload($file, $propertyId)
     {
         // Handle S3 upload logic here
-        $path = $file->store('properties/' . $propertyId . "/attachments" , 's3');
-        return $path;
+        $path = $file->store('properties/' . $propertyId . "/attachments" , [
+            'disk' => 's3',
+            'visibility' => 'public'
+        ]);
+        
+        // Build the full S3 URL
+        $s3Url = env('AWS_URL') . '/' . $path;
+        return $s3Url;
     }
 
     /**
