@@ -128,7 +128,9 @@ const deleteProperty = () => {
                         :property="property"
                     />
 
-                    <PropertyBookings :bookings="property.bookings" />
+                    <PropertyBookings 
+                        :property="property"
+                    />
                 </div>
 
                 <!-- Sidebar - 1 column -->

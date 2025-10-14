@@ -45,6 +45,9 @@ export interface Property {
     floor_plan?: string; // path to floor plan
     virtual_tour_url?: string;
     video_url?: string;
+
+    // Bookings
+    bookings?: Booking[]; // hasMany relationship
     
     // Agent Information
     user_id: number;
