@@ -24,9 +24,9 @@ return new class extends Migration
             $table->string('external_booking_id')->nullable(); // For tracking external platform bookings
             
             // Guest information
-            $table->string('first_name');
+            $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
-            $table->string('email');
+            $table->string('email')->nullable();
             $table->string('phone')->nullable();
             
             // Booking details
@@ -43,7 +43,7 @@ return new class extends Migration
                   ->default('booking');
             
             // Financial tracking
-            $table->integer('total_price')->nullable();
+            $table->integer('total_price')->default(0);
             $table->decimal('commission_rate', 5, 2)->nullable(); // Your commission percentage
             $table->integer('commission_amount')->nullable();
             $table->boolean('commission_paid')->default(false);
