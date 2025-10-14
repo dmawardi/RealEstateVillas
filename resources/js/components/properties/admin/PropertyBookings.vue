@@ -4,6 +4,7 @@ import { formatPrice, formatDate } from '@/utils';
 import { Booking, Property } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import BookingForm from '@/components/properties/admin/forms/BookingFormModal.vue';
+import BookingDetailsModal from '@/components/properties/admin/bookings/Details.vue';
 
 interface Props {
     property: Property
@@ -437,112 +438,12 @@ const onBookingSuccess = () => {
         </div>
 
         <!-- Booking Details Modal -->
-        <Teleport to="body">
-            <div
-                v-if="showBookingModal && selectedBooking"
-                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-                @click="closeBookingModal"
-            >
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-full overflow-y-auto"
-                    @click.stop
-                >
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            Booking Details
-                        </h3>
-                        <button @click="closeBookingModal" class="text-gray-400 hover:text-gray-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <div class="p-6 space-y-6">
-                        <!-- Guest Information -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-3">Guest Information</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Name</span>
-                                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                        {{ selectedBooking.first_name }} {{ selectedBooking.last_name || '' }}
-                                    </p>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</span>
-                                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ selectedBooking.email }}</p>
-                                </div>
-                                <div v-if="selectedBooking.phone">
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Phone</span>
-                                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ selectedBooking.phone }}</p>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Guests</span>
-                                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ selectedBooking.number_of_guests }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Booking Details -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-3">Booking Information</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Check-in</span>
-                                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ formatDate(new Date(selectedBooking.check_in_date)) }}</p>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Check-out</span>
-                                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ formatDate(new Date(selectedBooking.check_out_date)) }}</p>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</span>
-                                    <div class="mt-1">
-                                        <span :class="getBookingStatusClass(selectedBooking.status)" class="px-2 py-1 rounded-full text-xs font-medium border">
-                                            {{ selectedBooking.status }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Source</span>
-                                    <div class="mt-1 flex items-center space-x-2">
-                                        <span>{{ getSourceIcon(selectedBooking.source) }}</span>
-                                        <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedBooking.source }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Financial Information -->
-                        <div v-if="selectedBooking.total_price">
-                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-3">Financial Information</h4>
-                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                    Total: {{ formatPrice(selectedBooking.total_price) }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Special Requests -->
-                        <div v-if="selectedBooking.special_requests">
-                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-3">Special Requests</h4>
-                            <p class="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                {{ selectedBooking.special_requests }}
-                            </p>
-                        </div>
-
-                        <!-- Notes -->
-                        <div v-if="selectedBooking.notes">
-                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-3">Internal Notes</h4>
-                            <p class="text-sm text-gray-900 dark:text-gray-100 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-                                {{ selectedBooking.notes }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Teleport>
+        <!-- Booking Details Modal Component -->
+        <BookingDetailsModal
+            :show="showBookingModal"
+            :booking="selectedBooking"
+            @close="closeBookingModal"
+        />
 
         <!-- Booking Form Modal -->
         <BookingForm

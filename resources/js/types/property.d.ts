@@ -90,6 +90,7 @@ interface Booking {
     notes?: string;
     external_booking_id?: string;
     created_at: string;
+    updated_at: string;
 }
 
 export interface Feature {
