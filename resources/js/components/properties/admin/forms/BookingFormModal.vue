@@ -16,7 +16,7 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-// Booking form
+// Booking form - updated to match nullable fields
 const bookingForm = useForm({
     first_name: '',
     last_name: '',
@@ -25,14 +25,20 @@ const bookingForm = useForm({
     check_in_date: '',
     check_out_date: '',
     number_of_guests: 1,
+    number_of_rooms: null as number | null,
+    flexible_dates: false,
     total_price: 0,
+    commission_rate: null as number | null,
+    commission_amount: null as number | null,
+    commission_paid: false,
     source: 'direct',
     booking_type: 'booking',
     special_requests: '',
-    external_booking_id: ''
+    external_booking_id: '',
+    notes: '' // Internal notes
 });
 
-// Form validation
+// Updated form validation - only check_in_date and check_out_date are truly required
 const isFormValid = computed(() => {
     const checkInDate = new Date(bookingForm.check_in_date);
     const checkOutDate = new Date(bookingForm.check_out_date);
@@ -40,8 +46,6 @@ const isFormValid = computed(() => {
     today.setHours(0, 0, 0, 0);
     
     return (
-        bookingForm.first_name.trim() &&
-        bookingForm.email.trim() &&
         bookingForm.check_in_date &&
         bookingForm.check_out_date &&
         checkInDate >= today &&
@@ -65,8 +69,17 @@ const openForm = () => {
     bookingForm.check_in_date = tomorrow.toISOString().split('T')[0];
     bookingForm.check_out_date = dayAfter.toISOString().split('T')[0];
     bookingForm.number_of_guests = 1;
+    bookingForm.number_of_rooms = null;
+    bookingForm.flexible_dates = false;
+    bookingForm.total_price = 0;
+    bookingForm.commission_rate = null;
+    bookingForm.commission_amount = null;
+    bookingForm.commission_paid = false;
     bookingForm.source = 'direct';
     bookingForm.booking_type = 'booking';
+    bookingForm.special_requests = '';
+    bookingForm.external_booking_id = '';
+    bookingForm.notes = '';
 };
 
 const closeForm = () => {
@@ -92,6 +105,11 @@ const submitBooking = () => {
     if (checkInDate < new Date()) {
         alert('Check-in date cannot be in the past');
         return;
+    }
+    
+    // Calculate commission amount if rate is provided
+    if (bookingForm.commission_rate && bookingForm.total_price > 0) {
+        bookingForm.commission_amount = Math.round((bookingForm.total_price * bookingForm.commission_rate) / 100);
     }
     
     bookingForm.post(route('properties.bookings.store', props.property.id), {
@@ -137,18 +155,17 @@ watch(() => props.show, (newShow) => {
                 </div>
                 
                 <form @submit.prevent="submitBooking" class="p-6 space-y-6">
-                    <!-- Guest Information -->
+                    <!-- Guest Information (All Optional) -->
                     <div>
                         <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Guest Information</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    First Name <span class="text-red-500">*</span>
+                                    First Name
                                 </label>
                                 <input
                                     v-model="bookingForm.first_name"
                                     type="text"
-                                    required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                     :class="{ 'border-red-500': bookingForm.errors.first_name }"
                                 />
@@ -172,12 +189,11 @@ watch(() => props.show, (newShow) => {
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Email <span class="text-red-500">*</span>
+                                    Email
                                 </label>
                                 <input
                                     v-model="bookingForm.email"
                                     type="email"
-                                    required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                     :class="{ 'border-red-500': bookingForm.errors.email }"
                                 />
@@ -238,14 +254,13 @@ watch(() => props.show, (newShow) => {
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Number of Guests <span class="text-red-500">*</span>
+                                    Number of Guests
                                 </label>
                                 <input
                                     v-model.number="bookingForm.number_of_guests"
                                     type="number"
                                     min="1"
                                     :max="property.bedrooms ? property.bedrooms * 2 : 20"
-                                    required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                     :class="{ 'border-red-500': bookingForm.errors.number_of_guests }"
                                 />
@@ -254,19 +269,49 @@ watch(() => props.show, (newShow) => {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Additional Booking Fields -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Number of Rooms
+                                </label>
+                                <input
+                                    v-model.number="bookingForm.number_of_rooms"
+                                    type="number"
+                                    min="1"
+                                    placeholder="Optional"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                    :class="{ 'border-red-500': bookingForm.errors.number_of_rooms }"
+                                />
+                                <div v-if="bookingForm.errors.number_of_rooms" class="mt-1 text-sm text-red-600">
+                                    {{ bookingForm.errors.number_of_rooms }}
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <input
+                                    v-model="bookingForm.flexible_dates"
+                                    type="checkbox"
+                                    id="flexible_dates"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label for="flexible_dates" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                    Flexible dates
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Booking Source and Type -->
                     <div>
                         <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Source & Type</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Source <span class="text-red-500">*</span>
+                                    Source
                                 </label>
                                 <select
                                     v-model="bookingForm.source"
-                                    required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                     :class="{ 'border-red-500': bookingForm.errors.source }"
                                 >
@@ -284,11 +329,10 @@ watch(() => props.show, (newShow) => {
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Booking Type <span class="text-red-500">*</span>
+                                    Booking Type
                                 </label>
                                 <select
                                     v-model="bookingForm.booking_type"
-                                    required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                     :class="{ 'border-red-500': bookingForm.errors.booking_type }"
                                 >
@@ -301,22 +345,57 @@ watch(() => props.show, (newShow) => {
                                     {{ bookingForm.errors.booking_type }}
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <div>
+                        <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Financial Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Total Price <span class="text-red-500">*</span>
+                                    Total Price
                                 </label>
                                 <input
                                     v-model.number="bookingForm.total_price"
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                     :class="{ 'border-red-500': bookingForm.errors.total_price }"
                                 />
                                 <div v-if="bookingForm.errors.total_price" class="mt-1 text-sm text-red-600">
                                     {{ bookingForm.errors.total_price }}
                                 </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Commission Rate (%)
+                                </label>
+                                <input
+                                    v-model.number="bookingForm.commission_rate"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    placeholder="Optional"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                    :class="{ 'border-red-500': bookingForm.errors.commission_rate }"
+                                />
+                                <div v-if="bookingForm.errors.commission_rate" class="mt-1 text-sm text-red-600">
+                                    {{ bookingForm.errors.commission_rate }}
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <input
+                                    v-model="bookingForm.commission_paid"
+                                    type="checkbox"
+                                    id="commission_paid"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label for="commission_paid" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                    Commission paid
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -338,20 +417,40 @@ watch(() => props.show, (newShow) => {
                         </div>
                     </div>
 
-                    <!-- Special Requests -->
+                    <!-- Special Requests and Notes -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Special Requests
-                        </label>
-                        <textarea
-                            v-model="bookingForm.special_requests"
-                            rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                            :class="{ 'border-red-500': bookingForm.errors.special_requests }"
-                            placeholder="Any special requests or notes from the guest..."
-                        ></textarea>
-                        <div v-if="bookingForm.errors.special_requests" class="mt-1 text-sm text-red-600">
-                            {{ bookingForm.errors.special_requests }}
+                        <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Additional Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Special Requests
+                                </label>
+                                <textarea
+                                    v-model="bookingForm.special_requests"
+                                    rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                    :class="{ 'border-red-500': bookingForm.errors.special_requests }"
+                                    placeholder="Any special requests or notes from the guest..."
+                                ></textarea>
+                                <div v-if="bookingForm.errors.special_requests" class="mt-1 text-sm text-red-600">
+                                    {{ bookingForm.errors.special_requests }}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Internal Notes
+                                </label>
+                                <textarea
+                                    v-model="bookingForm.notes"
+                                    rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                    :class="{ 'border-red-500': bookingForm.errors.notes }"
+                                    placeholder="Internal notes (not visible to guests)..."
+                                ></textarea>
+                                <div v-if="bookingForm.errors.notes" class="mt-1 text-sm text-red-600">
+                                    {{ bookingForm.errors.notes }}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -371,7 +470,7 @@ watch(() => props.show, (newShow) => {
                         >
                             <span v-if="bookingForm.processing">Creating...</span>
                             <span v-else>Create Booking</span>
-                        </button>
+        </button>
                     </div>
                 </form>
             </div>
