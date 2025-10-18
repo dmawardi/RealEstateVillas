@@ -22,9 +22,9 @@ class BookingController extends Controller
     {
         // Validate the incoming request
     $validated = $request->validate([
-        'first_name' => 'required|string|max:255',
+        'first_name' => 'nullable|string|max:255',
         'last_name' => 'nullable|string|max:255',
-        'email' => 'required|email|max:255',
+        'email' => 'nullable|email|max:255',
         'phone' => 'nullable|string|max:255', // Optional phone number
         'check_in_date' => 'required|date|after_or_equal:today',
         'check_out_date' => 'required|date|after:check_in_date',

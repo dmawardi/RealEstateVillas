@@ -411,6 +411,7 @@ class PropertyFactory extends Factory
             $bookingCount = $count ?? rand(1, 3);
             \App\Models\Booking::factory($bookingCount)->create([
                 'property_id' => $property->id,
+                'total_price' => $this->faker->numberBetween(10000000, 50000000000), // 10M - 50B IDR
             ]);
         });
     }
