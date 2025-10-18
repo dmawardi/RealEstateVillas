@@ -111,4 +111,89 @@ class BookingController extends Controller
             ->withInput();
     }
     }
+
+    public function update(Request $request, Booking $booking)
+    {
+        // Validate the incoming request
+        $validated = $request->validate([
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:255',
+            'check_in_date' => 'nullable|date|after_or_equal:today',
+            'check_out_date' => 'nullable|date|after:check_in_date',
+            'number_of_guests' => 'nullable|integer|min:1|max:20',
+            'total_price' => 'nullable|integer|min:0',
+            'number_of_rooms' => 'nullable|integer|min:1',
+            'flexible_dates' => 'nullable|boolean',
+            'special_requests' => 'nullable|string|max:1000',
+            'source' => 'nullable|in:direct,airbnb,booking_com,agoda,owner_blocked,maintenance,other',
+            'external_booking_id' => 'nullable|string|max:255',
+            'booking_type' => 'nullable|in:booking,inquiry,blocked,maintenance',
+        ]);
+
+        try {
+            $checkInDate = Carbon::parse($validated['check_in_date']);
+            $checkOutDate = Carbon::parse($validated['check_out_date']);
+
+            // Check availability if dates changed
+            if (
+                $booking->check_in_date !== $checkInDate->format('Y-m-d') ||
+                $booking->check_out_date !== $checkOutDate->format('Y-m-d')
+            ) {
+                $isAvailable = $this->availabilityService->isPropertyAvailable(
+                    $booking->property,
+                    $checkInDate,
+                    $checkOutDate,
+                    $booking->id // Exclude current booking from availability check
+                );
+
+                if (!$isAvailable) {
+                    return back()->withErrors([
+                        'dates' => 'The selected dates are not available for this property.'
+                    ])->withInput();
+                }
+            }
+
+            // Update booking fields
+            $booking->update([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'] ?? null,
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'check_in_date' => $checkInDate->format('Y-m-d'),
+                'check_out_date' => $checkOutDate->format('Y-m-d'),
+                'number_of_guests' => $validated['number_of_guests'],
+                'number_of_rooms' => $validated['number_of_rooms'] ?? null,
+                'flexible_dates' => $validated['flexible_dates'] ?? false,
+                'source' => $validated['source'] ?? $booking->source,
+                'external_booking_id' => $validated['external_booking_id'] ?? $booking->external_booking_id,
+                'booking_type' => $validated['booking_type'] ?? $booking->booking_type,
+                'total_price' => $validated['total_price'],
+                'commission_amount' => $validated['total_price'] * 0.1,
+                'special_requests' => $validated['special_requests'] ?? null,
+            ]);
+
+            Log::info('Booking updated', [
+                'booking_id' => $booking->id,
+                'property_id' => $booking->property_id,
+                'guest_email' => $booking->email,
+                'dates' => $checkInDate->format('Y-m-d') . ' to ' . $checkOutDate->format('Y-m-d'),
+                'source' => $booking->source
+            ]);
+
+            return redirect()->route('bookings.show', $booking)
+                ->with('success', 'Booking updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('Booking update failed', [
+                'error' => $e->getMessage(),
+                'booking_id' => $booking->id,
+                'email' => $validated['email'] ?? null
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'An error occurred while updating your booking. Please try again.')
+                ->withInput();
+        }
+    }
 }

@@ -26,3 +26,10 @@ Route::post('/properties/{property}/attachments', [PropertyAttachmentController:
 Route::put('/attachments/{attachment}', [PropertyAttachmentController::class, 'update']);
 // Delete
 Route::delete('/attachments/{attachment}', [PropertyAttachmentController::class, 'destroy']);
+
+// Property Bookings
+Route::post('/properties/{property}/bookings', [\App\Http\Controllers\BookingController::class, 'store']);
+Route::get('/properties/{property}/bookings', [\App\Http\Controllers\BookingController::class, 'index']);
+Route::get('/properties/{property}/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show']);
+Route::put('/properties/{property}/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'update']);
+Route::delete('/properties/{property}/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'destroy']);
