@@ -228,4 +228,34 @@ class BookingController extends Controller
             ], 500);
         }
     }
+
+    public function delete(Booking $booking)
+    {
+        try {
+            $booking->delete();
+
+            Log::info('Booking deleted', [
+                'booking_id' => $booking->id,
+                'property_id' => $booking->property_id,
+                'guest_email' => $booking->email,
+            ]);
+
+            return response()->json([
+                'message' => 'Booking deleted successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Booking deletion failed', [
+                'error' => $e->getMessage(),
+                'booking_id' => $booking->id,
+                'email' => $booking->email,
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'message' => 'An error occurred while deleting the booking.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

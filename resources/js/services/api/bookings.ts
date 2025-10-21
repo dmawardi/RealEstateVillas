@@ -13,7 +13,7 @@ export class BookingApi extends ApiService {
     static getBooking(propertyId: number, bookingId: number, options = {}) {
         return this.get(`/properties/${propertyId}/bookings/${bookingId}`, options);
     }
-    static deleteBooking(propertyId: number, bookingId: number, options = {}) {
-        return this.delete(`/properties/${propertyId}/bookings/${bookingId}`, options);
+    static deleteBooking(bookingId: number, options = {}) {
+        return this.delete(`/bookings/${bookingId}`, options);
     }
 }

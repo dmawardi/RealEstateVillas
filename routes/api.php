@@ -32,4 +32,4 @@ Route::post('/properties/{property}/bookings', [\App\Http\Controllers\BookingCon
 Route::get('/properties/{property}/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('properties.bookings.index');
 Route::get('/properties/{property}/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show'])->name('properties.bookings.show');
 Route::put('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'update'])->name('properties.bookings.update');
-Route::delete('/properties/{property}/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'destroy'])->name('properties.bookings.destroy');
+Route::delete('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'destroy'])->name('properties.bookings.destroy');
