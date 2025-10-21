@@ -229,7 +229,7 @@ class BookingController extends Controller
         }
     }
 
-    public function delete(Booking $booking)
+    public function destroy(Booking $booking)
     {
         try {
             $booking->delete();

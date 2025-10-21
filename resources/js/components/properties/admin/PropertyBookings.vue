@@ -4,6 +4,7 @@ import { formatPrice, formatDate } from '@/utils';
 import { Booking, Property } from '@/types';
 import BookingForm from '@/components/properties/admin/forms/BookingFormModal.vue';
 import BookingDetailsModal from '@/components/properties/admin/bookings/Details.vue';
+import { BookingApi } from '@/services/api/bookings';
 
 interface Props {
     property: Property
@@ -20,6 +21,9 @@ const showBookingModal = ref(false);
 // Booking form states
 const showBookingForm = ref(false);
 const editingBooking = ref<Booking | null>(null);
+
+// Delete state
+const deleting = ref(false);
 
 // Calendar navigation
 const currentMonth = computed(() => {
@@ -175,6 +179,35 @@ const editBooking = (booking: Booking) => {
     editingBooking.value = booking;
     showBookingModal.value = false; // Close details modal
     showBookingForm.value = true; // Open form modal in edit mode
+};
+
+const deleteBooking = async (booking: Booking) => {
+    if (!confirm(`Are you sure you want to delete the booking for ${booking.first_name} ${booking.last_name || ''}?`)) {
+        return;
+    }
+
+    deleting.value = true;
+
+    try {
+        await BookingApi.deleteBooking(booking.id);
+        
+        // Close the modal
+        closeBookingModal();
+        
+        // Refresh the page to update the bookings list
+        window.location.reload();
+    } catch (error: any) {
+        console.error('Booking deletion failed:', error);
+        
+        // Show error message
+        if (error.response?.data?.message) {
+            alert(`Error: ${error.response.data.message}`);
+        } else {
+            alert('An error occurred while deleting the booking. Please try again.');
+        }
+    } finally {
+        deleting.value = false;
+    }
 };
 
 const onBookingSuccess = () => {
@@ -423,6 +456,8 @@ const onBookingSuccess = () => {
             :booking="selectedBooking"
             @close="closeBookingModal"
             @edit="editBooking"
+            @delete="deleteBooking"
+            :deleting="deleting"
         />
 
         <!-- Booking Form Modal -->

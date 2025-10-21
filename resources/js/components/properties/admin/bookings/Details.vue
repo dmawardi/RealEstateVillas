@@ -5,11 +5,13 @@ import { Booking } from '@/types';
 interface Props {
     show: boolean;
     booking: Booking | null;
+    deleting?: boolean;
 }
 
 interface Emits {
     (e: 'close'): void;
     (e: 'edit', booking: Booking): void;
+    (e: 'delete', booking: Booking): void;
 }
 
 const props = defineProps<Props>();
@@ -47,6 +49,11 @@ const closeModal = () => {
 const editBooking = () => {
     if (props.booking) {
         emit('edit', props.booking);
+    }
+};
+const deleteBooking = () => {
+    if (props.booking) {
+        emit('delete', props.booking);
     }
 };
 </script>
@@ -184,6 +191,14 @@ const editBooking = () => {
                             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             Close
+                        </button>
+                        <button
+                            @click="deleteBooking"
+                            :disabled="deleting"
+                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span v-if="deleting">Deleting...</span>
+                            <span v-else>Delete Booking</span>
                         </button>
                         <button
                             @click="editBooking"
