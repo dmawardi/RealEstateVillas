@@ -9,9 +9,10 @@ interface Props {
 
 interface Emits {
     (e: 'close'): void;
+    (e: 'edit', booking: Booking): void;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 // Helper functions
@@ -41,6 +42,12 @@ const getSourceIcon = (source: string) => {
 
 const closeModal = () => {
     emit('close');
+};
+
+const editBooking = () => {
+    if (props.booking) {
+        emit('edit', props.booking);
+    }
 };
 </script>
 
@@ -179,6 +186,7 @@ const closeModal = () => {
                             Close
                         </button>
                         <button
+                            @click="editBooking"
                             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             Edit Booking

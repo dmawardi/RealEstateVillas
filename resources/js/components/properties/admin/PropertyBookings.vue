@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue';
 import { formatPrice, formatDate } from '@/utils';
 import { Booking, Property } from '@/types';
-import { useForm } from '@inertiajs/vue3';
 import BookingForm from '@/components/properties/admin/forms/BookingFormModal.vue';
 import BookingDetailsModal from '@/components/properties/admin/bookings/Details.vue';
 
@@ -20,20 +19,7 @@ const showBookingModal = ref(false);
 
 // Booking form states
 const showBookingForm = ref(false);
-const bookingForm = useForm({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    check_in_date: '',
-    check_out_date: '',
-    number_of_guests: 1,
-    total_price: 0,
-    source: 'direct',
-    booking_type: 'booking',
-    special_requests: '',
-    external_booking_id: ''
-});
+const editingBooking = ref<Booking | null>(null);
 
 // Calendar navigation
 const currentMonth = computed(() => {
@@ -176,26 +162,19 @@ const closeBookingModal = () => {
 
 // Booking form functions
 const openBookingForm = () => {
-    // Reset form
-    bookingForm.reset();
-    // Set default dates (today + 1 for check-in, today + 2 for check-out)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date();
-    dayAfter.setDate(dayAfter.getDate() + 2);
-    
-    bookingForm.check_in_date = tomorrow.toISOString().split('T')[0];
-    bookingForm.check_out_date = dayAfter.toISOString().split('T')[0];
-    bookingForm.number_of_guests = 1;
-    bookingForm.source = 'direct';
-    bookingForm.booking_type = 'booking';
-    
+    editingBooking.value = null; // Clear editing state for new booking
     showBookingForm.value = true;
 };
 
 const closeBookingForm = () => {
     showBookingForm.value = false;
-    bookingForm.reset();
+    editingBooking.value = null;
+};
+
+const editBooking = (booking: Booking) => {
+    editingBooking.value = booking;
+    showBookingModal.value = false; // Close details modal
+    showBookingForm.value = true; // Open form modal in edit mode
 };
 
 const onBookingSuccess = () => {
@@ -443,12 +422,14 @@ const onBookingSuccess = () => {
             :show="showBookingModal"
             :booking="selectedBooking"
             @close="closeBookingModal"
+            @edit="editBooking"
         />
 
         <!-- Booking Form Modal -->
         <BookingForm
             :show="showBookingForm"
             :property="property"
+            :booking="editingBooking"
             @close="closeBookingForm"
             @success="onBookingSuccess"
         />

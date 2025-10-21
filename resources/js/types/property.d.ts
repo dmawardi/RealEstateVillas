@@ -89,6 +89,11 @@ interface Booking {
     special_requests?: string;
     notes?: string;
     external_booking_id?: string;
+    commission_amount?: number;
+    commission_paid?: boolean;
+    commission_rate?: number;
+    number_of_rooms?: number;
+    flexible_dates?: boolean;
     created_at: string;
     updated_at: string;
 }

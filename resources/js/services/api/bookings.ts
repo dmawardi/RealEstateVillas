@@ -4,8 +4,8 @@ export class BookingApi extends ApiService {
     static createBooking(propertyId: number, data: any, options = {}) {
         return this.post(`/properties/${propertyId}/bookings`, data, options);
     }
-    static updateBooking(propertyId: number, bookingId: number, data: any, options = {}) {
-        return this.put(`/properties/${propertyId}/bookings/${bookingId}`, data, options);
+    static updateBooking(bookingId: number, data: any, options = {}) {
+        return this.put(`/bookings/${bookingId}`, data, options);
     }
     static getBookings(propertyId: number, options = {}) {
         return this.get(`/properties/${propertyId}/bookings`, options);
