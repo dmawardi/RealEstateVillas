@@ -24,6 +24,9 @@ class PropertyPriceFactory extends Factory
             'nightly_rate' => $nightlyRate,
             'weekly_rate' => $weeklyRate,
             'monthly_rate' => $monthlyRate,
+            'name' => $this->faker->word(),
+            'weekly_discount_percent' => 15.00,
+            'monthly_discount_percent' => 30.00,
             'currency' => 'IDR', // Default currency
             'start_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'end_date' => $this->faker->dateTimeBetween('now', '+1 year'),

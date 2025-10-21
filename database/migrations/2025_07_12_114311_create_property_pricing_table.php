@@ -21,7 +21,11 @@ return new class extends Migration
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
 
-                // Add minimum stay requirements
+            $table->string('name')->nullable(); // e.g., "Summer Season", "Holiday Rates"
+            $table->decimal('weekly_discount_percent', 5, 2)->default(0); // % discount for weekly stays
+            $table->decimal('monthly_discount_percent', 5, 2)->default(0); // % discount for monthly stays
+            
+            // Add minimum stay requirements
             $table->integer('min_days_for_weekly')->default(7);
             $table->integer('min_days_for_monthly')->default(30);
             
