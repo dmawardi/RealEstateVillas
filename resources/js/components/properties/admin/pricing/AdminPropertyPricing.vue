@@ -17,6 +17,20 @@ const editingPricing = ref<PropertyPricing | null>(null);
 const processing = ref(false);
 const errors = ref<Record<string, string>>({});
 const deleting = ref<number | null>(null);
+const activeTab = ref<'all' | 'current' | 'upcoming' | 'past'>('all');
+
+const filteredPricing = computed(() => {
+    switch (activeTab.value) {
+        case 'current':
+            return currentActivePricing.value ? [currentActivePricing.value] : [];
+        case 'upcoming':
+            return upcomingPricing.value;
+        case 'past':
+            return pastPricing.value;
+        default:
+            return sortedPricing.value;
+    }
+});
 
 // Form data
 const pricingForm = ref({
@@ -271,12 +285,70 @@ const calculateMonthlyRate = () => {
 
         <div class="p-6">
             <!-- Pricing Periods List -->
-            <div v-if="sortedPricing.length > 0" class="space-y-4">
-                <div
-                    v-for="pricing in sortedPricing"
-                    :key="pricing.id"
-                    class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:shadow-sm transition-shadow"
+            <!-- Tabs -->
+        <div class="border-b border-gray-200 dark:border-gray-600 mb-6">
+            <nav class="-mb-px flex space-x-8">
+                <button
+                    @click="activeTab = 'all'"
+                    :class="[
+                        activeTab === 'all' 
+                            ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+                        'py-2 px-1 border-b-2 font-medium text-sm transition-colors'
+                    ]"
                 >
+                    All ({{ sortedPricing.length }})
+                </button>
+                <button
+                    v-if="currentActivePricing"
+                    @click="activeTab = 'current'"
+                    :class="[
+                        activeTab === 'current' 
+                            ? 'border-green-500 text-green-600 dark:text-green-400' 
+                            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+                        'py-2 px-1 border-b-2 font-medium text-sm transition-colors'
+                    ]"
+                >
+                    <div class="flex items-center space-x-1">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>Active (1)</span>
+                    </div>
+                </button>
+                <button
+                    v-if="upcomingPricing.length > 0"
+                    @click="activeTab = 'upcoming'"
+                    :class="[
+                        activeTab === 'upcoming' 
+                            ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+                        'py-2 px-1 border-b-2 font-medium text-sm transition-colors'
+                    ]"
+                >
+                    Upcoming ({{ upcomingPricing.length }})
+                </button>
+                <button
+                    v-if="pastPricing.length > 0"
+                    @click="activeTab = 'past'"
+                    :class="[
+                        activeTab === 'past' 
+                            ? 'border-gray-500 text-gray-600 dark:text-gray-400' 
+                            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+                        'py-2 px-1 border-b-2 font-medium text-sm transition-colors'
+                    ]"
+                >
+                    Past ({{ pastPricing.length }})
+                </button>
+            </nav>
+        </div>
+
+        <!-- Pricing Periods List (use filteredPricing instead of sortedPricing) -->
+        <div v-if="filteredPricing.length > 0" class="space-y-4">
+            <div
+                v-for="pricing in filteredPricing"
+                :key="pricing.id"
+                class="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:shadow-sm transition-shadow"
+                :class="{ 'opacity-60': activeTab === 'past' }"
+            >
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center space-x-3 mb-3">
@@ -362,21 +434,22 @@ const calculateMonthlyRate = () => {
             </div>
 
             <!-- No Pricing State -->
-            <div v-else class="text-center py-12">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            <!-- Empty state for filtered views -->
+        <div v-else-if="activeTab !== 'all'" class="text-center py-8">
+            <div class="text-gray-400 mb-2">
+                <svg class="mx-auto h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No pricing periods set</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Create your first pricing period to start accepting bookings.
-                </p>
-                <button
-                    @click="openPricingForm"
-                    class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                    Add First Pricing Period
-                </button>
             </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ 
+                    activeTab === 'current' ? 'No active pricing period' :
+                    activeTab === 'upcoming' ? 'No upcoming pricing periods' :
+                    activeTab === 'past' ? 'No past pricing periods' :
+                    'No pricing periods'
+                }}
+            </p>
+        </div>
         </div>
 
         <!-- Pricing Form Modal -->
