@@ -170,9 +170,14 @@ export interface UnavailablePeriod {
 export interface PropertyPricing {
     id: number;
     property_id: number;
+    name: string;
     nightly_rate?: number;
     weekly_rate?: number;
     monthly_rate?: number;
+    weekly_discount_percent?: number;
+    monthly_discount_percent?: number;
+    min_days_for_weekly?: number;
+    min_days_for_monthly?: number;
     currency: string;
     start_date?: string;
     end_date?: string;

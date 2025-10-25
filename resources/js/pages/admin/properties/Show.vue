@@ -10,6 +10,7 @@ import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
 import PropertyBookings from '@/components/properties/admin/PropertyBookings.vue';
 import { Booking } from '@/types';
 import PropertyAttachments from '@/components/properties/admin/PropertyAttachments.vue';
+import AdminPropertyPricing from '@/components/properties/admin/pricing/AdminPropertyPricing.vue';
 
 
 interface Props {
@@ -130,6 +131,10 @@ const deleteProperty = () => {
 
                     <PropertyBookings 
                         :property="property"
+                    />
+                    <AdminPropertyPricing
+                        :property="property"
+                        :pricing="property.pricing"
                     />
                 </div>
 
