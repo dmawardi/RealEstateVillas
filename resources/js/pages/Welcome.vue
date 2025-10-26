@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import SearchHeader from '@/components/ui/navigation/SearchHeader.vue';
 import PropertyShowcase from '@/components/properties/PropertyShowcase.vue';
+import Footer from '@/components/Footer.vue';
 import type { Property } from '@/types';
 
 interface Props {
@@ -16,5 +17,6 @@ const {featured, premium} = defineProps<Props>();
     <BaseLayout>
             <SearchHeader />
             <PropertyShowcase :featured="featured" :premium="premium" />
+            <Footer />
     </BaseLayout>
 </template>
