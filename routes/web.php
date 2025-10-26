@@ -5,10 +5,9 @@ use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AdminPropertyController;
+use App\Http\Controllers\BaseController;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+Route::get('/', [BaseController::class, 'home'])->name('home');
 
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
