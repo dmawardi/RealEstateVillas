@@ -1,4 +1,3 @@
-// resources/js/types/property.ts
 export interface Property {
     id: number;
     
