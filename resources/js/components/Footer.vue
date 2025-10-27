@@ -2,10 +2,17 @@
 import { Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
+interface Props {
+    businessPhone?: string;
+    businessEmail?: string;
+}
+
+const { businessPhone, businessEmail } = defineProps<Props>();
 // Newsletter subscription state
 const email = ref('');
 const isSubmitting = ref(false);
 const subscriptionMessage = ref('');
+
 
 const subscribeToNewsletter = async () => {
     if (!email.value) return;
@@ -205,8 +212,8 @@ const getSocialIcon = (iconName: string) => {
                         </div>
                         <div>
                             <div class="text-sm text-gray-400 mb-1">Call Us</div>
-                            <a href="tel:+1234567890" class="text-white hover:text-blue-400 transition-colors">
-                                +1 (234) 567-8900
+                            <a :href="`tel:${businessPhone}`" class="text-white hover:text-blue-400 transition-colors">
+                                {{ businessPhone }}
                             </a>
                         </div>
                     </div>
@@ -220,8 +227,8 @@ const getSocialIcon = (iconName: string) => {
                         </div>
                         <div>
                             <div class="text-sm text-gray-400 mb-1">Email Us</div>
-                            <a href="mailto:info@realestate.com" class="text-white hover:text-blue-400 transition-colors">
-                                info@realestate.com
+                            <a :href="`mailto:${businessEmail}`" class="text-white hover:text-blue-400 transition-colors">
+                                {{ businessEmail }}
                             </a>
                         </div>
                     </div>

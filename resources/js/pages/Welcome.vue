@@ -8,15 +8,17 @@ import type { Property } from '@/types';
 interface Props {
     featured?: Property[];
     premium?: Property[];
+    businessEmail?: string;
+    businessPhone?: string;
 }
 
-const {featured, premium} = defineProps<Props>();
+const {featured, premium, businessEmail, businessPhone} = defineProps<Props>();
 </script>
 
 <template>
     <BaseLayout>
             <SearchHeader />
             <PropertyShowcase :featured="featured" :premium="premium" />
-            <Footer />
+            <Footer :businessPhone="businessPhone" :businessEmail="businessEmail" />
     </BaseLayout>
 </template>
