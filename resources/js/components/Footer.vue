@@ -48,17 +48,13 @@ const quickLinks = [
 const companyLinks = [
     { name: 'About Us', href: '/about' },
     { name: 'Our Team', href: '/team' },
-    { name: 'Careers', href: '/careers' },
     { name: 'News & Blog', href: '/blog' },
     { name: 'Contact', href: '/contact' },
 ];
 
 const supportLinks = [
-    { name: 'Help Center', href: '/help' },
     { name: 'Privacy Policy', href: '/privacy' },
     { name: 'Terms of Service', href: '/terms' },
-    { name: 'Cookie Policy', href: '/cookies' },
-    { name: 'Sitemap', href: '/sitemap' },
 ];
 
 const getSocialIcon = (iconName: string) => {
@@ -90,7 +86,7 @@ const getSocialIcon = (iconName: string) => {
                             <span class="text-xl font-bold">RealEstate</span>
                         </Link>
                         <p class="text-gray-300 leading-relaxed max-w-md">
-                            Your trusted partner in finding the perfect property. We connect buyers, sellers, and renters with premium real estate opportunities across the region.
+                            Your trusted partner in finding the perfect Bali property for your needs.
                         </p>
                     </div>
 
@@ -239,10 +235,10 @@ const getSocialIcon = (iconName: string) => {
                             </svg>
                         </div>
                         <div>
-                            <div class="text-sm text-gray-400 mb-1">Visit Us</div>
+                            <div class="text-sm text-gray-400 mb-1">Service Area</div>
                             <div class="text-white">
-                                123 Real Estate Ave<br>
-                                <span class="text-sm text-gray-300">New York, NY 10001</span>
+                                Canggu, Seminyak, Pererenan, Umalas<br>
+                                <span class="text-sm text-gray-300">Bali, Indonesia</span>
                             </div>
                         </div>
                     </div>
