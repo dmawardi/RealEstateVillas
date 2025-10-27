@@ -4,6 +4,7 @@ import SearchHeader from '@/components/ui/navigation/SearchHeader.vue';
 import PropertyShowcase from '@/components/properties/PropertyShowcase.vue';
 import Footer from '@/components/Footer.vue';
 import type { Property } from '@/types';
+import ProcessGuide from '@/components/properties/ProcessGuide.vue';
 
 interface Props {
     featured?: Property[];
@@ -19,6 +20,7 @@ const {featured, premium, businessEmail, businessPhone} = defineProps<Props>();
     <BaseLayout>
             <SearchHeader />
             <PropertyShowcase :featured="featured" :premium="premium" />
+            <ProcessGuide />
             <Footer :businessPhone="businessPhone" :businessEmail="businessEmail" />
     </BaseLayout>
 </template>
