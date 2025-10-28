@@ -6,6 +6,7 @@ use App\Models\Property;
 use App\Models\PropertyAttachment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PropertyAttachmentController extends Controller
 {
@@ -249,6 +250,19 @@ class PropertyAttachmentController extends Controller
     public function destroy(Request $request, $id)
     {
         $attachment = PropertyAttachment::findOrFail($id);
+        // Attempt to delete the file from S3
+        if ($attachment->path) {
+            try {
+                Storage::disk('s3')->delete($attachment->path);
+            } catch (\Exception $e) {
+                Log::error('Failed to delete attachment file from S3', [
+                    'attachment_id' => $attachment->id,
+                    'path' => $attachment->path,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+        // Delete the attachment record from the database
         $attachment->delete();
 
         // Check if this is an API call or web call

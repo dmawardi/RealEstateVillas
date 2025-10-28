@@ -4,9 +4,6 @@ import { computed } from 'vue';
 interface PricingFormData {
     price: number | null;
     price_type: string | null;
-    nightly_rate: number | null;
-    weekly_rate: number | null;
-    monthly_rate: number | null;
     available_date: string | null;
     inspection_times: string | null;
 }
@@ -47,8 +44,6 @@ const updateField = (field: keyof PricingFormData, value: any) => {
 
 // Computed properties
 const isRentalProperty = computed(() => props.listingType === 'for_rent');
-const showRentalPricing = computed(() => isRentalProperty.value);
-const showSalePrice = computed(() => !isRentalProperty.value);
 
 // Format currency for display
 const formatCurrency = (amount: number | null): string => {
@@ -61,25 +56,15 @@ const formatCurrency = (amount: number | null): string => {
     }).format(amount);
 };
 
-// Calculate weekly discount if both nightly and weekly rates exist
-const weeklyDiscount = computed(() => {
-    if (formData.value.nightly_rate && formData.value.weekly_rate) {
-        const nightlyTotal = formData.value.nightly_rate * 7;
-        const discount = ((nightlyTotal - formData.value.weekly_rate) / nightlyTotal) * 100;
-        return discount > 0 ? Math.round(discount) : 0;
-    }
-    return 0;
-});
-
-// Calculate monthly discount if both nightly and monthly rates exist
-const monthlyDiscount = computed(() => {
-    if (formData.value.nightly_rate && formData.value.monthly_rate) {
-        const nightlyTotal = formData.value.nightly_rate * 30;
-        const discount = ((nightlyTotal - formData.value.monthly_rate) / nightlyTotal) * 100;
-        return discount > 0 ? Math.round(discount) : 0;
-    }
-    return 0;
-});
+// Get appropriate price label and placeholder based on listing type
+const priceLabel = computed(() => isRentalProperty.value ? 'Base Price (IDR)' : 'Sale Price (IDR)');
+const pricePlaceholder = computed(() => isRentalProperty.value ? '500000' : '5000000000');
+const priceStep = computed(() => isRentalProperty.value ? '50000' : '10000000');
+const priceDescription = computed(() => 
+    isRentalProperty.value 
+        ? 'Base price for rental calculations (rates are managed separately)'
+        : 'Enter the asking price in Indonesian Rupiah'
+);
 </script>
 
 <template>
@@ -87,18 +72,26 @@ const monthlyDiscount = computed(() => {
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pricing Information</h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Set competitive pricing for {{ isRentalProperty ? 'rental rates' : 'property sale' }}
+                <span v-if="isRentalProperty">
+                    Set base price for this rental property. Rental rates are managed separately.
+                </span>
+                <span v-else>
+                    Set the sale price for this property
+                </span>
             </p>
         </div>
         
         <div class="p-6 space-y-6">
-            <!-- Sale Price Section (for sale properties) -->
-            <div v-if="showSalePrice">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Sale Price</h3>
+            <!-- Price Section -->
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                    {{ isRentalProperty ? 'Base Price' : 'Sale Price' }}
+                </h3>
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Price (IDR) *
+                            {{ priceLabel }} {{ isRentalProperty ? '' : '*' }}
                         </label>
                         <input
                             id="price"
@@ -106,14 +99,15 @@ const monthlyDiscount = computed(() => {
                             @input="updateField('price', ($event.target as HTMLInputElement).value ? parseFloat(($event.target as HTMLInputElement).value) : null)"
                             type="number"
                             min="0"
-                            step="1000000"
+                            :step="priceStep"
                             :class="[
                                 'mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100',
                                 hasFieldError('price') 
                                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                                     : 'border-gray-300 dark:border-gray-600'
                             ]"
-                            placeholder="500000000"
+                            :placeholder="pricePlaceholder"
+                            required
                         />
                         <p v-if="getFieldError('price')" class="mt-1 text-sm text-red-600 dark:text-red-400">
                             {{ getFieldError('price') }}
@@ -122,7 +116,7 @@ const monthlyDiscount = computed(() => {
                             {{ formatCurrency(formData.price) }}
                         </p>
                         <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Enter the asking price in Indonesian Rupiah
+                            {{ priceDescription }}
                         </p>
                     </div>
 
@@ -157,135 +151,26 @@ const monthlyDiscount = computed(() => {
                 </div>
             </div>
 
-            <!-- Rental Pricing Section (for rental properties) -->
-            <div v-if="showRentalPricing">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Rental Rates</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                    Set different rates for various rental periods. Weekly and monthly rates typically offer discounts over nightly rates.
-                </p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label for="nightly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Nightly Rate (IDR)
-                        </label>
-                        <input
-                            id="nightly_rate"
-                            :value="formData.nightly_rate || ''"
-                            @input="updateField('nightly_rate', ($event.target as HTMLInputElement).value ? parseFloat(($event.target as HTMLInputElement).value) : null)"
-                            type="number"
-                            min="0"
-                            step="50000"
-                            :class="[
-                                'mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100',
-                                hasFieldError('nightly_rate') 
-                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                                    : 'border-gray-300 dark:border-gray-600'
-                            ]"
-                            placeholder="500000"
-                        />
-                        <p v-if="getFieldError('nightly_rate')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-                            {{ getFieldError('nightly_rate') }}
-                        </p>
-                        <p v-else-if="formData.nightly_rate" class="mt-1 text-xs text-green-600 dark:text-green-400">
-                            {{ formatCurrency(formData.nightly_rate) }} per night
-                        </p>
-                        <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Rate for short-term stays
-                        </p>
+            <!-- Rental Rates Notice (for rental properties) -->
+            <div v-if="isRentalProperty" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
                     </div>
-
-                    <div>
-                        <label for="weekly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Weekly Rate (IDR)
-                        </label>
-                        <input
-                            id="weekly_rate"
-                            :value="formData.weekly_rate || ''"
-                            @input="updateField('weekly_rate', ($event.target as HTMLInputElement).value ? parseFloat(($event.target as HTMLInputElement).value) : null)"
-                            type="number"
-                            min="0"
-                            step="100000"
-                            :class="[
-                                'mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100',
-                                hasFieldError('weekly_rate') 
-                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                                    : 'border-gray-300 dark:border-gray-600'
-                            ]"
-                            placeholder="3000000"
-                        />
-                        <p v-if="getFieldError('weekly_rate')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-                            {{ getFieldError('weekly_rate') }}
-                        </p>
-                        <p v-else-if="formData.weekly_rate" class="mt-1 text-xs text-green-600 dark:text-green-400">
-                            {{ formatCurrency(formData.weekly_rate) }} per week
-                            <span v-if="weeklyDiscount > 0" class="text-blue-600 dark:text-blue-400">
-                                ({{ weeklyDiscount }}% discount)
-                            </span>
-                        </p>
-                        <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Rate for 7-day stays
-                        </p>
-                    </div>
-
-                    <div>
-                        <label for="monthly_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Monthly Rate (IDR)
-                        </label>
-                        <input
-                            id="monthly_rate"
-                            :value="formData.monthly_rate || ''"
-                            @input="updateField('monthly_rate', ($event.target as HTMLInputElement).value ? parseFloat(($event.target as HTMLInputElement).value) : null)"
-                            type="number"
-                            min="0"
-                            step="500000"
-                            :class="[
-                                'mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100',
-                                hasFieldError('monthly_rate') 
-                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                                    : 'border-gray-300 dark:border-gray-600'
-                            ]"
-                            placeholder="10000000"
-                        />
-                        <p v-if="getFieldError('monthly_rate')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-                            {{ getFieldError('monthly_rate') }}
-                        </p>
-                        <p v-else-if="formData.monthly_rate" class="mt-1 text-xs text-green-600 dark:text-green-400">
-                            {{ formatCurrency(formData.monthly_rate) }} per month
-                            <span v-if="monthlyDiscount > 0" class="text-blue-600 dark:text-blue-400">
-                                ({{ monthlyDiscount }}% discount)
-                            </span>
-                        </p>
-                        <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Rate for 30+ day stays
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Rental Rate Summary -->
-                <div v-if="formData.nightly_rate || formData.weekly_rate || formData.monthly_rate" class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Rate Summary</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div v-if="formData.nightly_rate" class="text-blue-700 dark:text-blue-400">
-                            <span class="font-medium">Nightly:</span> {{ formatCurrency(formData.nightly_rate) }}
-                        </div>
-                        <div v-if="formData.weekly_rate" class="text-blue-700 dark:text-blue-400">
-                            <span class="font-medium">Weekly:</span> {{ formatCurrency(formData.weekly_rate) }}
-                            <span v-if="weeklyDiscount > 0" class="text-green-600 dark:text-green-400">
-                                ({{ weeklyDiscount }}% off)
-                            </span>
-                        </div>
-                        <div v-if="formData.monthly_rate" class="text-blue-700 dark:text-blue-400">
-                            <span class="font-medium">Monthly:</span> {{ formatCurrency(formData.monthly_rate) }}
-                            <span v-if="monthlyDiscount > 0" class="text-green-600 dark:text-green-400">
-                                ({{ monthlyDiscount }}% off)
-                            </span>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">
+                            Rental Rates Management
+                        </h3>
+                        <div class="mt-2 text-sm text-blue-700 dark:text-blue-400">
+                            <p>This base price is used for property valuations and calculations. To set nightly, weekly, and monthly rental rates, please use the dedicated <strong>Pricing Management</strong> section after creating the property.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Additional Pricing Information -->
+            <!-- Availability & Viewing -->
             <div>
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Availability & Viewing</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -354,11 +239,18 @@ const monthlyDiscount = computed(() => {
                         </h3>
                         <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-400">
                             <ul class="list-disc list-inside space-y-1">
-                                <li v-if="isRentalProperty"><strong>Rental rates:</strong> Consider offering discounts for longer stays to attract extended bookings</li>
-                                <li v-else><strong>Sale price:</strong> Research comparable properties in the area to ensure competitive pricing</li>
+                                <li v-if="isRentalProperty">
+                                    <strong>Base price:</strong> This establishes the property's value for calculations and comparisons
+                                </li>
+                                <li v-else>
+                                    <strong>Sale price:</strong> Research comparable properties in the area to ensure competitive pricing
+                                </li>
                                 <li><strong>Market research:</strong> Check similar properties in the area for competitive rates</li>
-                                <li><strong>Seasonal pricing:</strong> Consider adjusting rates based on peak and off-peak seasons</li>
+                                <li><strong>Price type:</strong> Choose "negotiable" if you're open to offers, "fixed" for firm pricing</li>
                                 <li><strong>Transparency:</strong> All prices should be inclusive of taxes where applicable</li>
+                                <li v-if="isRentalProperty">
+                                    <strong>Rental rates:</strong> After creating the property, set up detailed rental pricing periods for optimal bookings
+                                </li>
                             </ul>
                         </div>
                     </div>
