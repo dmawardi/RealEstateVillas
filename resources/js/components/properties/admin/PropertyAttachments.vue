@@ -254,6 +254,9 @@ const handleFileUpload = async () => {
                         uploadStatus.value = 'idle';
                         uploadProgress.value = 0;
                     }, 2000);
+
+                    // Refresh the page to show the updated attachments
+                    window.location.reload();
                 } else {
                     uploadStatus.value = 'error';
                 }
