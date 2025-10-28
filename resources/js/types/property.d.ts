@@ -122,6 +122,7 @@ export interface PropertyAttachment {
     order: number;
     updated_at: string;
     created_at: string;
+    url: string;
 }
 
 export interface User {
