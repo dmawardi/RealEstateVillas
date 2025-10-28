@@ -569,7 +569,7 @@ const formatFileSize = (bytes: number) => {
                 <div class="relative max-w-full max-h-full p-4" @click.stop>
                     <img 
                         v-if="selectedImage"
-                        :src="selectedImage.path" 
+                        :src="selectedImage.url" 
                         :alt="selectedImage.title"
                         class="max-w-full max-h-full object-contain rounded-lg"
                     />

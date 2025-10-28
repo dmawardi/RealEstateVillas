@@ -46,7 +46,7 @@ const formatFileSize = (bytes: number) => {
                 <!-- Image Thumbnail -->
                 <div class="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-2 relative">
                     <img 
-                        :src="attachment.path" 
+                        :src="attachment.url" 
                         :alt="attachment.title"
                         class="w-full h-full object-cover cursor-pointer"
                         @click="emit('open-image-modal', attachment)"

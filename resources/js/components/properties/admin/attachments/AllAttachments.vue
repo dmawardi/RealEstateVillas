@@ -91,7 +91,7 @@ const formatDate = (dateString: string) => {
                                 <div class="h-16 w-16 flex-shrink-0">
                                     <img 
                                         v-if="attachment.type === 'image'"
-                                        :src="attachment.path" 
+                                        :src="attachment.url" 
                                         :alt="attachment.title"
                                         class="h-16 w-16 rounded-lg object-cover cursor-pointer border border-gray-200 dark:border-gray-600"
                                         @click="emit('open-image-modal', attachment)"
@@ -171,7 +171,7 @@ const formatDate = (dateString: string) => {
                             <div class="flex items-center justify-end space-x-2">
                                 <a 
                                     v-if="attachment.type !== 'image'"
-                                    :href="attachment.path" 
+                                    :href="attachment.url" 
                                     target="_blank"
                                     class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
                                     title="Download/View"
