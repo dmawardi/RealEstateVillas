@@ -163,6 +163,7 @@ const deleteAttachment = async (attachmentId: number) => {
                     emit('attachment-deleted', attachmentId);
                     console.log('✅ Attachment deleted successfully');
                 }
+                window.location.reload();
             },
             onError: (errors: any) => {
                 console.error('❌ Failed to delete attachment:', errors);
