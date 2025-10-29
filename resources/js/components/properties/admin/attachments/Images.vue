@@ -50,8 +50,9 @@ const formatFileSize = (bytes: number) => {
                         :alt="attachment.title"
                         class="w-full h-full object-cover cursor-pointer"
                         @click="emit('open-image-modal', attachment)"
+                        loading="lazy"
                     />
-                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
                         <button 
                             @click="emit('open-image-modal', attachment)"
                             class="bg-white bg-opacity-80 text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200"
