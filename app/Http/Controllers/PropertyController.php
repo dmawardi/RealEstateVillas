@@ -164,7 +164,13 @@ class PropertyController extends Controller
      */
     public function show(Property $property)
     {
-        $property->load(['features', 'attachments', 'pricing']);
+        $property->load(['features', 'attachments' => function($query) {
+            $query->orderBy('order')->where('type', 'image');
+            
+        }, 'pricing']);
+
+        // Map through attachments to generate URLs for secure access
+        $property->attachments->each->append('url');
 
         // Get current pricing
         $currentPricing = $property->getCurrentPricing();

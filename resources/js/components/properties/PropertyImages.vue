@@ -87,7 +87,7 @@ watchEffect(() => {
         <div class="aspect-video bg-gray-200 dark:bg-gray-700 flex items-center justify-center relative">
             <div v-if="selectedImage" class="w-full h-full">
                 <img 
-                    :src="selectedImage.path" 
+                    :src="selectedImage.url" 
                     :alt="selectedImage.title"
                     class="w-full h-full object-cover"
                 />
@@ -139,7 +139,7 @@ watchEffect(() => {
                         ]"
                     >
                         <img 
-                            :src="attachment.path" 
+                            :src="attachment.url" 
                             :alt="attachment.title"
                             class="w-full h-full object-cover"
                             loading="lazy"
