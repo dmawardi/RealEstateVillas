@@ -44,7 +44,13 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                // Available globally on <Inertia>
+                'user' => $request->user() ? [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
+                'is_admin' => $request->user()->role === 'admin'
+            ] : null,
             ],
             // Add flash messages to shared props
             'flash' => [
