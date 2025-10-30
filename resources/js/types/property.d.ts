@@ -95,6 +95,7 @@ interface Booking {
     flexible_dates?: boolean;
     created_at: string;
     updated_at: string;
+    property: Property;
 }
 
 export interface Feature {

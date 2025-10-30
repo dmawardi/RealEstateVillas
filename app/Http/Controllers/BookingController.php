@@ -8,11 +8,22 @@ use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class BookingController extends Controller
 {
     public function __construct(private AvailabilityService $availabilityService)
     {
+    }
+
+
+    public function index(Request $request)
+    {
+        $bookings = Booking::where('user_id', $request->user()->id)->with('property')->get();
+
+        return Inertia::render('bookings/Index', [
+                'bookings' => $bookings,
+            ]);
     }
 
     /**

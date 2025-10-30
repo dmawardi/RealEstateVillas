@@ -48,7 +48,7 @@ class BookingFactory extends Factory
             'flexible_dates' => $flexibleDates,
             'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled', 'completed', 'blocked']),
             'booking_type' => $bookingType,
-            'total_price' => $this->faker->optional()->numberBetween(100, 10000),
+            'total_price' => $this->faker->numberBetween(100, 10000),
             'commission_rate' => $this->faker->optional()->randomFloat(2, 0, 100),
             'commission_amount' => $this->faker->optional()->numberBetween(0, 5000),
             'commission_paid' => $this->faker->boolean,

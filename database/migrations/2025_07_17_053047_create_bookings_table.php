@@ -17,6 +17,7 @@ return new class extends Migration
 
             // Property relationship
             $table->foreignId('property_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             
             // Source tracking - key for your business model
             $table->enum('source', ['direct', 'airbnb', 'booking_com', 'agoda', 'owner_blocked', 'maintenance', 'other'])

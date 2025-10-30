@@ -16,6 +16,9 @@ Route::get('/properties/{property}', [PropertyController::class, 'show'])->name(
 Route::post('properties/{property}/bookings', [BookingController::class, 'store'])->name('properties.bookings.store');
 
 
+// My Bookings
+Route::get('my-bookings', [BookingController::class, 'index'])->middleware(['auth', 'verified'])->name('my.bookings');
+
 // Dashboard
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
