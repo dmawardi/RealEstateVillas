@@ -9,7 +9,6 @@ import StaticMap from '@/components/ui/map/StaticMap.vue';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import type { BreadcrumbItemType, Property, PropertyPricing } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { onMounted } from 'vue';
 
 interface Props {
     property: Property;
