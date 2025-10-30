@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import UpperNavigation from './UpperNavigation.vue';
 import SearchIcon from '../form/SearchIcon.vue';
 import Modal from '@/components/Modal.vue';
 import PriceFilter from '../filters/PriceFilter.vue';
@@ -97,9 +96,6 @@ const clearAllLocations = () => {
 </script>
 
 <template>
-    <header class="bg-white dark:bg-gray-800 shadow p-4 w-10/12 mx-auto">
-        <UpperNavigation />
-        
         <!-- Search Section -->
         <div class="mx-auto bg-blue-300 w-full h-80 flex flex-col items-center justify-center rounded-md shadow-md mt-4">
             <!-- Rent/Buy Toggle Bar - positioned above search bar -->
@@ -281,5 +277,4 @@ const clearAllLocations = () => {
                 </div>
             </template>
         </Modal>
-    </header>
 </template>
