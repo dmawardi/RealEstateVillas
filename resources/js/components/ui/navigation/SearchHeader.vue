@@ -96,6 +96,7 @@ const clearAllLocations = () => {
 </script>
 
 <template>
+    <div class="bg-white dark:bg-gray-800 shadow p-4 w-10/12 mx-auto">
         <!-- Search Section -->
         <div class="mx-auto bg-blue-300 w-full h-80 flex flex-col items-center justify-center rounded-md shadow-md mt-4">
             <!-- Rent/Buy Toggle Bar - positioned above search bar -->
@@ -277,4 +278,5 @@ const clearAllLocations = () => {
                 </div>
             </template>
         </Modal>
+    </div>
 </template>
