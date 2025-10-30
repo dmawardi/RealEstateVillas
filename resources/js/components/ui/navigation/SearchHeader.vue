@@ -71,13 +71,13 @@ const handleSearch = () => {
     );
     const queryString = new URLSearchParams(cleanFilters as Record<string, string>).toString();
 
-    console.log('Clean Filters:', cleanFilters);
-    console.log('Searching for:', form.value.search, 'Mode:', form.value.mode);
-    console.log('Location Filter:', form.value.locationFilter);
-    console.log('Price Filter:', form.value.priceFilter);
-    console.log('Modal Open:', modalOpen.value);
-    // Create the query string
-    console.log('Query String:', queryString);
+    // console.log('Clean Filters:', cleanFilters);
+    // console.log('Searching for:', form.value.search, 'Mode:', form.value.mode);
+    // console.log('Location Filter:', form.value.locationFilter);
+    // console.log('Price Filter:', form.value.priceFilter);
+    // console.log('Modal Open:', modalOpen.value);
+    // // Create the query string
+    // console.log('Query String:', queryString);
     // Redirect to the search results page with query parameters
     window.location.href = `/properties?${queryString}`;
 };
@@ -92,7 +92,6 @@ const removeLocationFromFilter = (location: Location) => {
 const clearAllLocations = () => {
     form.value.locationFilter = [];
 };
-
 </script>
 
 <template>

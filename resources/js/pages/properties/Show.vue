@@ -30,9 +30,6 @@ const breadcrumbs: BreadcrumbItemType[] = [
         href: `/properties/${property.id}`,
     },
 ];
-onMounted(() => {
-    console.log('Property data:', property);
-});
 </script>
 
 <template>

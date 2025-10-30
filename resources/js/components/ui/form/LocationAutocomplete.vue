@@ -196,7 +196,6 @@ const loadLocations = async () => {
                 
                 // Update reactive state with transformed data
                 allLocations.value = locations;
-                console.log('Locations loaded:', allLocations.value);
             },
             
             // Error callback - handle API failures gracefully
