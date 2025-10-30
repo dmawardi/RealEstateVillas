@@ -39,6 +39,11 @@ class User extends Authenticatable
         return $this->hasMany(Property::class);
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

@@ -24,6 +24,11 @@ class Booking extends Model
         return $this->belongsTo(Property::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     // Query scopes for business logic
     // Used by calling model::Confirmed(), model::ForProperty($propertyId), etc.
     public function scopeConfirmed($query)
