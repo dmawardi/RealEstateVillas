@@ -16,6 +16,7 @@ Route::get('/properties/{property}', [PropertyController::class, 'show'])->name(
 Route::post('properties/{property}/bookings', [BookingController::class, 'store'])->name('properties.bookings.store');
 
 
+// Logged in routes
 // My Bookings
 Route::get('my-bookings', [BookingController::class, 'index'])->middleware(['auth', 'verified'])->name('my.bookings');
 
@@ -23,6 +24,9 @@ Route::get('my-bookings', [BookingController::class, 'index'])->middleware(['aut
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::post('/bookings/{booking}/withdraw', [BookingController::class, 'withdraw'])
+        ->name('bookings.withdraw');
 
 // ADMIN ROUTES
 // 

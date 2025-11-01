@@ -14,13 +14,16 @@ const withdrawingBooking = ref<number | null>(null);
 const showWithdrawModal = ref(false);
 const selectedBooking = ref<Booking | null>(null);
 
+// Reactive bookings list that can be updated
+const bookingsList = ref<Booking[]>([...bookings]);
+
 // Filter and sort bookings
 const activeBookings = computed(() => 
-    bookings.filter(booking => booking.status !== 'withdrawn' && booking.status !== 'cancelled')
+    bookingsList.value.filter(booking => booking.status !== 'withdrawn' && booking.status !== 'cancelled')
 );
 
 const pastBookings = computed(() => 
-    bookings.filter(booking => booking.status === 'withdrawn' || booking.status === 'cancelled' || booking.status === 'completed')
+    bookingsList.value.filter(booking => booking.status === 'withdrawn' || booking.status === 'cancelled' || booking.status === 'completed')
 );
 
 // Status styling
@@ -31,6 +34,7 @@ const getStatusClass = (status: string) => {
         'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
         'withdrawn': 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
         'completed': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+        'blocked': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
     };
     return statusClasses[status as keyof typeof statusClasses] || 'bg-gray-100 text-gray-800';
 };
@@ -42,6 +46,7 @@ const getStatusIcon = (status: string) => {
         'cancelled': '❌',
         'withdrawn': '↩️',
         'completed': '🏁',
+        'blocked': '🚫',
     };
     return icons[status as keyof typeof icons] || '📋';
 };
@@ -73,27 +78,41 @@ const calculateNights = (checkIn: string, checkOut: string) => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-// Withdrawal functions
+// Withdrawal functions using BookingApi
 const initiateWithdraw = (booking: Booking) => {
     selectedBooking.value = booking;
     showWithdrawModal.value = true;
 };
 
-const confirmWithdraw = () => {
+const confirmWithdraw = async () => {
     if (!selectedBooking.value) return;
     
     withdrawingBooking.value = selectedBooking.value.id;
+    console.log('Withdrawing booking:', selectedBooking.value.id);
     
-    router.patch(route('bookings.withdraw', selectedBooking.value.id), {}, {
-        preserveScroll: true,
-        onSuccess: () => {
-            showWithdrawModal.value = false;
-            selectedBooking.value = null;
-        },
-        onFinish: () => {
-            withdrawingBooking.value = null;
+    router.post(`/bookings/${selectedBooking.value.id}/withdraw`, 
+        { status: 'withdrawn' }, 
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Update local state
+                const bookingIndex = bookingsList.value.findIndex(b => b.id === selectedBooking.value!.id);
+                if (bookingIndex !== -1) {
+                    bookingsList.value[bookingIndex].status = 'withdrawn';
+                }
+                
+                showWithdrawModal.value = false;
+                selectedBooking.value = null;
+            },
+            onError: (errors) => {
+                console.error('Failed to withdraw booking:', errors);
+                alert('Failed to withdraw booking. Please try again.');
+            },
+            onFinish: () => {
+                withdrawingBooking.value = null;
+            }
         }
-    });
+    );
 };
 
 const cancelWithdraw = () => {
@@ -103,7 +122,7 @@ const cancelWithdraw = () => {
 
 // Check if booking can be withdrawn
 const canWithdraw = (booking: Booking) => {
-    return booking.status === 'pending' || booking.status === 'confirmed';
+    return booking.status === 'pending';
 };
 
 // Get days until check-in
@@ -165,7 +184,7 @@ const getDaysUntilCheckIn = (checkInDate: string) => {
                                     v-if="canWithdraw(booking)"
                                     @click="initiateWithdraw(booking)"
                                     :disabled="withdrawingBooking === booking.id"
-                                    class="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 border border-red-300 hover:border-red-400 rounded-lg transition-colors disabled:opacity-50"
+                                    class="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 border border-red-300 hover:border-red-400 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {{ withdrawingBooking === booking.id ? 'Withdrawing...' : 'Withdraw' }}
                                 </button>
@@ -293,48 +312,57 @@ const getDaysUntilCheckIn = (checkInDate: string) => {
     </div>
 
     <!-- Withdraw Confirmation Modal -->
-    <div v-if="showWithdrawModal" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="cancelWithdraw"></div>
+    <!-- Withdraw Confirmation Modal -->
+<Teleport to="body">
+    <div v-if="showWithdrawModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div 
+            class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+            @click="cancelWithdraw"
+        ></div>
 
-            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+        <!-- Modal Content -->
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-auto z-10">
+            <div class="p-6">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                             <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                             </svg>
                         </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
-                                Withdraw Booking
-                            </h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    Are you sure you want to withdraw your booking for 
-                                    <strong>{{ selectedBooking?.property.title }}</strong>? 
-                                    This action cannot be undone.
-                                </p>
-                            </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                            Withdraw Booking
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Are you sure you want to withdraw your booking for 
+                                <strong>{{ selectedBooking?.property.title }}</strong>? 
+                                This action cannot be undone.
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button
-                        @click="confirmWithdraw"
-                        :disabled="withdrawingBooking !== null"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-                    >
-                        {{ withdrawingBooking ? 'Withdrawing...' : 'Withdraw Booking' }}
-                    </button>
-                    <button
-                        @click="cancelWithdraw"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-500"
-                    >
-                        Cancel
-                    </button>
-                </div>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex justify-end space-x-3">
+                <button
+                    @click="cancelWithdraw"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-500"
+                >
+                    Cancel
+                </button>
+                <button
+                    @click="confirmWithdraw"
+                    :disabled="withdrawingBooking !== null"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {{ withdrawingBooking ? 'Withdrawing...' : 'Withdraw Booking' }}
+                </button>
             </div>
         </div>
     </div>
+</Teleport>
 </template>

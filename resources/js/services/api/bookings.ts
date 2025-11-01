@@ -16,4 +16,7 @@ export class BookingApi extends ApiService {
     static deleteBooking(bookingId: number, options = {}) {
         return this.delete(`/bookings/${bookingId}`, options);
     }
+    static withdrawBooking(bookingId: number, data: any, options = {}) {
+        return this.post(`/bookings/${bookingId}/withdraw`, data, options);
+    }
 }

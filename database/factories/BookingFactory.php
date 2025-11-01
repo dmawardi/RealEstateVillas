@@ -34,6 +34,7 @@ class BookingFactory extends Factory
             $flexibleDates = true;
         }
         return [
+            'user_id' => \App\Models\User::factory(),
             'property_id' => \App\Models\Property::factory(),
             'source' => $bookingSource,
             'external_booking_id' => $this->faker->optional()->uuid,

@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Property;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
+use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -129,6 +130,73 @@ class BookingController extends Controller
                 'message' => 'An error occurred while processing your booking.',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function withdraw(Request $request, Booking $booking)
+    {
+        // Validate the incoming request
+        $validated = $request->validate([
+            'status' => 'required|string|max:255',
+        ]);
+
+        Log::info('Booking withdrawal initiated', [
+            'booking_id' => $booking->id,
+            'user_id' => $request->user()?->id,
+            'status' => $validated['status']
+        ]);
+
+        // Check if user is logged in
+        if (!$request->user()) {
+            return redirect()->route('login')
+                ->with('error', 'Please log in to manage your bookings.');
+        }
+
+        // Check if user is authorized to withdraw this booking
+        if ($request->user()->id !== $booking->user_id) {
+            return back()->withErrors([
+                'message' => 'You are not authorized to withdraw this booking.'
+            ]);
+        }
+
+        // Check that status of booking is pending or confirmed
+        if (!in_array($booking->status, ['pending', 'confirmed'])) {
+            return back()->withErrors([
+                'message' => 'Only pending or confirmed bookings can be withdrawn.'
+            ]);
+        }
+
+        Log::info('Booking withdrawal initial tests passed', [
+            'booking_id' => $booking->id,
+            'user_id' => $request->user()->id,
+            'status' => $validated['status']
+        ]);
+
+        try {
+            // Update the booking status to withdrawn
+            $booking->update([
+                'status' => $validated['status'],
+            ]);
+
+            Log::info('Booking withdrawal successful', [
+                'booking_id' => $booking->id,
+                'user_id' => $request->user()->id,
+                'new_status' => $validated['status']
+            ]);
+
+            return back()->with('success', 'Booking withdrawn successfully.');
+
+        } catch (\Exception $e) {
+            Log::error('Booking withdrawal failed', [
+                'error' => $e->getMessage(),
+                'booking_id' => $booking->id,
+                'user_id' => $request->user()->id,
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->withErrors([
+                'message' => 'An error occurred while processing your withdrawal. Please try again.'
+            ]);
         }
     }
 

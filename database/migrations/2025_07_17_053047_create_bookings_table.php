@@ -38,7 +38,7 @@ return new class extends Migration
             $table->boolean('flexible_dates')->default(false);
             
             // Booking status and type
-            $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed', 'blocked'])
+            $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed', 'blocked', 'withdrawn'])
                   ->default('pending');
             $table->enum('booking_type', ['booking', 'inquiry', 'blocked', 'maintenance'])
                   ->default('booking');
