@@ -4,7 +4,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, LampCeiling } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -28,6 +28,11 @@ const adminNavItems: NavItem[] = [
         href: '/admin/properties',
         icon: Folder,
     },
+    {
+        title: 'Property Features',
+        href: '/admin/features',
+        icon: LampCeiling,
+    }
 ];
 
 const userNavItems: NavItem[] = [

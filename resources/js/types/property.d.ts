@@ -102,6 +102,10 @@ export interface Feature {
     id: number;
     name: string;
     slug: string;
+    description?: string;
+    icon?: string;
+    is_quantifiable: boolean;
+    is_active: boolean;
     category: string;
     pivot: {
         quantity: number;
@@ -145,6 +149,16 @@ export interface PaginatedProperties {
         label: string;
         active: boolean;
     }[];
+}
+
+export interface PaginatedFeatures {
+    data: Feature[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
 }
 
 export interface PropertyFilters {

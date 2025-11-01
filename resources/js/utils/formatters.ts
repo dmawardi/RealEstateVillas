@@ -36,4 +36,8 @@ const formatDateForInput = (dateString: string): string => {
     return `${year}-${month}-${day}`;
 };
 
-export { formatPrice, formatDate, formatDateForInput };
+function formatPaginationLabel(label: string): string {
+    return label.replace('&laquo;', '«').replace('&raquo;', '»');
+}
+
+export { formatPrice, formatDate, formatDateForInput, formatPaginationLabel };

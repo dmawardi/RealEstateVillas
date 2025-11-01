@@ -16,10 +16,12 @@ class FeatureFactory extends Factory
      */
     public function definition(): array
     {
+        $categories = ['amenity', 'safety', 'comfort', 'entertainment', 'outdoor', 'kitchen', 'bathroom', 'accessibility'];
+
         return [
             'name' => $this->faker->word(),
             'slug' => $this->faker->unique()->slug(),
-            'category' => $this->faker->randomElement(['interior', 'exterior', 'security', 'accessibility']),
+            'category' => $this->faker->randomElement($categories),
             'description' => $this->faker->sentence(),
             'icon' => $this->faker->optional()->word(), // Optional icon, can be a font-awesome class or similar
             'is_quantifiable' => $this->faker->boolean(),

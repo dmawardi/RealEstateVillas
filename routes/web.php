@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminFeatureController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,15 @@ Route::get('admin/properties/{property}', [AdminPropertyController::class, 'show
 Route::post('admin/properties', [AdminPropertyController::class, 'store'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.store');
 Route::get('admin/properties/{property}/edit', [AdminPropertyController::class, 'edit'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.edit');
 Route::put('admin/properties/{property}', [AdminPropertyController::class, 'update'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.update');
+
+// 
+// Property Features
+Route::get('/admin/features', [AdminFeatureController::class, 'index'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.index');
+Route::get('/admin/features/create', [AdminFeatureController::class, 'create'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.create');
+Route::post('/admin/features', [AdminFeatureController::class, 'store'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.store');
+Route::get('admin/features/{feature}/edit', [AdminFeatureController::class, 'edit'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.edit');
+Route::put('/admin/features/{feature}', [AdminFeatureController::class, 'update'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.update');
+Route::delete('/admin/features/{feature}', [AdminFeatureController::class, 'destroy'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.destroy');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

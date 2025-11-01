@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import CompactSearchHeader from '@/components/ui/navigation/CompactSearchHeader.vue';
 import { PropertyFilters, PaginatedProperties } from '@/types';
 import { formatPrice } from '@/utils';
+import { formatPaginationLabel } from '@/utils';
 
 interface Props {
     properties: PaginatedProperties;
@@ -23,10 +24,6 @@ const address = (
 ) => {
     return `Jl. ${street} ${number}, ${regency}, ${district}, ${village}, ${state} ${zip}`;
 };
-
-function formatPaginationLabel(label: string): string {
-    return label.replace('&laquo;', '«').replace('&raquo;', '»');
-}
 </script>
 
 <template>
