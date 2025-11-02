@@ -35,6 +35,18 @@ class AdminFeatureController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        return Inertia::render('admin/features/Create');
+    }
+
+    public function edit(Feature $feature)
+    {
+        return Inertia::render('admin/features/Edit', [
+            'feature' => $feature,
+        ]);
+    }
+
     public function destroy(Feature $feature)
     {
         $feature->delete();

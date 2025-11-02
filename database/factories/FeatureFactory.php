@@ -16,7 +16,7 @@ class FeatureFactory extends Factory
      */
     public function definition(): array
     {
-        $categories = ['amenity', 'safety', 'comfort', 'entertainment', 'outdoor', 'kitchen', 'bathroom', 'accessibility'];
+        $categories = ['amenity', 'safety', 'comfort', 'entertainment', 'outdoor', 'kitchen', 'bathroom', 'accessibility', 'security'];
 
         return [
             'name' => $this->faker->word(),
