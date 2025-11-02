@@ -21,7 +21,7 @@ const { feature } = defineProps<Props>();
                     :feature="feature"
                     submit-route="admin.features.update"
                     cancel-route="admin.features.index"
-                    method="patch"
+                    method="put"
                 />
             </div>
         </div>
