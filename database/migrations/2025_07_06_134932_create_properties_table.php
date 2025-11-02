@@ -18,6 +18,7 @@ return new class extends Migration
             // Basic Property Information
             $table->string('title');
             $table->text('description');
+            $table->string('slug')->unique();
             $table->enum('property_type', ['house', 'apartment', 'townhouse', 'villa', 'land', 'commercial', 'guest_house', 'other'])->default('house');
             $table->enum('listing_type', ['for_sale', 'for_rent', 'sold', 'off_market']);
             $table->enum('status', ['active', 'pending', 'sold', 'withdrawn'])->default('active');

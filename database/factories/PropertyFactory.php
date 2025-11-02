@@ -44,11 +44,13 @@ class PropertyFactory extends Factory
         $listedAt = $this->faker->dateTimeBetween('-2 years', 'now');
         $daysOnMarket = \Carbon\Carbon::parse($listedAt)->diffInDays(now(), false);
         $daysOnMarket = max(0, $daysOnMarket);
+        $title = $this->generatePropertyTitle($propertyType, $locationData, $bedrooms);
         
         return [
             // Basic Property Information
-            'title' => $this->generatePropertyTitle($propertyType, $locationData, $bedrooms),
+            'title' => $title,
             'description' => $this->faker->paragraphs(3, true),
+            'slug' => $this->faker->unique()->slug(8),
             'property_type' => $propertyType,
             'listing_type' => $listingType,
             'status' => $this->faker->randomElement($statuses),
