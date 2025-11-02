@@ -34,4 +34,12 @@ class AdminFeatureController extends Controller
             'filters' => request()->only(['search', 'category']),
         ]);
     }
+
+    public function destroy(Feature $feature)
+    {
+        $feature->delete();
+
+        return redirect()->route('admin.features.index')
+            ->with('success', 'Feature deleted successfully.');
+    }
 }
