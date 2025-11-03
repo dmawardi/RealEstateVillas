@@ -48,5 +48,23 @@ Route::get('admin/features/{feature}/edit', [AdminFeatureController::class, 'edi
 Route::put('/admin/features/{feature}', [AdminFeatureController::class, 'update'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.update');
 Route::delete('/admin/features/{feature}', [AdminFeatureController::class, 'destroy'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.destroy');
 
+// Property Features - Pivot Management
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    // ... existing routes
+    
+    // Property feature management routes
+    Route::patch('/properties/{property}/features', [AdminPropertyController::class, 'updateFeatures'])
+        ->name('properties.features.update');
+    
+    Route::post('/properties/{property}/features', [AdminPropertyController::class, 'attachFeature'])
+        ->name('properties.features.attach');
+    
+    Route::delete('/properties/{property}/features/{feature}', [AdminPropertyController::class, 'detachFeature'])
+        ->name('properties.features.detach');
+    
+    Route::patch('/properties/{property}/features/{feature}', [AdminPropertyController::class, 'updatePropertyFeature'])
+        ->name('properties.features.update-single');
+});
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

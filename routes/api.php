@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminPropertyController;
 use App\Http\Controllers\PropertyAttachmentController;
 use App\Http\Controllers\AdminPropertyPriceController;
 use App\Http\Controllers\PropertyController;
@@ -40,3 +41,7 @@ Route::get('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropert
 Route::post('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'store'])->name('properties.pricing.store');
 Route::put('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'update'])->name('properties.pricing.update');
 Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('properties.pricing.destroy');
+
+// Property feature management routes
+Route::get('admin/properties/{property}/available-features', [AdminPropertyController::class, 'getAvailableFeatures'])
+    ->name('admin.properties.features.available');

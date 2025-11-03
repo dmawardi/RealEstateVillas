@@ -49,6 +49,8 @@ export class ApiService {
 
             const responseData = await response.json();
             if (onSuccess) onSuccess(responseData);
+
+            return responseData;
             
         } catch (error) {
             console.error('API request failed:', error);

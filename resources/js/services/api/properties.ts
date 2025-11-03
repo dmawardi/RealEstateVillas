@@ -60,4 +60,9 @@ export class PropertyApi extends ApiService {
     static deleteAttachment(attachmentId: number, options = {}) {
         return this.delete(`/attachments/${attachmentId}`, options);
     }
+
+    // Property Features
+    static getAvailableFeatures(propertyId: number, options = {}) {
+        return this.get(`/admin/properties/${propertyId}/available-features`, options);
+    }
 }

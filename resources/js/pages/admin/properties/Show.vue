@@ -118,7 +118,7 @@ const deleteProperty = () => {
                         :property="property"
                         :map-api-key="map_api_key"
                     />
-
+                    <!-- Attachments -->
                     <PropertyAttachments
                         :property-id="property.id"
                         :attachments="property.attachments"
@@ -127,6 +127,7 @@ const deleteProperty = () => {
                     <!-- Features -->
                     <PropertyFeatures
                         :property="property"
+                        :editable="true"
                     />
 
                     <PropertyBookings 

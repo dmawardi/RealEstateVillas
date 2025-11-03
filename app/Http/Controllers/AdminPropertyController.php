@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -735,5 +736,235 @@ class AdminPropertyController extends Controller
             'sold' => 'Sold',
             'withdrawn' => 'Withdrawn',
         ];
+    }
+
+    // PROPERTY FEATURE METHODS
+    // 
+    /**
+     * Update the features associated with a property.
+     * 
+     * This handles the many-to-many relationship between properties and features.
+     * Features can be attached with optional pivot data like quantity for quantifiable features.
+     * 
+     * @param Request $request
+     * @param Property $property
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateFeatures(Request $request, Property $property)
+    {
+        $request->validate([
+            'features' => 'nullable|array',
+            'features.*.id' => 'required|exists:features,id',
+            'features.*.quantity' => 'nullable|integer|min:1|max:999',
+            'features.*.notes' => 'nullable|string|max:1000',
+        ]);
+
+        DB::beginTransaction();
+        
+        try {
+            // Get the validated features data
+            $featuresData = $request->input('features', []);
+            
+            // Prepare sync data for the pivot table
+            $syncData = [];
+            
+            foreach ($featuresData as $featureData) {
+                $featureId = $featureData['id'];
+                
+                // Check if the feature exists and is active
+                $feature = \App\Models\Feature::where('id', $featureId)
+                    ->where('is_active', true)
+                    ->first();
+                
+                if (!$feature) {
+                    continue; // Skip inactive or non-existent features
+                }
+                
+                // Prepare pivot data
+                $pivotData = [];
+                
+                // Add quantity if feature is quantifiable and quantity is provided
+                if ($feature->is_quantifiable && isset($featureData['quantity'])) {
+                    $pivotData['quantity'] = $featureData['quantity'];
+                }
+                
+                // Add notes if provided
+                if (isset($featureData['notes'])) {
+                    $pivotData['notes'] = $featureData['notes'];
+                }
+                
+                $syncData[$featureId] = $pivotData;
+            }
+            
+            // Sync the features with the property
+            // This will remove features not in the array and add/update those that are
+            $property->features()->sync($syncData);
+            
+            DB::commit();
+            
+            return back()->with('success', 'Property features updated successfully.');
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            return back()->withErrors(['error' => 'Failed to update property features: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Attach a single feature to a property.
+     * 
+     * @param Request $request
+     * @param Property $property
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function attachFeature(Request $request, Property $property)
+    {
+        $request->validate([
+            'feature_id' => 'required|exists:features,id',
+            'quantity' => 'nullable|integer|min:1|max:999',
+            'custom_value' => 'nullable|string|max:255',
+        ]);
+        
+        try {
+            $feature = \App\Models\Feature::findOrFail($request->feature_id);
+            
+            // Check if feature is active
+            if (!$feature->is_active) {
+                return back()->withErrors(['error' => 'Cannot add inactive feature.']);
+            }
+            
+            // Check if feature is already attached
+            if ($property->features()->where('features.id', $request->feature_id)->exists()) {
+                return back()->withErrors(['error' => 'Feature is already attached to this property.']);
+            }
+            
+            // Prepare pivot data
+            $pivotData = [];
+            
+            if ($feature->is_quantifiable && $request->filled('quantity')) {
+                $pivotData['quantity'] = $request->quantity;
+            }
+            
+            if ($request->filled('custom_value')) {
+                $pivotData['custom_value'] = $request->custom_value;
+            }
+            
+            // Attach the feature
+            $property->features()->attach($request->feature_id, $pivotData);
+            
+            return back()->with('success', 'Feature added to property successfully.');
+            
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to add feature: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Detach a single feature from a property.
+     * 
+     * @param Property $property
+     * @param int $featureId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function detachFeature(Property $property, $featureId)
+    {
+        try {
+            // Check if feature is attached
+            if (!$property->features()->where('features.id', $featureId)->exists()) {
+                return back()->withErrors(['error' => 'Feature is not attached to this property.']);
+            }
+            
+            // Detach the feature
+            $property->features()->detach($featureId);
+            
+            return back()->with('success', 'Feature removed from property successfully.');
+            
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to remove feature: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Update a specific property feature's pivot data.
+     * 
+     * @param Request $request
+     * @param Property $property
+     * @param int $featureId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updatePropertyFeature(Request $request, Property $property, $featureId)
+    {
+        $request->validate([
+            'quantity' => 'nullable|integer|min:1|max:999',
+            'custom_value' => 'nullable|string|max:255',
+        ]);
+        
+        try {
+            // Check if feature is attached to property
+            $pivot = $property->features()->where('features.id', $featureId)->first();
+            
+            if (!$pivot) {
+                return back()->withErrors(['error' => 'Feature is not attached to this property.']);
+            }
+            
+            // Get the feature to check if it's quantifiable
+            $feature = \App\Models\Feature::findOrFail($featureId);
+            
+            // Prepare update data
+            $updateData = [];
+            
+            if ($feature->is_quantifiable && $request->filled('quantity')) {
+                $updateData['quantity'] = $request->quantity;
+            } else {
+                $updateData['quantity'] = null;
+            }
+            
+            if ($request->filled('custom_value')) {
+                $updateData['custom_value'] = $request->custom_value;
+            } else {
+                $updateData['custom_value'] = null;
+            }
+            
+            // Update the pivot record
+            $property->features()->updateExistingPivot($featureId, $updateData);
+            
+            return back()->with('success', 'Feature details updated successfully.');
+            
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to update feature: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Get available features that can be attached to a property.
+     * 
+     * @param Property $property
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAvailableFeatures(Property $property)
+    {
+        Log::info('Loading available features for property ID: ' . $property->id);
+        try {
+            // Get features that are active but not already attached to this property
+            $availableFeatures = \App\Models\Feature::where('is_active', true)
+                ->whereNotIn('id', $property->features()->pluck('features.id'))
+                ->orderBy('category')
+                ->orderBy('name')
+                ->get(['id', 'name', 'category', 'icon', 'is_quantifiable']);
+
+            Log::info('Available features loaded successfully for property ID: ' . $property->id);
+            Log::debug('Available features data: ', $availableFeatures->toArray());
+            return response()->json([
+                'success' => true,
+                'features' => $availableFeatures
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load available features.'
+            ], 500);
+        }
     }
 }
