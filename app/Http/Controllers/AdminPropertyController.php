@@ -184,6 +184,7 @@ class AdminPropertyController extends Controller
         $validated = $request->validate([
             // Basic Information (required fields from migration)
             'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:properties,slug',
             'description' => 'required|string',
             'property_type' => 'required|in:house,apartment,townhouse,villa,land,commercial,guest_house,other',
             'listing_type' => 'required|in:for_sale,for_rent,sold,off_market',
@@ -379,6 +380,7 @@ class AdminPropertyController extends Controller
         // Use same validation rules as store method
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:properties,slug,' . $property->id,
             'description' => 'required|string',
             'property_type' => 'required|in:house,apartment,townhouse,villa,land,commercial,guest_house,other',
             'listing_type' => 'required|in:for_sale,for_rent,sold,off_market',

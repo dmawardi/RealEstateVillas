@@ -21,6 +21,7 @@ const { propertyTypes, listingTypes, priceTypes, statusOptions } = defineProps<P
 const form = useForm({
     // Basic Information
     title: '',
+    slug: '',
     description: '',
     property_type: 'house',
     listing_type: 'for_rent',
@@ -76,6 +77,7 @@ const form = useForm({
 const basicInformation = computed({
     get: () => ({
         title: form.title,
+        slug: form.slug,
         description: form.description,
         property_type: form.property_type,
         listing_type: form.listing_type,
@@ -85,6 +87,7 @@ const basicInformation = computed({
     }),
     set: (value) => {
         form.title = value.title;
+        form.slug = value.slug;
         form.description = value.description;
         form.property_type = value.property_type;
         form.listing_type = value.listing_type;

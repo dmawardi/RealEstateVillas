@@ -49,6 +49,12 @@ const getPropertyPrice = () => {
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Property Overview</h2>
+            <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
+                <div class="mt-2 flex items-center text-sm text-gray-500">
+                    <span class="font-medium">Property Slug:</span>
+                    <span class="ml-1">{{ property.slug }}</span>
+                </div>
+            </div>
         </div>
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

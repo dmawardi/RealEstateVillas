@@ -3,6 +3,7 @@ export interface Property {
     
     // Basic Property Information
     title: string;
+    slug: string;
     description: string;
     property_type: PropertyType;
     listing_type: ListingType;

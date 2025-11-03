@@ -32,6 +32,7 @@ const currentPricing = property.pricing?.[0];
 const form = useForm({
     // Basic Information - flattened
     title: property.title,
+    slug: property.slug,
     description: property.description,
     property_type: property.property_type,
     listing_type: property.listing_type,
@@ -93,6 +94,7 @@ const form = useForm({
 const basicInformation = computed({
     get: () => ({
         title: form.title,
+        slug: form.slug,
         description: form.description,
         property_type: form.property_type,
         listing_type: form.listing_type,
@@ -102,6 +104,7 @@ const basicInformation = computed({
     }),
     set: (value) => {
         form.title = value.title;
+        form.slug = value.slug;
         form.description = value.description;
         form.property_type = value.property_type;
         form.listing_type = value.listing_type;

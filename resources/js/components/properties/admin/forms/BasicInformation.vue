@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 interface BasicFormData {
     title: string;
+    slug: string;
     description: string;
     property_type: string;
     listing_type: string;
@@ -17,6 +18,7 @@ interface Props {
     listingTypes: Record<string, string>;
     statusOptions: Record<string, string>;
     errors?: Record<string, string | undefined>;
+    isEditing?: boolean; // Add this to know if we're editing or creating
 }
 
 interface Emits {
@@ -41,10 +43,34 @@ const hasFieldError = (field: string) => {
     return !!props.errors?.[field];
 };
 
+// Auto-generate slug from title (only when creating, not editing)
+const generateSlug = (title: string): string => {
+    if (formData.value.title && !props.isEditing) {
+        const newSlug = title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+        return newSlug;
+    }
+    // Ensure we always return a string to satisfy BasicFormData.slug typing
+    return '';
+};
+
 // Individual field computeds for better reactivity
 const title = computed({
     get: () => formData.value.title,
-    set: (value: string) => formData.value = { ...formData.value, title: value }
+    set: (value: string) => {
+        formData.value = { ...formData.value, title: value, slug: generateSlug(value) };
+    }
+});
+
+const slug = computed({
+    get: () => formData.value.slug,
+    set: (value: string) => {
+        formData.value = { ...formData.value, slug: value }
+    }
 });
 
 const description = computed({
@@ -76,6 +102,15 @@ const isPremium = computed({
     get: () => formData.value.is_premium,
     set: (value: boolean) => formData.value = { ...formData.value, is_premium: value }
 });
+
+// Validation helper for slug
+const slugError = computed(() => {
+    if (getFieldError('slug')) return getFieldError('slug');
+    if (formData.value.slug && !/^[a-z0-9-]+$/.test(formData.value.slug)) {
+        return 'Slug can only contain lowercase letters, numbers, and hyphens';
+    }
+    return '';
+});
 </script>
 
 <template>
@@ -88,36 +123,65 @@ const isPremium = computed({
         </div>
         
         <div class="p-6 space-y-6">
-            <!-- Title -->
-            <div>
-                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Property Title *
-                </label>
-                <input
-                    id="title"
-                    v-model="title"
-                    type="text"
-                    :class="[
-                        'mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100',
-                        hasFieldError('title') 
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 dark:border-gray-600'
-                    ]"
-                    placeholder="Enter property title (e.g., Luxury Villa in Ubud with Pool)"
-                    required
-                />
-                <p v-if="getFieldError('title')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {{ getFieldError('title') }}
-                </p>
-                <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Choose a descriptive title that highlights the property's key features
-                </p>
+            <!-- Title and Slug Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Title -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Property Title <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        id="title"
+                        v-model="title"
+                        type="text"
+                        :class="[
+                            'mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100',
+                            hasFieldError('title') 
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                                : 'border-gray-300 dark:border-gray-600'
+                        ]"
+                        placeholder="Enter property title (e.g., Luxury Villa in Ubud with Pool)"
+                        required
+                    />
+                    <p v-if="getFieldError('title')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {{ getFieldError('title') }}
+                    </p>
+                    <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Choose a descriptive title that highlights the property's key features
+                    </p>
+                </div>
+
+                <!-- Slug -->
+                <div>
+                    <label for="slug" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        URL Slug <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        id="slug"
+                        v-model="slug"
+                        type="text"
+                        :class="[
+                            'mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100',
+                            slugError 
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                                : 'border-gray-300 dark:border-gray-600'
+                        ]"
+                        placeholder="e.g., luxury-villa-ubud-with-pool"
+                        required
+                    />
+                    <p v-if="slugError" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {{ slugError }}
+                    </p>
+                    <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        {{ isEditing ? 'Used in property URL - be careful when changing' : 'Auto-generated from title, used in property URL' }}
+                    </p>
+                </div>
             </div>
 
             <!-- Description -->
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Description *
+                    Description <span class="text-red-500">*</span>
                 </label>
                 <textarea
                     id="description"
@@ -149,7 +213,7 @@ const isPremium = computed({
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="property_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Property Type *
+                        Property Type <span class="text-red-500">*</span>
                     </label>
                     <select
                         id="property_type"
@@ -174,7 +238,7 @@ const isPremium = computed({
 
                 <div>
                     <label for="listing_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Listing Type *
+                        Listing Type <span class="text-red-500">*</span>
                     </label>
                     <select
                         id="listing_type"
@@ -203,7 +267,7 @@ const isPremium = computed({
                 <!-- Status -->
                 <div>
                     <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Status *
+                        Status <span class="text-red-500">*</span>
                     </label>
                     <select
                         id="status"
