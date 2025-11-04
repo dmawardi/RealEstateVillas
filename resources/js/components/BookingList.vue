@@ -163,7 +163,7 @@ const getDaysUntilCheckIn = (checkInDate: string) => {
                                 <div>
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                         <Link 
-                                            :href="route('properties.show', booking.property.id)"
+                                            :href="route('properties.show', booking.property.slug)"
                                             class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                         >
                                             {{ booking.property.title }}

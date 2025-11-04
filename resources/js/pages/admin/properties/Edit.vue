@@ -231,7 +231,7 @@ const submit = () => {
     console.log("Form data being sent:", form.data());
 
     // Use form.put() for web routes - Inertia handles everything
-    form.put(route('admin.properties.update', property.id), {
+    form.put(route('admin.properties.update', property.slug), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {
@@ -288,7 +288,7 @@ const handleDeleteAttachment = async (attachmentId: number) => {
                                         <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                         </svg>
-                                        <Link :href="route('admin.properties.show', property.id)" class="ml-4 text-gray-400 hover:text-gray-500">
+                                        <Link :href="route('admin.properties.show', property.slug)" class="ml-4 text-gray-400 hover:text-gray-500">
                                             {{ property.title }}
                                         </Link>
                                     </div>
@@ -314,7 +314,7 @@ const handleDeleteAttachment = async (attachmentId: number) => {
                     <!-- Action Buttons -->
                     <div class="flex space-x-3">
                         <Link 
-                            :href="route('admin.properties.show', property.id)"
+                            :href="route('admin.properties.show', property.slug)"
                             class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                         >
                             Cancel

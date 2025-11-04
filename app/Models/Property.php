@@ -9,6 +9,14 @@ class Property extends Model
     use \Illuminate\Database\Eloquent\Factories\HasFactory;
 
     /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+    
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<string>

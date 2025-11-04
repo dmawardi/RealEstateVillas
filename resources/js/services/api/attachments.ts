@@ -7,9 +7,9 @@ export class AttachmentApi extends ApiService {
     }
 
     // Create/upload new attachments for a property
-    static createAttachment(propertyId: number, data: FormData, options: ApiOptions = {}) {
+    static createAttachment(propertySlug: string, data: FormData, options: ApiOptions = {}) {
         // Remove the headers override - let base.ts handle FormData automatically
-        return this.post(`/properties/${propertyId}/attachments`, data, options);
+        return this.post(`/properties/${propertySlug}/attachments`, data, options);
     }
 
     // Update an existing attachment

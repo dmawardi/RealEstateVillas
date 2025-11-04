@@ -498,21 +498,14 @@ class AdminPropertyController extends Controller
     public function destroy(Property $property)
     {
         DB::beginTransaction();
-        
         try {
-            // Delete floor plan file if exists
-            if ($property->floor_plan) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $property->floor_plan));
-            }
-
-            // Delete all property image files
-            foreach ($property->attachments as $attachment) {
-                if ($attachment->type === 'image') {
-                    Storage::disk('public')->delete(str_replace('/storage/', '', $attachment->path));
+            // Delete associated files
+            if ($property->attachments) {
+                foreach ($property->attachments as $attachment) {
+                    Storage::disk('s3')->delete($attachment->path);
                 }
             }
-
-            // Delete the property (foreign key constraints will handle related records)
+            // Soft delete
             $property->delete();
 
             DB::commit();

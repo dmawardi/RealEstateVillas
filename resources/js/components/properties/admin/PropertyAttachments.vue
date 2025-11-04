@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { PropertyAttachment } from '@/types';
+import { Property, PropertyAttachment } from '@/types';
 import { api } from '@/services/api';
 import Documents from '@/components/properties/admin/attachments/Documents.vue';
 import Images from '@/components/properties/admin/attachments/Images.vue';
 import AllAttachments from '@/components/properties/admin/attachments/AllAttachments.vue';
 
 interface Props {
-    propertyId: number;
-    attachments: PropertyAttachment[];
+    property: Property;
 }
 
-const props = defineProps<Props>();
+
+const { property } = defineProps<Props>();
 const emit = defineEmits(['attachment-updated', 'attachment-deleted', 'attachments-reordered']);
+
+// Computed categories
+const attachments = computed(() => property.attachments ?? []);
 
 // Component state
 const editingAttachment = ref<number | null>(null);
@@ -43,15 +46,16 @@ const showImageModal = ref(false);
 const selectedImage = ref<PropertyAttachment | null>(null);
 const currentImageIndex = ref(0);
 
-// Computed categories
+
+
 const imageAttachments = computed(() => 
-    props.attachments
+    attachments.value
         .filter(att => att.type === 'image')
         .sort((a, b) => a.order - b.order)
 );
 
 const documentAttachments = computed(() => 
-    props.attachments
+    attachments.value
         .filter(att => att.type === 'document' || att.type === 'floor_plan')
         .sort((a, b) => a.order - b.order)
 );
@@ -224,22 +228,23 @@ const handleFileUpload = async () => {
     uploading.value = true;
     uploadStatus.value = 'uploading';
     uploadProgress.value = 0;
-    
-    try {
-        const formData = new FormData();
-        Array.from(selectedFiles.value).forEach(file => {
-            formData.append('files[]', file);
-        });
-        formData.append('is_visible_to_customer', '0');
-        
-        const progressInterval = setInterval(() => {
-            if (uploadProgress.value < 90) {
-                uploadProgress.value += Math.random() * 10;
-            }
-        }, 200);
-        
-        await api.attachments.createAttachment(props.propertyId, formData, {
+        try {
+            const formData = new FormData();
+            Array.from(selectedFiles.value).forEach(file => {
+                formData.append('files[]', file);
+            });
+            formData.append('is_visible_to_customer', '0');
+            
+            const progressInterval = setInterval(() => {
+                if (uploadProgress.value < 90) {
+                    uploadProgress.value += Math.random() * 10;
+                }
+            }, 200);
+            
+            await api.attachments.createAttachment(property.slug, formData, {
             onSuccess: (response: any) => {
+                clearInterval(progressInterval);
+                uploadProgress.value = 100;
                 clearInterval(progressInterval);
                 uploadProgress.value = 100;
                 

@@ -37,7 +37,7 @@ const selectedImage = ref<PropertyAttachment | null>(null);
 // Helper functions
 const deleteProperty = () => {
     if (confirm(`Are you sure you want to delete "${property.title}"? This action cannot be undone.`)) {
-        router.delete(route('admin.properties.destroy', property.id));
+        router.delete(route('admin.properties.destroy', property.slug));
     }
 };
 </script>
@@ -82,7 +82,7 @@ const deleteProperty = () => {
                     <!-- Action Buttons -->
                     <div class="flex space-x-3">
                         <Link 
-                            :href="route('admin.properties.edit', property.id)"
+                            :href="route('admin.properties.edit', property.slug)"
                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                         >
                             Edit Property
@@ -120,8 +120,7 @@ const deleteProperty = () => {
                     />
                     <!-- Attachments -->
                     <PropertyAttachments
-                        :property-id="property.id"
-                        :attachments="property.attachments"
+                        :property="property"
                     />
 
                     <!-- Features -->

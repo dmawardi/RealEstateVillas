@@ -301,7 +301,7 @@ const truncateDescription = (text: string, length: number = 150): string => {
                         </div>
                     </div>
                     <Link 
-                        :href="`/properties/${property.id}`"
+                        :href="`/properties/${property.slug}`"
                         class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
                     >
                         View Details

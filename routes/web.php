@@ -11,7 +11,7 @@ use App\Http\Controllers\BaseController;
 Route::get('/', [BaseController::class, 'home'])->name('home');
 
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
-Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
+Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 
 // Bookings
 Route::post('properties/{property}/bookings', [BookingController::class, 'store'])->name('properties.bookings.store');
@@ -38,6 +38,7 @@ Route::get('admin/properties/{property}', [AdminPropertyController::class, 'show
 Route::post('admin/properties', [AdminPropertyController::class, 'store'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.store');
 Route::get('admin/properties/{property}/edit', [AdminPropertyController::class, 'edit'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.edit');
 Route::put('admin/properties/{property}', [AdminPropertyController::class, 'update'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.update');
+Route::delete('admin/properties/{property}', [AdminPropertyController::class, 'destroy'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.destroy');
 
 // 
 // Property Features
