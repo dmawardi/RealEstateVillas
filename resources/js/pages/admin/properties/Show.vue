@@ -82,6 +82,12 @@ const deleteProperty = () => {
                     <!-- Action Buttons -->
                     <div class="flex space-x-3">
                         <Link 
+                            :href="route('properties.show', property.slug)"
+                            class="bg-green-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors duration-200"
+                        >
+                            View Listing
+                        </Link>
+                        <Link 
                             :href="route('admin.properties.edit', property.slug)"
                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                         >
