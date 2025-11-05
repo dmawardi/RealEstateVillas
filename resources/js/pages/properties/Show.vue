@@ -14,9 +14,10 @@ interface Props {
     property: Property;
     current_pricing: PropertyPricing;
     map_api_key: string;
+    businessPhone: string;
 }
 
-const { property, current_pricing, map_api_key } = defineProps<Props>();
+const { property, current_pricing, map_api_key, businessPhone } = defineProps<Props>();
 
 // Generate breadcrumbs with actual property data
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -67,7 +68,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
     
                 <!-- Sidebar -->
                 <div class="space-y-6">
-                    <PropertyBookingCard :property="property" :current_pricing="current_pricing" />
+                    <PropertyBookingCard :property="property" :current_pricing="current_pricing" :businessPhone="businessPhone" />
                     <!-- Property Info -->
                     <PropertyInfoBar :property="property" />
                 </div>

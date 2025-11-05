@@ -7,6 +7,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 import { formatPrice, formatDate } from '@/utils/formatters';
 import BookingModal from '@/components/properties/BookingModal.vue';
 import { api } from '@/services/api';
+import { usePage } from '@inertiajs/vue3';
 
 // ================================================================
 // INTERFACES & TYPES
@@ -15,6 +16,7 @@ import { api } from '@/services/api';
 interface Props {
     property: Property;
     current_pricing: PropertyPricing;
+    businessPhone: string;
 }
 
 interface UnavailablePeriod {
@@ -47,6 +49,7 @@ interface PriceCalculation {
 // ================================================================
 
 const props = defineProps<Props>();
+const isAuthenticated = usePage().props.auth?.user !== null;    
 
 // ================================================================
 // REACTIVE STATE
@@ -242,8 +245,7 @@ watch(dateRange, () => {
 </script>
 
 <template>
-    <!-- Template remains exactly the same -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+    <div v-if="isAuthenticated" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
             Book This Property
         </h3>
@@ -409,5 +411,11 @@ watch(dateRange, () => {
             :total-price="priceCalculation?.total_price || 0"
             :nights="priceCalculation?.nights || 0"
         />
+    </div>
+    <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center text-gray-900 dark:text-gray-100">
+        <p>Please <a :href="route('login')" class="text-blue-600 dark:text-blue-400 hover:underline">log in</a> to book this property.</p>
+        <p>If you don't have an account, you can <a :href="route('register')" class="text-blue-600 dark:text-blue-400 hover:underline">register here</a>.</p>
+        <!-- Whatsapp -->
+         <p>Alternatively, you can contact us via <a :href="'https://wa.me/' + businessPhone" class="text-blue-600 dark:text-blue-400 hover:underline">WhatsApp</a>.</p>
     </div>
 </template>
