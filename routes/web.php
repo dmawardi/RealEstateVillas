@@ -7,62 +7,71 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AdminPropertyController;
 use App\Http\Controllers\BaseController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Support\Facades\Request;
 
 Route::get('/', [BaseController::class, 'home'])->name('home');
 
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 
-// Bookings
-Route::post('properties/{property}/bookings', [BookingController::class, 'store'])->name('properties.bookings.store');
+// EMAIL VERIFICATION
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
 
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill(); // Marks user as verified
+    return redirect('/dashboard'); // or wherever you want to send them
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return back()->with('message', 'Verification link sent!');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 // Logged in routes
-// My Bookings
-Route::get('my-bookings', [BookingController::class, 'index'])->middleware(['auth', 'verified'])->name('my.bookings');
-
-// Dashboard
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::post('/bookings/{booking}/withdraw', [BookingController::class, 'withdraw'])
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
+    
+    // Create Booking Request
+    Route::post('properties/{property}/bookings', [BookingController::class, 'store'])->name('properties.bookings.store');
+    // My Bookings
+    Route::get('my-bookings', [BookingController::class, 'index'])->name('my.bookings');
+    // Withdraw booking
+    Route::post('/bookings/{booking}/withdraw', [BookingController::class, 'withdraw'])
         ->name('bookings.withdraw');
+});
 
 // ADMIN ROUTES
-// 
-// Properties
-Route::get('admin/properties', [AdminPropertyController::class, 'index'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.index');
-Route::get('admin/properties/create', [AdminPropertyController::class, 'create'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.create');
-Route::get('admin/properties/{property}', [AdminPropertyController::class, 'show'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.show');
-Route::post('admin/properties', [AdminPropertyController::class, 'store'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.store');
-Route::get('admin/properties/{property}/edit', [AdminPropertyController::class, 'edit'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.edit');
-Route::put('admin/properties/{property}', [AdminPropertyController::class, 'update'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.update');
-Route::delete('admin/properties/{property}', [AdminPropertyController::class, 'destroy'])->middleware(['auth', 'verified', 'admin'])->name('admin.properties.destroy');
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Properties
+    Route::get('admin/properties', [AdminPropertyController::class, 'index'])->name('properties.index');
+    Route::get('admin/properties/create', [AdminPropertyController::class, 'create'])->name('properties.create');
+    Route::get('admin/properties/{property}', [AdminPropertyController::class, 'show'])->name('properties.show');
+    Route::post('admin/properties', [AdminPropertyController::class, 'store'])->name('properties.store');
+    Route::get('admin/properties/{property}/edit', [AdminPropertyController::class, 'edit'])->name('properties.edit');
+    Route::put('admin/properties/{property}', [AdminPropertyController::class, 'update'])->name('properties.update');
+    Route::delete('admin/properties/{property}', [AdminPropertyController::class, 'destroy'])->name('properties.destroy');
+    // Property Features CRUD routes
+    Route::get('/admin/features', [AdminFeatureController::class, 'index'])->name('features.index');
+    Route::get('/admin/features/create', [AdminFeatureController::class, 'create'])->name('features.create');
+    Route::post('/admin/features', [AdminFeatureController::class, 'store'])->name('features.store');
+    Route::get('admin/features/{feature}/edit', [AdminFeatureController::class, 'edit'])->name('features.edit');
+    Route::put('/admin/features/{feature}', [AdminFeatureController::class, 'update'])->name('features.update');
+    Route::delete('/admin/features/{feature}', [AdminFeatureController::class, 'destroy'])->name('features.destroy');
 
-// 
-// Property Features
-Route::get('/admin/features', [AdminFeatureController::class, 'index'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.index');
-Route::get('/admin/features/create', [AdminFeatureController::class, 'create'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.create');
-Route::post('/admin/features', [AdminFeatureController::class, 'store'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.store');
-Route::get('admin/features/{feature}/edit', [AdminFeatureController::class, 'edit'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.edit');
-Route::put('/admin/features/{feature}', [AdminFeatureController::class, 'update'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.update');
-Route::delete('/admin/features/{feature}', [AdminFeatureController::class, 'destroy'])->middleware(['auth', 'verified', 'admin'])->name('admin.features.destroy');
-
-// Property Features - Pivot Management
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-    // ... existing routes
     
-    // Property feature management routes
+    // Property feature pivot management routes
     Route::patch('/properties/{property}/features', [AdminPropertyController::class, 'updateFeatures'])
         ->name('properties.features.update');
-    
     Route::post('/properties/{property}/features', [AdminPropertyController::class, 'attachFeature'])
         ->name('properties.features.attach');
-    
     Route::delete('/properties/{property}/features/{feature}', [AdminPropertyController::class, 'detachFeature'])
         ->name('properties.features.detach');
-    
     Route::patch('/properties/{property}/features/{feature}', [AdminPropertyController::class, 'updatePropertyFeature'])
         ->name('properties.features.update-single');
 });
