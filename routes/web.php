@@ -47,7 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // ADMIN ROUTES
-Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function () {
     // Properties
     Route::get('admin/properties', [AdminPropertyController::class, 'index'])->name('properties.index');
     Route::get('admin/properties/create', [AdminPropertyController::class, 'create'])->name('properties.create');

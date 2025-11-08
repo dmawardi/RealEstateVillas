@@ -20,17 +20,17 @@ const isAdmin = computed(() => {
 const adminNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: route('dashboard'),
         icon: LayoutGrid,
     },
     {
         title: 'Properties',
-        href: '/admin/properties',
+        href: route('admin.properties.index'),
         icon: Folder,
     },
     {
         title: 'Property Features',
-        href: '/admin/features',
+        href: route('admin.features.index'),
         icon: LampCeiling,
     }
 ];
@@ -38,12 +38,12 @@ const adminNavItems: NavItem[] = [
 const userNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: route('dashboard'),
         icon: LayoutGrid,
     },
     {
         title: 'My Bookings',
-        href: '/my-bookings',
+        href: route('my.bookings'),
         icon: BookOpen,
     }
 ];
