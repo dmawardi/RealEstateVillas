@@ -95,7 +95,7 @@ const clearAllLocations = () => {
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-800 shadow p-4 w-10/12 mx-auto">
+    <div class="bg-white dark:bg-gray-800 shadow container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         <!-- Search Section -->
         <div class="mx-auto bg-blue-300 w-full h-80 flex flex-col items-center justify-center rounded-md shadow-md mt-4">
             <!-- Rent/Buy Toggle Bar - positioned above search bar -->
@@ -129,7 +129,7 @@ const clearAllLocations = () => {
             <!-- Search bar -->
             <div
                 :class="[
-                    'bg-white flex flex-col md:flex-row md:items-center md:justify-between w-2/3 px-4 py-2 shadow-md space-y-2 md:space-y-0 md:space-x-2',
+                    'bg-white flex flex-col md:flex-row md:items-center md:justify-between w-11/12 px-4 py-2 shadow-md space-y-2 md:space-y-0 md:space-x-2',
                     form.locationFilter.length ? 'rounded-t-md' : 'rounded-md'
                 ]"
             >
