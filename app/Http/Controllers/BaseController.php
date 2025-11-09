@@ -17,6 +17,7 @@ class BaseController extends Controller
         if (!$all) {
             $all = Property::where('is_featured', true)
             ->orWhere('is_premium', true)
+            ->with(['attachments'])
             ->get();
 
             Cache::put('properties:featured_premium', $all, 60);

@@ -40,4 +40,15 @@ function formatPaginationLabel(label: string): string {
     return label.replace('&laquo;', '«').replace('&raquo;', '»');
 }
 
-export { formatPrice, formatDate, formatDateForInput, formatPaginationLabel };
+// Helper function to format property type strings tp a more readable form
+const formatPropertyType = (type: string): string => {
+    return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
+// Helper function to truncate property description
+const truncateDescription = (text: string, length: number = 150): string => {
+    if (text.length <= length) return text;
+    return text.substring(0, length) + '...';
+};
+
+export { formatPrice, formatDate, formatDateForInput, formatPaginationLabel, formatPropertyType, truncateDescription };

@@ -114,6 +114,26 @@ export interface Feature {
     };
 }
 
+export interface DetailedPricing {
+    nightly: {
+        rate: number;
+        display: string;
+    };
+    weekly: {
+        rate: number;
+        display: string;
+        discount: number;
+        hasDiscount: boolean;
+    };
+    monthly: {
+        rate: number;
+        display: string;
+        discount: number;
+        hasDiscount: boolean;
+    };
+    periodName: string | undefined;
+}
+
 export interface PropertyAttachment {
     id: number;
     title: string;

@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import { defineProps, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import type { Property } from '@/types';
-import { formatPrice } from '@/utils/formatters';
+import type { DetailedPricing, Property } from '@/types';
+import { formatPrice, truncateDescription } from '@/utils/formatters';
+import CardImageGallery from '@/components/properties/CardImageGallery.vue';
 
 interface Props {
     property: Property;
 }
 const { property } = defineProps<Props>();
-
-// Helper function to format property type
-const formatPropertyType = (type: string): string => {
-    return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-};
 
 // Helper to get current active pricing
 const getCurrentActivePricing = (property: Property) => {
@@ -127,7 +123,7 @@ const getPriceDisplay = (property: Property) => {
 };
 
 // Computed property to show detailed pricing info
-const detailedPricing = computed(() => {
+const detailedPricing = computed((): DetailedPricing | null => {
     if (property.listing_type !== 'for_rent') return null;
     
     const currentPricing = getCurrentActivePricing(property);
@@ -135,7 +131,7 @@ const detailedPricing = computed(() => {
     
     const rates = calculateRates(currentPricing);
     if (!rates) return null;
-    
+
     return {
         nightly: {
             rate: rates.nightly,
@@ -156,53 +152,12 @@ const detailedPricing = computed(() => {
         periodName: currentPricing.name
     };
 });
-
-// Helper function to truncate description
-const truncateDescription = (text: string, length: number = 150): string => {
-    if (text.length <= length) return text;
-    return text.substring(0, length) + '...';
-};
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-shadow">
         <!-- Property Image -->
-        <div class="aspect-video bg-gray-200 dark:bg-gray-700 relative">
-            <div v-if="property.attachments && property.attachments.length > 0" class="w-full h-full">
-                <img 
-                    :src="property.attachments[0].path" 
-                    :alt="property.title"
-                    class="w-full h-full object-cover"
-                />
-            </div>
-            <div v-else class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                </svg>
-            </div>
-            
-            <!-- Property Type Badge -->
-            <div class="absolute top-3 left-3">
-                <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium capitalize">
-                    {{ formatPropertyType(property.property_type) }}
-                </span>
-            </div>
-            
-            <!-- Listing Type Badge -->
-            <div class="absolute top-3 right-3">
-                <span class="bg-green-600 text-white px-2 py-1 rounded text-xs font-medium capitalize">
-                    {{ formatPropertyType(property.listing_type) }}
-                </span>
-            </div>
-
-            <!-- Discount Badge -->
-            <div v-if="detailedPricing?.monthly.hasDiscount && detailedPricing.monthly.discount > 15" 
-                 class="absolute bottom-3 left-3">
-                <span class="bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
-                    {{ detailedPricing.monthly.discount }}% Monthly Discount
-                </span>
-            </div>
-        </div>
+        <CardImageGallery :property="property" :detailedPricing="detailedPricing" />
 
         <!-- Property Content -->
         <div class="p-6">
