@@ -186,7 +186,6 @@ const getSectionIcon = (section: 'featured' | 'premium') => {
                     <div 
                         v-for="property in paginatedProperties" 
                         :key="property.id"
-                        class="transform transition-transform duration-200 hover:scale-105"
                     >
                         <PropertyCard :property="property" />
                     </div>
