@@ -75,8 +75,20 @@ const toggleHover = (hovered: boolean) => {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
-                
-                <!-- Counter and dots with same pattern... -->
+                <!-- Image Dots -->
+                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                    <button v-for="(_, index) in property.attachments" 
+                            :key="index"
+                            @click.prevent.stop="currentImageIndex = index"
+                            :class="[
+                                'w-2 h-2 rounded-full transition-colors',
+                                index === currentImageIndex 
+                                    ? 'bg-white' 
+                                    : 'bg-white/50 hover:bg-white/75'
+                            ]"
+                            :aria-label="`Go to image ${index + 1}`">
+                    </button>
+                </div>
             </nav>
                 </div>
                 <div v-else class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
