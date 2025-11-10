@@ -2,8 +2,9 @@
 import { defineProps, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import type { DetailedPricing, Property } from '@/types';
-import { formatPrice, truncateDescription } from '@/utils/formatters';
+import { formatPrice } from '@/utils/formatters';
 import CardImageGallery from '@/components/properties/CardImageGallery.vue';
+import { MapPin, BedSingleIcon, BathIcon, LandPlotIcon } from 'lucide-vue-next';
 
 interface Props {
     property: Property;
@@ -155,15 +156,32 @@ const detailedPricing = computed((): DetailedPricing | null => {
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-shadow">
+    <Link 
+        :href="route('properties.show', { slug: property.slug })"
+    >
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-lg shadow-primary">
         <!-- Property Image -->
         <CardImageGallery :property="property" :detailedPricing="detailedPricing" />
 
         <!-- Property Content -->
-        <div class="p-6">
+        <div class="p-4">
+            <!-- Title -->
+            <h3 class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                
+                    {{ property.title }}
+            </h3>
+
+            <!-- Location -->
+            <div class="flex text-sm text-gray-600 dark:text-gray-400 mb-4 align-middle my-2">
+                <component v-if="MapPin" :is="MapPin" class="h-5 w-5 mr-2" />
+                <p class="text-gray-600 dark:text-gray-400 mb-3">
+                    {{ property.village }}, {{ property.district }}
+                </p>
+            </div>
+
             <!-- Price -->
             <div class="mb-3">
-                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <div class="text-xl font-bold text-gray-600 dark:text-gray-400">
                     {{ getPriceDisplay(property) }}
                 </div>
                 
@@ -188,38 +206,19 @@ const detailedPricing = computed((): DetailedPricing | null => {
                 </div>
             </div>
 
-            <!-- Title -->
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                <Link 
-                    :href="`/properties/${property.id}`"
-                    class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                    {{ property.title }}
-                </Link>
-            </h3>
-
-            <!-- Rest of the template remains the same... -->
-            <!-- Location -->
-            <p class="text-gray-600 dark:text-gray-400 mb-3">
-                {{ property.street_name }}, {{ property.village }}, {{ property.district }}
-            </p>
-
-            <!-- Description -->
-            <p class="text-gray-700 dark:text-gray-300 text-sm mb-4 leading-relaxed">
-                {{ truncateDescription(property.description) }}
-            </p>
-
             <!-- Property Stats -->
-            <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4"></div>
+            <div class="grid grid-cols-3 gap-4 mb-2">
                 <div v-if="property.bedrooms" class="text-center">
+                    <component v-if="BedSingleIcon" :is="BedSingleIcon" class="h-5 w-5 mx-auto" />
                     <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ property.bedrooms }}</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">Bedrooms</div>
                 </div>
                 <div v-if="property.bathrooms" class="text-center">
+                    <component v-if="BathIcon" :is="BathIcon" class="h-5 w-5 mx-auto" />
                     <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ property.bathrooms }}</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">Bathrooms</div>
                 </div>
                 <div v-if="property.land_size" class="text-center">
+                    <component v-if="LandPlotIcon" :is="LandPlotIcon" class="h-5 w-5 mx-auto" />
                     <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ property.land_size }}</div>
                     <div class="text-xs text-gray-600 dark:text-gray-400">m²</div>
                 </div>
@@ -243,26 +242,8 @@ const detailedPricing = computed((): DetailedPricing | null => {
                     </span>
                 </div>
             </div>
-
-            <!-- Agent Info -->
-            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {{ property.agent_name }}
-                        </div>
-                        <div v-if="property.agency_name" class="text-xs text-gray-600 dark:text-gray-400">
-                            {{ property.agency_name }}
-                        </div>
-                    </div>
-                    <Link 
-                        :href="`/properties/${property.slug}`"
-                        class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
-                    >
-                        View Details
-                    </Link>
-                </div>
-            </div>
         </div>
     </div>
+</Link>
+
 </template>
