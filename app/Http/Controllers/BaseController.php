@@ -17,7 +17,17 @@ class BaseController extends Controller
         if (!$all) {
             $all = Property::where('is_featured', true)
             ->orWhere('is_premium', true)
-            ->with(['attachments'])
+            ->with([
+                'attachments',
+                'features',
+                'pricing' => function ($query) {
+                    $query->where('start_date', '<=', now())
+                          ->where(function ($q) {
+                              $q->where('end_date', '>=', now())
+                                ->orWhereNull('end_date');
+                          });
+                },
+            ])
             ->get();
 
             Cache::put('properties:featured_premium', $all, 60);

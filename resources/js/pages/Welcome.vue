@@ -15,6 +15,7 @@ interface Props {
 }
 
 const {featured, premium, businessEmail, businessPhone} = defineProps<Props>();
+console.log('first featured property:', featured?.[0]);
 </script>
 
 <template>

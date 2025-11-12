@@ -53,7 +53,7 @@ const toggleHover = (hovered: boolean) => {
                     @click.prevent.stop="previousImage"
                     :class="[
                         'absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-70 hover:bg-opacity-90 text-white p-2 rounded-full transition-all duration-200 z-40',
-                        isHovered ? 'opacity-100' : 'opacity-50'
+                        isHovered ? 'opacity-100' : 'opacity-0'
                     ]"
                     aria-label="Previous image"
                 >
@@ -67,7 +67,7 @@ const toggleHover = (hovered: boolean) => {
                     @click.prevent.stop="nextImage"
                     :class="[
                         'absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-70 hover:bg-opacity-90 text-white p-2 rounded-full transition-all duration-200 z-40',
-                        isHovered ? 'opacity-100' : 'opacity-50'
+                        isHovered ? 'opacity-100' : 'opacity-0'
                     ]"
                     aria-label="Next image"
                 >

@@ -12,18 +12,6 @@ interface Props {
 const { property } = defineProps<Props>();
 
 // Helper to get current active pricing
-const getCurrentActivePricing = (property: Property) => {
-    if (!property.pricing || property.pricing.length === 0) {
-        return null;
-    }
-    
-    const today = new Date().toISOString().split('T')[0];
-    return property.pricing.find(p => 
-        p.start_date && p.end_date && p.start_date <= today && p.end_date >= today
-    ) || null;
-};
-
-// Helper function to calculate rates based on nightly rate and discounts
 const calculateRates = (pricing: any) => {
     if (!pricing?.nightly_rate) return null;
     
@@ -31,9 +19,9 @@ const calculateRates = (pricing: any) => {
     
     // Calculate weekly rate
     let weeklyRate = pricing.weekly_rate;
-    let weeklyDiscount = pricing.weekly_discount_percent;
+    let weeklyDiscount = pricing.weekly_discount_percent || 0;
     
-    if (!weeklyRate && pricing.min_days_for_weekly && weeklyDiscount) {
+    if (!weeklyRate && weeklyDiscount > 0) {
         // Calculate weekly rate from nightly rate with discount
         const daysForWeekly = pricing.min_days_for_weekly || 7;
         weeklyRate = Math.round(nightlyRate * daysForWeekly * (1 - weeklyDiscount / 100));
@@ -45,9 +33,9 @@ const calculateRates = (pricing: any) => {
     
     // Calculate monthly rate
     let monthlyRate = pricing.monthly_rate;
-    let monthlyDiscount = pricing.monthly_discount_percent;
+    let monthlyDiscount = pricing.monthly_discount_percent || 0;
     
-    if (!monthlyRate && pricing.min_days_for_monthly && monthlyDiscount) {
+    if (!monthlyRate && monthlyDiscount > 0) {
         // Calculate monthly rate from nightly rate with discount
         const daysForMonthly = pricing.min_days_for_monthly || 30;
         monthlyRate = Math.round(nightlyRate * daysForMonthly * (1 - monthlyDiscount / 100));
@@ -68,8 +56,21 @@ const calculateRates = (pricing: any) => {
 
 // Helper function to get price display
 const getPriceDisplay = (property: Property) => {
+    // For sale properties - use the single price from properties table
+    if (property.listing_type === 'for_sale') {
+        if (property.price) {
+            return formatPrice(property.price);
+        }
+        return 'Price on Application';
+    }
+    
+    // For rent properties - use pricing calculations
     if (property.listing_type === 'for_rent') {
-        const currentPricing = getCurrentActivePricing(property);
+        // Assume backend provides the current active pricing as the first item
+        // or as a separate currentPricing property
+        const currentPricing = property.pricing && property.pricing.length > 0 
+            ? property.pricing[0] 
+            : null;
         
         if (currentPricing) {
             const rates = calculateRates(currentPricing);
@@ -78,18 +79,16 @@ const getPriceDisplay = (property: Property) => {
                 // Primary display: nightly rate
                 const nightlyDisplay = `${formatPrice(rates.nightly)}/night`;
                 
-                // Add weekly rate with discount info if significant discount
-                if (rates.weeklyDiscount && rates.weeklyDiscount > 0) {
+                // Add weekly rate with discount info if greater discount
+                if (rates.weeklyDiscount >= rates.monthlyDiscount) {
                     const weeklyDisplay = `${formatPrice(rates.weekly)}/week`;
-                    const discountText = rates.weeklyDiscount > 5 ? ` (${rates.weeklyDiscount}% off)` : '';
-                    return `${nightlyDisplay} • ${weeklyDisplay}${discountText}`;
+                    return `<p>${nightlyDisplay} •</p><p>${weeklyDisplay}</p>`;
                 }
                 
-                // Add monthly rate with discount info if significant discount
-                if (rates.monthlyDiscount && rates.monthlyDiscount > 10) {
+                // Add monthly rate with discount info if greater discount
+                if (rates.monthlyDiscount > rates.weeklyDiscount) {
                     const monthlyDisplay = `${formatPrice(rates.monthly)}/month`;
-                    const discountText = ` (${rates.monthlyDiscount}% off)`;
-                    return `${nightlyDisplay} • ${monthlyDisplay}${discountText}`;
+                    return `<p>${nightlyDisplay} •</p><p>${monthlyDisplay}</p>`;
                 }
                 
                 // Show just nightly + monthly for context if no significant discounts
@@ -111,15 +110,12 @@ const getPriceDisplay = (property: Property) => {
                 return `${formatPrice(currentPricing.monthly_rate)}/month`;
             }
         }
-        // No active pricing period found
+        
+        // No pricing found
         return 'Rental Rate on Application';
     }
     
-    // For sale properties
-    if (property.price) {
-        return formatPrice(property.price);
-    }
-    
+    // For other listing types (sold, off_market)
     return 'Price on Application';
 };
 
@@ -127,7 +123,10 @@ const getPriceDisplay = (property: Property) => {
 const detailedPricing = computed((): DetailedPricing | null => {
     if (property.listing_type !== 'for_rent') return null;
     
-    const currentPricing = getCurrentActivePricing(property);
+    const currentPricing = property.pricing && property.pricing.length > 0 
+        ? property.pricing[0] 
+        : null;
+        
     if (!currentPricing) return null;
     
     const rates = calculateRates(currentPricing);
@@ -150,100 +149,96 @@ const detailedPricing = computed((): DetailedPricing | null => {
             discount: rates.monthlyDiscount,
             hasDiscount: rates.monthlyDiscount > 0
         },
-        periodName: currentPricing.name
+        periodName: currentPricing.name ?? undefined
     };
 });
 </script>
 
 <template>
-    <Link 
-        :href="route('properties.show', { slug: property.slug })"
-    >
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-lg shadow-primary">
-        <!-- Property Image -->
-        <CardImageGallery :property="property" :detailedPricing="detailedPricing" />
-
-        <!-- Property Content -->
-        <div class="p-4">
-            <!-- Title -->
-            <h3 class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                
-                    {{ property.title }}
-            </h3>
-
-            <!-- Location -->
-            <div class="flex text-sm text-gray-600 dark:text-gray-400 mb-4 align-middle my-2">
-                <component v-if="MapPin" :is="MapPin" class="h-5 w-5 mr-2" />
-                <p class="text-gray-600 dark:text-gray-400 mb-3">
-                    {{ property.village }}, {{ property.district }}
-                </p>
+    <Link :href="route('properties.show', { slug: property.slug })">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-lg shadow-primary h-full flex flex-col">
+            <!-- Property Image - Fixed aspect ratio -->
+            <div class="flex-shrink-0">
+                <CardImageGallery :property="property" :detailedPricing="detailedPricing" />
             </div>
 
-            <!-- Price -->
-            <div class="mb-3">
-                <div class="text-xl font-bold text-gray-600 dark:text-gray-400">
-                    {{ getPriceDisplay(property) }}
+            <!-- Property Content - Flexible height -->
+            <div class="p-4 flex flex-col flex-grow">
+                <!-- Title - Fixed height with line clamping -->
+                <div class="mb-3 h-16 flex items-start">
+                    <h3 class="text-xl font-bold text-blue-600 dark:text-blue-400 line-clamp-2 leading-tight">
+                        {{ property.title }}
+                    </h3>
                 </div>
-                
-                <!-- Show pricing period name and additional rates for rentals -->
-                <div v-if="detailedPricing" class="mt-2 space-y-1">
-                    <div v-if="detailedPricing.periodName" class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ detailedPricing.periodName }}
+
+                <!-- Location - Fixed height -->
+                <div class="flex text-sm text-gray-600 dark:text-gray-400 mb-3 h-6">
+                    <component v-if="MapPin" :is="MapPin" class="h-4 w-4 mr-2 flex-shrink-0" />
+                    <p class="text-gray-600 dark:text-gray-400 truncate">
+                        {{ property.village }}, {{ property.district }}
+                    </p>
+                </div>
+
+                <!-- Price - Minimum height container -->
+                <div class="mb-4 min-h-[60px] flex flex-col justify-start">
+                    <div class="text-lg font-bold text-gray-900 dark:text-gray-100" v-html="getPriceDisplay(property)">
                     </div>
                     
-                    <!-- Show additional rate info on hover or as subtitle -->
-                    <div class="text-sm text-gray-600 dark:text-gray-300">
-                        <span v-if="detailedPricing.weekly.hasDiscount">
-                            Weekly: {{ detailedPricing.weekly.display }} 
-                            <span class="text-green-600">({{ detailedPricing.weekly.discount }}% off)</span>
+                    <!-- Show pricing period name and additional rates for rentals -->
+                    <div v-if="detailedPricing" class="mt-1 space-y-1">
+                        <div class="text-xs text-gray-600 dark:text-gray-300">
+                            <p v-if="detailedPricing.weekly.hasDiscount" class="truncate">
+                                Weekly: {{ detailedPricing.weekly.display }} 
+                                <span class="text-green-600">({{ detailedPricing.weekly.discount }}% off)</span>
+                            </p>
+                            <p v-if="detailedPricing.monthly.hasDiscount" class="truncate">
+                                Monthly: {{ detailedPricing.monthly.display }}
+                                <span class="text-green-600">({{ detailedPricing.monthly.discount }}% off)</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Preview - Flexible but contained -->
+                <div v-if="property.features && property.features.length > 0" class="mb-4 min-h-[32px]">
+                    <div class="flex flex-wrap gap-1">
+                        <span 
+                            v-for="feature in property.features.slice(0, 3)" 
+                            :key="feature.id"
+                            class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs whitespace-nowrap"
+                        >
+                            {{ feature.name }}
                         </span>
-                        <span v-if="detailedPricing.monthly.hasDiscount" 
-                              :class="detailedPricing.weekly.hasDiscount ? 'ml-3' : ''">
-                            Monthly: {{ detailedPricing.monthly.display }}
-                            <span class="text-green-600">({{ detailedPricing.monthly.discount }}% off)</span>
+                        <span 
+                            v-if="property.features.length > 3"
+                            class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs whitespace-nowrap"
+                        >
+                            +{{ property.features.length - 3 }} more
                         </span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Property Stats -->
-            <div class="border-t border-gray-200 dark:border-gray-700 pt-4"></div>
-            <div class="grid grid-cols-3 gap-4 mb-2">
-                <div v-if="property.bedrooms" class="text-center">
-                    <component v-if="BedSingleIcon" :is="BedSingleIcon" class="h-5 w-5 mx-auto" />
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ property.bedrooms }}</div>
-                </div>
-                <div v-if="property.bathrooms" class="text-center">
-                    <component v-if="BathIcon" :is="BathIcon" class="h-5 w-5 mx-auto" />
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ property.bathrooms }}</div>
-                </div>
-                <div v-if="property.land_size" class="text-center">
-                    <component v-if="LandPlotIcon" :is="LandPlotIcon" class="h-5 w-5 mx-auto" />
-                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ property.land_size }}</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">m²</div>
-                </div>
-            </div>
+                <!-- Spacer to push stats to bottom -->
+                <div class="flex-grow"></div>
 
-            <!-- Features Preview -->
-            <div v-if="property.features && property.features.length > 0" class="mb-4">
-                <div class="flex flex-wrap gap-1">
-                    <span 
-                        v-for="feature in property.features.slice(0, 3)" 
-                        :key="feature.id"
-                        class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs"
-                    >
-                        {{ feature.name }}
-                    </span>
-                    <span 
-                        v-if="property.features.length > 3"
-                        class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs"
-                    >
-                        +{{ property.features.length - 3 }} more
-                    </span>
+                <!-- Property Stats - Fixed at bottom -->
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-auto">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div v-if="property.land_size" class="text-center">
+                            <component v-if="LandPlotIcon" :is="LandPlotIcon" class="h-5 w-5 mx-auto mb-1 text-gray-500" />
+                            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ property.land_size }}m²</div>
+                        </div>
+                        <div v-if="property.bedrooms" class="text-center">
+                            <component v-if="BedSingleIcon" :is="BedSingleIcon" class="h-5 w-5 mx-auto mb-1 text-gray-500" />
+                            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ property.bedrooms }} bed</div>
+                        </div>
+                        <div v-if="property.bathrooms" class="text-center">
+                            <component v-if="BathIcon" :is="BathIcon" class="h-5 w-5 mx-auto mb-1 text-gray-500" />
+                            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ property.bathrooms }} bath</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</Link>
-
+    </Link>
 </template>
