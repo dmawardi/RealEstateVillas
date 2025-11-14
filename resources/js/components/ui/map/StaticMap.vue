@@ -48,13 +48,16 @@ const googleMapsUrl = computed(() => {
 </script>
 
 <template>
-  <a :href="googleMapsUrl" target="_blank" rel="noopener noreferrer">
-    <img
-      :src="staticMapUrl"
-      alt="Google Map preview"
-      :width="width"
-      :height="height"
-      style="border-radius: 8px; cursor: pointer;"
-    />
-  </a>
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+    <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Location</h2>
+    <a :href="googleMapsUrl" target="_blank" rel="noopener noreferrer">
+      <img class="mx-auto"
+        :src="staticMapUrl"
+        alt="Google Map preview"
+        :width="width"
+        :height="height"
+        style="border-radius: 8px; cursor: pointer;"
+      />
+    </a>
+  </div>
 </template>

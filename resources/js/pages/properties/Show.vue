@@ -77,7 +77,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
                     :lat="Number(property.latitude)" 
                     :lng="Number(property.longitude)" 
                     :apiKey="map_api_key" 
-                    :width="600" 
+                    :width="800" 
                     :height="400" 
                     :zoom="16" />
             </div>
