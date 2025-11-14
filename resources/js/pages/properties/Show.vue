@@ -78,10 +78,12 @@ const breadcrumbs: BreadcrumbItemType[] = [
                 </div>
     
                 <!-- Sidebar -->
-                <div class="space-y-6">
-                    <PropertyBookingCard class="hidden lg:block" :property="property" :current_pricing="current_pricing" :businessPhone="businessPhone" />
-                    <!-- Property Info -->
-                    <PropertyInfoBar :property="property" />
+                <div class="lg:col-span-1">
+                    <div class="space-y-6 lg:sticky lg:top-24 lg:self-start">
+                        <PropertyBookingCard class="hidden lg:block" :property="property" :current_pricing="current_pricing" :businessPhone="businessPhone" />
+                        <!-- Property Info -->
+                        <PropertyInfoBar :property="property" />
+                    </div>
                 </div>
             </div>
         </div>
