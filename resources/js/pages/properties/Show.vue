@@ -35,15 +35,16 @@ const breadcrumbs: BreadcrumbItemType[] = [
 <template>
     <Head :title="`${property.title} - Property Details`" />
     <BaseLayout :breadcrumbs="breadcrumbs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <!-- Property Header -->
-            <PropertyHeader :property="property" />
+            <PropertyHeader :property="property" class="hidden md:block" />
     
             <!-- Property Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Main Content -->
                 <div class="lg:col-span-2 space-y-8">
                     <PropertyImages :attachments="property.attachments ?? []" />
+                    <PropertyHeader :property="property" class="block md:hidden" />
                     <!-- Property Details -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                         <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
