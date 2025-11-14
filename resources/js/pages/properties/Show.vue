@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Footer from '@/components/Footer.vue';
+import PropertyBookingBottomNav from '@/components/properties/PropertyBookingBottomNav.vue';
 import PropertyBookingCard from '@/components/properties/PropertyBookingCard.vue';
 import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
 import PropertyHeader from '@/components/properties/PropertyHeader.vue';
@@ -78,12 +79,20 @@ const breadcrumbs: BreadcrumbItemType[] = [
     
                 <!-- Sidebar -->
                 <div class="space-y-6">
-                    <PropertyBookingCard :property="property" :current_pricing="current_pricing" :businessPhone="businessPhone" />
+                    <PropertyBookingCard class="hidden lg:block" :property="property" :current_pricing="current_pricing" :businessPhone="businessPhone" />
                     <!-- Property Info -->
                     <PropertyInfoBar :property="property" />
                 </div>
             </div>
         </div>
+        
+        <!-- Sticky Bottom Navigation for Mobile -->
+        <PropertyBookingBottomNav 
+            v-if="property.listing_type === 'for_rent'"
+            :property="property" 
+            :current_pricing="current_pricing" 
+            :businessPhone="businessPhone"
+        />
         <Footer :businessEmail="businessEmail" :businessPhone="businessPhone" />
     </BaseLayout>
 </template>
