@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Footer from '@/components/Footer.vue';
 import PropertyBookingCard from '@/components/properties/PropertyBookingCard.vue';
 import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
 import PropertyHeader from '@/components/properties/PropertyHeader.vue';
@@ -15,9 +16,10 @@ interface Props {
     current_pricing: PropertyPricing;
     map_api_key: string;
     businessPhone: string;
+    businessEmail: string;
 }
 
-const { property, current_pricing, map_api_key, businessPhone } = defineProps<Props>();
+const { property, current_pricing, map_api_key, businessPhone, businessEmail } = defineProps<Props>();
 
 // Generate breadcrumbs with actual property data
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -65,6 +67,13 @@ const breadcrumbs: BreadcrumbItemType[] = [
     
                     <!-- Features -->
                     <PropertyFeatures :property="property" />
+                    <StaticMap 
+                        :lat="Number(property.latitude)" 
+                        :lng="Number(property.longitude)" 
+                        :apiKey="map_api_key" 
+                        :width="800" 
+                        :height="400" 
+                        :zoom="16" />
                 </div>
     
                 <!-- Sidebar -->
@@ -73,14 +82,8 @@ const breadcrumbs: BreadcrumbItemType[] = [
                     <!-- Property Info -->
                     <PropertyInfoBar :property="property" />
                 </div>
-                <StaticMap 
-                    :lat="Number(property.latitude)" 
-                    :lng="Number(property.longitude)" 
-                    :apiKey="map_api_key" 
-                    :width="800" 
-                    :height="400" 
-                    :zoom="16" />
             </div>
         </div>
+        <Footer :businessEmail="businessEmail" :businessPhone="businessPhone" />
     </BaseLayout>
 </template>

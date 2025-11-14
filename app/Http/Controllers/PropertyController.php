@@ -185,6 +185,7 @@ class PropertyController extends Controller
             'current_pricing' => $currentPricing,
             'map_api_key' => config('services.google.maps_api_key'),
             'businessPhone' => config('app.business_phone'),
+            'businessEmail' => config('app.business_email'),
         ]);
     }
     /**
