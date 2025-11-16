@@ -7,7 +7,7 @@ const page = usePage();
 </script>
 
 <template>
-    <nav class="flex items-center justify-between gap-4">
+    <nav class="flex items-center justify-between gap-4 sticky top-0 z-50 w-full bg-white/70 px-4 py-3 text-sm font-medium text-[#1b1b18] backdrop-blur-md dark:bg-[#1b1b18]/70 dark:text-[#EDEDEC] sm:px-6 lg:px-8">
         <div>
             <Link :href="route('home')">Home</Link>
         </div>

@@ -17,10 +17,8 @@ const { breadcrumbs } = defineProps<Props>();
 
 <template>
     <FlashMessages />
+    <UpperNavigation />
     <!-- Breadcrumbs bar -->
-    <div class="bg-white dark:bg-gray-800 shadow p-4 w-10/12 mx-auto">
-        <UpperNavigation />
-    </div>
     <div v-if="(breadcrumbs?.length ?? 0) > 0" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <Breadcrumbs :breadcrumbs="breadcrumbs ?? []" />
     </div>
