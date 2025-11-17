@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@config "../../tailwind.config.js";
 
 @import 'tw-animate-css';
 
@@ -14,7 +15,32 @@
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
 
-    --color-background: var(--background);
+    /* Your custom colors */
+    --color-primary: #284544;
+    --color-secondary: #B09F83;
+    --color-accent: #B08141;
+    --color-accent-dark: #A3702F;
+    --color-base: #F8F5F1;
+
+    /* Primary color scale */
+    --color-primary-50: #f0f9f8;
+    --color-primary-100: #ccebe8;
+    --color-primary-500: #284544;
+    --color-primary-600: #1f3938;
+
+    /* Secondary color scale */
+    --color-secondary-50: #faf9f7;
+    --color-secondary-100: #f1ede3;
+    --color-secondary-500: #B09F83;
+    --color-secondary-600: #9d8a6f;
+
+    /* Accent color scale */
+    --color-accent-50: #fef7ed;
+    --color-accent-100: #fdedd3;
+    --color-accent-500: #B08141;
+    --color-accent-600: #A3702F;
+
+    --color-background: #F8F5F1;
     --color-foreground: var(--foreground);
 
     --color-card: var(--card);
@@ -23,16 +49,16 @@
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
 
-    --color-primary: var(--primary);
+    --color-primary: #284544;
     --color-primary-foreground: var(--primary-foreground);
 
-    --color-secondary: var(--secondary);
+    --color-secondary: #B09F83;
     --color-secondary-foreground: var(--secondary-foreground);
 
     --color-muted: var(--muted);
     --color-muted-foreground: var(--muted-foreground);
 
-    --color-accent: var(--accent);
+    --color-accent: #B08141;
     --color-accent-foreground: var(--accent-foreground);
 
     --color-destructive: var(--destructive);

@@ -16,7 +16,7 @@ const closeMobileMenu = () => {
 </script>
 
 <template>
-    <nav class="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md dark:bg-[#1b1b18]/80 border-b border-gray-200/20 dark:border-gray-700/30">
+    <nav class="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md dark:bg-background/80 border-b border-border/20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo Section -->
@@ -27,7 +27,7 @@ const closeMobileMenu = () => {
                             alt="Bali Villa Spot Logo" 
                             class="h-8 w-auto sm:h-10 transition-transform group-hover:scale-105" 
                         />
-                        <span class="hidden sm:block text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        <span class="hidden sm:block text-lg font-semibold text-secondary dark:text-secondary group-hover:text-primary dark:group-hover:text-accent transition-colors">
                             Bali Villa Spot
                         </span>
                     </Link>
@@ -38,14 +38,14 @@ const closeMobileMenu = () => {
                     <template v-if="$page.props.auth.user">
                         <Link
                             :href="route('dashboard')"
-                            class="px-4 py-2 text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                            class="px-4 py-2 text-sm font-medium text-foreground hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
                         >
                             Dashboard
                         </Link>
                         <Link
                             :href="route('logout')"
                             method="post"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 rounded-lg transition-all duration-200 shadow-sm"
+                            class="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-600 dark:bg-primary dark:hover:bg-primary-600 rounded-lg transition-all duration-200 shadow-sm"
                         >
                             Log out
                         </Link>
@@ -53,13 +53,13 @@ const closeMobileMenu = () => {
                     <template v-else>
                         <Link
                             :href="route('login')"
-                            class="px-4 py-2 text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                            class="px-4 py-2 text-sm font-medium text-foreground hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
                         >
                             Log in
                         </Link>
                         <Link
                             :href="route('register')"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 rounded-lg transition-all duration-200 shadow-sm"
+                            class="px-4 py-2 text-sm font-medium text-white bg-accent hover:bg-accent-600 dark:bg-accent dark:hover:bg-accent-600 rounded-lg transition-all duration-200 shadow-sm"
                         >
                             Register
                         </Link>
@@ -70,7 +70,7 @@ const closeMobileMenu = () => {
                 <div class="md:hidden">
                     <button
                         @click="toggleMobileMenu"
-                        class="inline-flex items-center justify-center p-2 rounded-lg text-[#1b1b18] dark:text-[#EDEDEC] hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-all duration-200"
+                        class="inline-flex items-center justify-center p-2 rounded-lg text-foreground hover:text-accent hover:bg-secondary/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent transition-all duration-200"
                         aria-expanded="false"
                     >
                         <span class="sr-only">Open main menu</span>
@@ -101,12 +101,12 @@ const closeMobileMenu = () => {
 
         <!-- Mobile Menu -->
         <div v-show="isMobileMenuOpen" class="md:hidden">
-            <div class="px-2 pt-2 pb-3 space-y-1 bg-white/95 dark:bg-[#1b1b18]/95 backdrop-blur-md border-t border-gray-200/20 dark:border-gray-700/30">
+            <div class="px-2 pt-2 pb-3 space-y-1 bg-background/95 backdrop-blur-md border-t border-border/20">
                 <template v-if="$page.props.auth.user">
                     <Link
                         :href="route('dashboard')"
                         @click="closeMobileMenu"
-                        class="block px-3 py-2 text-base font-medium text-[#1b1b18] dark:text-[#EDEDEC] hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                        class="block px-3 py-2 text-base font-medium hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
                     >
                         Dashboard
                     </Link>
@@ -114,7 +114,7 @@ const closeMobileMenu = () => {
                         :href="route('logout')"
                         method="post"
                         @click="closeMobileMenu"
-                        class="block px-3 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 rounded-lg transition-all duration-200 text-center"
+                        class="block px-3 py-2 text-base font-medium bg-primary hover:bg-primary-600 dark:bg-primary dark:hover:bg-primary-600 rounded-lg transition-all duration-200 text-center"
                     >
                         Log out
                     </Link>
@@ -123,14 +123,14 @@ const closeMobileMenu = () => {
                     <Link
                         :href="route('login')"
                         @click="closeMobileMenu"
-                        class="block px-3 py-2 text-base font-medium text-[#1b1b18] dark:text-[#EDEDEC] hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                        class="block px-3 py-2 text-base font-medium hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
                     >
                         Log in
                     </Link>
                     <Link
                         :href="route('register')"
                         @click="closeMobileMenu"
-                        class="block px-3 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 rounded-lg transition-all duration-200 text-center"
+                        class="block px-3 py-2 text-base font-medium bg-accent hover:bg-accent-600 dark:bg-accent dark:hover:bg-accent-600 rounded-lg transition-all duration-200 text-center"
                     >
                         Register
                     </Link>
