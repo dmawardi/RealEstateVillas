@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Feature;
 use App\Models\Property;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PropertyController extends Controller
@@ -91,9 +93,23 @@ class PropertyController extends Controller
         $query->where('car_spaces', '>=', $request->car_spaces);
     }
 
+    if ($request->filled('features')) {
+        $features = explode(',', $request->features);
+        
+        Log::info('Filtering properties by features: ' . implode(',', $features));
 
-    // Only show active properties by default if no status filter is applied
-    $query->where('status', 'active');
+        // Option 1: Properties that have ANY of the selected features (OR logic)
+        // $query->whereHas('features', function ($featureQuery) use ($features) {
+        //     $featureQuery->whereIn('features.id', $features);
+        // });
+        
+        // Option 2: Properties that have ALL selected features (AND logic)
+        foreach ($features as $featureId) {
+            $query->whereHas('features', function ($featureQuery) use ($featureId) {
+                $featureQuery->where('features.id', $featureId);
+            });
+        }
+    }
 
     // Apply availability filter if both check-in and check-out dates are provided
     if ($request->filled('check_in_date') && $request->filled('check_out_date')) {
@@ -113,6 +129,9 @@ class PropertyController extends Controller
                 });
         });
     }
+
+    // Only show active properties by default if no status filter is applied
+    $query->where('status', 'active');
 
     // Paginate the results
     $properties = $query->latest('listed_at')->paginate(10)->withQueryString();
@@ -135,7 +154,8 @@ class PropertyController extends Controller
         'search',
         'status',
         'check_in_date', 
-        'check_out_date'
+        'check_out_date',
+        'features',
     ]);
 
     return Inertia::render('properties/Index', compact('properties', 'filters'));
@@ -166,7 +186,7 @@ class PropertyController extends Controller
     {
         // Increment view count atomically
         $property->increment('view_count');
-        
+
         $property->load(['features', 'attachments' => function($query) {
             $query->orderBy('order')->where('type', 'image');
             
@@ -339,4 +359,23 @@ class PropertyController extends Controller
             'regencies' => $regencies,
         ]);
     }
-}
+    
+    /**
+     * Get all available features (used by properties that are active) for filtering
+     */
+    public function getAvailableFeatures()
+    {
+        // Get features that are actually used by active properties
+        $features = Feature::whereHas('properties', function ($query) {
+            $query->where('status', 'active');
+        })
+        ->where('is_active', true)
+        ->select('id', 'name', 'slug', 'category', 'icon')
+        ->orderBy('category')
+        ->orderBy('name')
+        ->get()
+        ->groupBy('category'); // Group by category for better organization
+    
+        return response()->json($features);
+    }
+ }
