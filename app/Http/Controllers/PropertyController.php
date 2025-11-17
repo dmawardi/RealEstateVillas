@@ -164,6 +164,9 @@ class PropertyController extends Controller
      */
     public function show(Property $property)
     {
+        // Increment view count atomically
+        $property->increment('view_count');
+        
         $property->load(['features', 'attachments' => function($query) {
             $query->orderBy('order')->where('type', 'image');
             
@@ -174,10 +177,6 @@ class PropertyController extends Controller
 
         // Get current pricing
         $currentPricing = $property->getCurrentPricing();
-
-         // Pre-load availability for next 6 months for the booking calendar
-        $startDate = Carbon::now();
-        $endDate = Carbon::now()->addMonths(6);
 
         // Logic to retrieve and display a specific property
         return Inertia::render('properties/Show', [
