@@ -82,8 +82,6 @@ const fetchFeatures = async () => {
         
         const response: any = await PropertyApi.getAllFeatures();
 
-        console.log('API Response:', response);
-
         // The response is already the features object, not wrapped in a success property
         if (response && typeof response === 'object') {
             features.value = response;

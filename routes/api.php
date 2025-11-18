@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminPropertyController;
 use App\Http\Controllers\PropertyAttachmentController;
 use App\Http\Controllers\AdminPropertyPriceController;
+use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,4 +46,4 @@ Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceCon
 // Property feature management routes
 Route::get('admin/properties/{property}/available-features', [AdminPropertyController::class, 'getAvailableFeatures'])
     ->name('admin.properties.features.available');
-Route::get('/properties/available-features', [PropertyController::class, 'getAvailableFeatures'])->name('properties.features');
+Route::get('/properties/available-features', [FeatureController::class, 'getAvailableFeatures'])->name('properties.features');
