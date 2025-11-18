@@ -9,6 +9,7 @@ import { Location } from '@/types';
 import LocationTagDisplay from '../form/LocationTagDisplay.vue';
 import PropertyTypeFilter from '../filters/PropertyTypeFilter.vue';
 import { processLocations } from '@/utils';
+import FeatureFilter from '../filters/FeatureFilter.vue';
 
 // Props to accept initial filter values from the page
 interface Props {
@@ -44,7 +45,10 @@ const form = ref({
     dateFilter: {
         checkIn: props.initialFilters.check_in_date || '',
         checkOut: props.initialFilters.check_out_date || ''
-    }
+    },
+    features: props.initialFilters.features ? 
+    props.initialFilters.features.split(',').map((id: any) => parseInt(id.trim(), 10)).filter((id: any) => !isNaN(id)) : 
+    []
 });
 
 // Convert initial location filters back to Location objects
@@ -103,6 +107,7 @@ const handleSearch = () => {
         check_in_date: form.value.dateFilter.checkIn,
         check_out_date: form.value.dateFilter.checkOut,
         search: form.value.search,
+        features: form.value.features.length > 0 ? form.value.features.join(',') : '',
         ...processLocations(form.value.locationFilter),
     };
 
@@ -143,7 +148,8 @@ const clearAllFilters = () => {
         maxLandSize: '',
         carSpaces: '',
         status: [],
-        dateFilter: { checkIn: '', checkOut: '' }
+        dateFilter: { checkIn: '', checkOut: '' },
+        features: []
     };
     handleSearch();
 };
@@ -384,6 +390,10 @@ const clearSearch = () => {
                         <option value="4">4+</option>
                     </select>
                 </div>
+
+                <hr class="border-t border-gray-200 dark:border-gray-600" />
+                <!-- Features Filter -->
+                <FeatureFilter v-model="form.features" />
             </div>
 
             <template #footer>

@@ -45,3 +45,4 @@ Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceCon
 // Property feature management routes
 Route::get('admin/properties/{property}/available-features', [AdminPropertyController::class, 'getAvailableFeatures'])
     ->name('admin.properties.features.available');
+Route::get('/properties/available-features', [PropertyController::class, 'getAvailableFeatures'])->name('properties.features');

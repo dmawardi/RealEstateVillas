@@ -9,6 +9,7 @@ import PropertyTypeFilter from '../filters/PropertyTypeFilter.vue';
 import { Location } from '@/types';
 import LocationTagDisplay from '../form/LocationTagDisplay.vue';
 import { processLocations } from '@/utils';
+import FeatureFilter from '../filters/FeatureFilter.vue';
 
 const modalOpen = ref(false);
 const form = ref({
@@ -29,7 +30,9 @@ const form = ref({
     dateFilter: {
         checkIn: '',
         checkOut: ''
-    }
+    },
+    features: [] as number[],
+
 });
 
 function selectMode(mode: 'for_rent' | 'for_sale') {
@@ -57,6 +60,7 @@ const handleSearch = () => {
         check_in_date: form.value.dateFilter.checkIn,
         check_out_date: form.value.dateFilter.checkOut,
         search: form.value.search,
+        features: form.value.features.length > 0 ? form.value.features.join(',') : '',
         // explode location filter data
         ...processLocations(form.value.locationFilter),
     };
@@ -71,13 +75,6 @@ const handleSearch = () => {
     );
     const queryString = new URLSearchParams(cleanFilters as Record<string, string>).toString();
 
-    // console.log('Clean Filters:', cleanFilters);
-    // console.log('Searching for:', form.value.search, 'Mode:', form.value.mode);
-    // console.log('Location Filter:', form.value.locationFilter);
-    // console.log('Price Filter:', form.value.priceFilter);
-    // console.log('Modal Open:', modalOpen.value);
-    // // Create the query string
-    // console.log('Query String:', queryString);
     // Redirect to the search results page with query parameters
     window.location.href = `/properties?${queryString}`;
 };
@@ -257,6 +254,10 @@ const clearAllLocations = () => {
                         <option value="4">4+</option>
                     </select>
                 </div>
+                
+                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+
+                <FeatureFilter v-model="form.features" />
             </div>
 
             <!-- Modal footer with action buttons -->
