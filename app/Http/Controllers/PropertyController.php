@@ -19,9 +19,6 @@ class PropertyController extends Controller
     
     private const PROPERTY_DETAIL_CACHE_PREFIX = 'property_detail_';
     private const PROPERTY_DETAIL_CACHE_DURATION = 60 * 30; // 30 minutes
-    
-    private const AVAILABILITY_CACHE_PREFIX = 'property_availability_';
-    private const AVAILABILITY_CACHE_DURATION = 60 * 15; // 15 minutes
 
     // Upon construction, inject the AvailabilityService
     public function __construct(
@@ -388,55 +385,5 @@ class PropertyController extends Controller
     // No need for response()->json() here since Cache::remember returns the data directly
     // If JSON response needed, wrap it:
     // return response()->json($locations);
-    }
-    
-    /**
-     * Clear location cache
-     */
-    public function clearLocationsCache(): bool
-    {
-        return Cache::forget(self::LOCATIONS_CACHE_KEY);
-    }
-    
-    /**
-     * Clear property detail cache
-     */
-    public function clearPropertyDetailCache(int $propertyId): bool
-    {
-        $cacheKey = self::PROPERTY_DETAIL_CACHE_PREFIX . $propertyId;
-        return Cache::forget($cacheKey);
-    }
-    
-    /**
-     * Clear all property detail caches
-     */
-    public function clearAllPropertyDetailCaches(): bool
-    {
-        // This is more complex - you'd need to track all property IDs
-        // For now, let's use a pattern-based approach if using Redis
-        if (Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
-            $keys = Cache::getRedis()->keys(self::PROPERTY_DETAIL_CACHE_PREFIX . '*');
-            if (!empty($keys)) {
-                return Cache::getRedis()->del($keys) > 0;
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Clear availability cache for a property
-     */
-    public function clearAvailabilityCache(int $propertyId): bool
-    {
-        if (Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
-            $pattern = self::AVAILABILITY_CACHE_PREFIX . $propertyId . '_*';
-            $keys = Cache::getRedis()->keys($pattern);
-            if (!empty($keys)) {
-                return Cache::getRedis()->del($keys) > 0;
-            }
-        }
-        
-        return true;
     }
  }

@@ -8,6 +8,7 @@ use App\Models\PropertyAttachment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +17,13 @@ use Inertia\Inertia;
 
 class AdminPropertyController extends Controller
 {
+    // Cache constants
+    private const LOCATIONS_CACHE_KEY = 'property_locations';
+    private const LOCATIONS_CACHE_DURATION = 60 * 60 * 6; // 6 hours
+    
+    private const PROPERTY_DETAIL_CACHE_PREFIX = 'property_detail_';
+    private const PROPERTY_DETAIL_CACHE_DURATION = 60 * 30; // 30 minutes
+
     /**
      * Display a paginated listing of all properties with search and filtering capabilities.
      * 
@@ -959,5 +967,22 @@ class AdminPropertyController extends Controller
                 'message' => 'Failed to load available features.'
             ], 500);
         }
+    }
+
+    /**
+     * Clear location cache
+     */
+    public function clearLocationsCache(): bool
+    {
+        return Cache::forget(self::LOCATIONS_CACHE_KEY);
+    }
+    
+    /**
+     * Clear property detail cache
+     */
+    public function clearPropertyDetailCache(int $propertyId): bool
+    {
+        $cacheKey = self::PROPERTY_DETAIL_CACHE_PREFIX . $propertyId;
+        return Cache::forget($cacheKey);
     }
 }

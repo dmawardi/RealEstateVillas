@@ -54,4 +54,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/admin/cache/features', [FeatureController::class, 'clearFeaturesCache'])->name('admin.cache.features.clear');
     Route::post('/admin/cache/features/refresh', [FeatureController::class, 'refreshFeaturesCache'])->name('admin.cache.features.refresh');
     Route::get('/admin/cache/features/info', [FeatureController::class, 'getCacheInfo'])->name('admin.cache.features.info');
+
+    // Property Detail refresh route
+    Route::post('/admin/properties/{property}/refresh-details', [AdminPropertyController::class, 'clearPropertyDetailCache'])->name('admin.properties.refresh-details');
+    // Location refresh route
+    Route::post('/admin/locations/{location}/refresh-details', [AdminPropertyController::class, 'clearLocationsCache'])->name('admin.locations.refresh-details');
 });
