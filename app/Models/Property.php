@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Property extends Model
 {
@@ -138,5 +139,24 @@ class Property extends Model
             'days_on_market' => 'integer', // Add this cast
             'view_count' => 'integer', // Add this cast
         ];
+    }
+
+    protected static function booted()
+    {
+        static::saved(function ($property) {
+            // Only clear feature availability cache if status changed to/from active
+            if ($property->isDirty('status') && 
+                (in_array($property->getOriginal('status'), ['active']) || 
+                in_array($property->status, ['active']))) {
+                Cache::forget('available_features_for_filtering');
+            }
+        });
+
+        static::deleted(function ($property) {
+            // Only clear if deleted property was active
+            if ($property->status === 'active') {
+                Cache::forget('available_features_for_filtering');
+            }
+        });
     }
 }

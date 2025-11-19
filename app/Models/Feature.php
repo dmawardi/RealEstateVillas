@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Feature extends Model
 {
@@ -35,5 +36,16 @@ class Feature extends Model
         return [
             'is_active' => 'boolean', // Cast is_active to boolean
         ];
+    }
+
+    protected static function booted()
+    {
+        // Clear cache when a feature is saved or deleted
+        static::saved(function ($feature) {
+            Cache::forget('available_features_for_filtering');
+        });
+        static::deleted(function ($feature) {
+            Cache::forget('available_features_for_filtering');
+        });
     }
 }

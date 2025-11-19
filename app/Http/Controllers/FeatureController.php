@@ -56,4 +56,57 @@ class FeatureController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Clear the features cache
+     * This should be called when features or properties are updated
+     */
+    public function clearFeaturesCache(): bool
+    {
+        return Cache::forget(self::FEATURES_CACHE_KEY);
+    }
+
+    /**
+     * Refresh the features cache
+     * Useful for warming up the cache after updates
+     */
+    public function refreshFeaturesCache()
+    {
+        try {
+            // Clear existing cache
+            $this->clearFeaturesCache();
+            
+            // Warm up the cache
+            $this->getAvailableFeatures();
+            
+            return response()->json([
+                'message' => 'Features cache refreshed successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to refresh features cache', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to refresh cache'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get cache information for debugging
+     */
+    public function getCacheInfo()
+    {
+        $cacheExists = Cache::has(self::FEATURES_CACHE_KEY);
+        $cacheSize = $cacheExists ? strlen(serialize(Cache::get(self::FEATURES_CACHE_KEY))) : 0;
+        
+        return response()->json([
+            'cache_key' => self::FEATURES_CACHE_KEY,
+            'cache_exists' => $cacheExists,
+            'cache_size_bytes' => $cacheSize,
+            'cache_duration_seconds' => self::CACHE_DURATION,
+        ]);
+    }
 }
