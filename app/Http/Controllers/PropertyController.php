@@ -7,11 +7,22 @@ use App\Models\Property;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PropertyController extends Controller
 {
+    // Cache constants
+    private const LOCATIONS_CACHE_KEY = 'property_locations';
+    private const LOCATIONS_CACHE_DURATION = 60 * 60 * 6; // 6 hours
+    
+    private const PROPERTY_DETAIL_CACHE_PREFIX = 'property_detail_';
+    private const PROPERTY_DETAIL_CACHE_DURATION = 60 * 30; // 30 minutes
+    
+    private const AVAILABILITY_CACHE_PREFIX = 'property_availability_';
+    private const AVAILABILITY_CACHE_DURATION = 60 * 15; // 15 minutes
+
     // Upon construction, inject the AvailabilityService
     public function __construct(
         private AvailabilityService $availabilityService
@@ -184,24 +195,35 @@ class PropertyController extends Controller
      */
     public function show(Property $property)
     {
-        // Increment view count atomically
-        $property->increment('view_count');
-
-        $property->load(['features', 'attachments' => function($query) {
-            $query->orderBy('order')->where('type', 'image');
+        $cacheKey = self::PROPERTY_DETAIL_CACHE_PREFIX . $property->id;
+        
+        // Get cached property data or fetch fresh
+        $propertyData = Cache::remember($cacheKey, self::PROPERTY_DETAIL_CACHE_DURATION, function () use ($property) {
+            Log::info("Fetching property details from database (cache miss)", ['property_id' => $property->id]);
             
-        }, 'pricing']);
-
-        // Map through attachments to generate URLs for secure access
-        $property->attachments->each->append('url');
-
-        // Get current pricing
-        $currentPricing = $property->getCurrentPricing();
-
-        // Logic to retrieve and display a specific property
+            // Load relationships
+            $property->load(['features', 'attachments' => function($query) {
+                $query->orderBy('order')->where('type', 'image');
+            }, 'pricing']);
+    
+            // Map through attachments to generate URLs for secure access
+            $property->attachments->each->append('url');
+    
+            // Get current pricing
+            $currentPricing = $property->getCurrentPricing();
+    
+            return [
+                'property' => $property,
+                'current_pricing' => $currentPricing,
+            ];
+        });
+    
+        // Increment view count (don't cache this - it should always update)
+        $property->increment('view_count');
+    
         return Inertia::render('properties/Show', [
-            'property' => $property,
-            'current_pricing' => $currentPricing,
+            'property' => $propertyData['property'],
+            'current_pricing' => $propertyData['current_pricing'],
             'map_api_key' => config('services.google.maps_api_key'),
             'businessPhone' => config('app.business_phone'),
             'businessEmail' => config('app.business_email'),
@@ -334,6 +356,9 @@ class PropertyController extends Controller
     // Method to get all unique locations (villages) of properties
     public function getAllLocations()
     {
+        return Cache::remember(self::LOCATIONS_CACHE_KEY, self::LOCATIONS_CACHE_DURATION, function () {
+        Log::info('Fetching locations from database (cache miss)');
+        
         // Get all unique villages, districts, or regencies from active properties
         $villages = Property::where('status', 'active')
             ->distinct()
@@ -353,10 +378,65 @@ class PropertyController extends Controller
             ->filter()
             ->values();
 
-        return response()->json([
+        return [
             'villages' => $villages,
             'districts' => $districts,
             'regencies' => $regencies,
-        ]);
+        ];
+    });
+
+    // No need for response()->json() here since Cache::remember returns the data directly
+    // If JSON response needed, wrap it:
+    // return response()->json($locations);
+    }
+    
+    /**
+     * Clear location cache
+     */
+    public function clearLocationsCache(): bool
+    {
+        return Cache::forget(self::LOCATIONS_CACHE_KEY);
+    }
+    
+    /**
+     * Clear property detail cache
+     */
+    public function clearPropertyDetailCache(int $propertyId): bool
+    {
+        $cacheKey = self::PROPERTY_DETAIL_CACHE_PREFIX . $propertyId;
+        return Cache::forget($cacheKey);
+    }
+    
+    /**
+     * Clear all property detail caches
+     */
+    public function clearAllPropertyDetailCaches(): bool
+    {
+        // This is more complex - you'd need to track all property IDs
+        // For now, let's use a pattern-based approach if using Redis
+        if (Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
+            $keys = Cache::getRedis()->keys(self::PROPERTY_DETAIL_CACHE_PREFIX . '*');
+            if (!empty($keys)) {
+                return Cache::getRedis()->del($keys) > 0;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Clear availability cache for a property
+     */
+    public function clearAvailabilityCache(int $propertyId): bool
+    {
+        if (Cache::getStore() instanceof \Illuminate\Cache\RedisStore) {
+            $pattern = self::AVAILABILITY_CACHE_PREFIX . $propertyId . '_*';
+            $keys = Cache::getRedis()->keys($pattern);
+            if (!empty($keys)) {
+                return Cache::getRedis()->del($keys) > 0;
+            }
+        }
+        
+        return true;
     }
  }

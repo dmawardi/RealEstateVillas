@@ -144,6 +144,14 @@ class Property extends Model
     protected static function booted()
     {
         static::saved(function ($property) {
+            // Clear property detail cache
+            Cache::forget('property_detail_' . $property->id);
+            
+            // Clear locations cache if location fields changed
+            if ($property->isDirty(['village', 'district', 'regency', 'status'])) {
+                Cache::forget('property_locations');
+            }
+
             // Only clear feature availability cache if status changed to/from active
             if ($property->isDirty('status') && 
                 (in_array($property->getOriginal('status'), ['active']) || 
@@ -153,6 +161,9 @@ class Property extends Model
         });
 
         static::deleted(function ($property) {
+            // Clear all related caches
+            Cache::forget('property_detail_' . $property->id);
+            Cache::forget('property_locations');
             // Only clear if deleted property was active
             if ($property->status === 'active') {
                 Cache::forget('available_features_for_filtering');
