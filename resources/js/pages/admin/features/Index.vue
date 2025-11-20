@@ -180,7 +180,11 @@ console.log('features:', features);
                                         <!-- Feature Icon -->
                                         <div class="flex-shrink-0">
                                             <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                                                <span class="text-lg">{{ feature.icon || '🏠' }}</span>
+                                                <div
+                                                    v-if="feature.icon"
+                                                    class="flex-shrink-0 w-5 h-5 text-gray-800"
+                                                    v-html="feature.icon"
+                                                />
                                             </div>
                                         </div>
 
