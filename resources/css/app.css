@@ -12,7 +12,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-sans: 'Cinzel', 'Cormorant Garamond', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Fixed font families - separate display and body fonts */
+    --font-sans: 'Cormorant Garamond', ui-serif, Georgia, serif;
+    --font-display: 'Cinzel', ui-serif, Georgia, serif;
+    --font-body: 'Cormorant Garamond', ui-serif, Georgia, serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -108,8 +111,21 @@
 @layer utilities {
     body,
     html {
-        --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        --font-sans: 'Cormorant Garamond', ui-serif, Georgia, serif;
+    }
+
+    /* Add font utilities for easy use */
+    .font-display {
+        font-family: var(--font-display);
+    }
+
+    .font-body {
+        font-family: var(--font-body);
+    }
+
+    /* Header styles - automatically use display font */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-display);
     }
 }
 
