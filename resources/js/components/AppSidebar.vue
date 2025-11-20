@@ -32,6 +32,11 @@ const adminNavItems: NavItem[] = [
         title: 'Property Features',
         href: route('admin.features.index'),
         icon: LampCeiling,
+    },
+    {
+        title: 'Bookings',
+        href: route('admin.bookings.index'),
+        icon: BookOpen,
     }
 ];
 

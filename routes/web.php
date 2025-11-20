@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminFeatureController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PropertyController;
@@ -74,6 +75,10 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
         ->name('properties.features.detach');
     Route::patch('/properties/{property}/features/{feature}', [AdminPropertyController::class, 'updatePropertyFeature'])
         ->name('properties.features.update-single');
+
+    // Booking Management
+    Route::get('admin/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::post('/admin/bookings', [AdminBookingController::class, 'store'])->name('bookings.store');
 });
 
 require __DIR__.'/settings.php';
