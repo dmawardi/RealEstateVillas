@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Services\AvailabilityService;
@@ -9,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class BookingController extends Controller
@@ -112,7 +114,26 @@ class BookingController extends Controller
                 'dates' => $checkInDate->format('Y-m-d') . ' to ' . $checkOutDate->format('Y-m-d'),
                 'source' => $booking->source
             ]);
-            
+
+            // Queue Email booking confirmation
+            if ($booking->email) {
+                try {
+                    Mail::to($booking->email)->queue(new BookingConfirmationMail($booking));
+                    
+                    Log::info('Booking confirmation email queued', [
+                        'booking_id' => $booking->id,
+                        'guest_email' => $booking->email
+                    ]);
+                } catch (\Exception $emailError) {
+                    // Don't fail the booking if email fails
+                    Log::error('Failed to queue booking confirmation email', [
+                        'booking_id' => $booking->id,
+                        'guest_email' => $booking->email,
+                        'error' => $emailError->getMessage()
+                    ]);
+                }
+            }
+
             return response()->json([
                 'message' => 'Booking created successfully.',
                 'booking' => $booking
