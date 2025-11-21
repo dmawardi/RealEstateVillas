@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Booking } from '@/types';
 import { formatDate, formatPrice } from '@/utils/formatters';
-import {router} from '@inertiajs/vue3'
+import {Link, router} from '@inertiajs/vue3'
 import { computed } from 'vue';
 
 interface Props {
