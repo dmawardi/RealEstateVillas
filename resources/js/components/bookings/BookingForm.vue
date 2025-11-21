@@ -1,5 +1,5 @@
-<!-- resources/js/components/bookings/BookingForm.vue -->
 <script setup lang="ts">
+import { Booking } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
 
@@ -12,29 +12,7 @@ interface Property {
 }
 
 interface Props {
-    booking?: {
-        id?: number;
-        property_id: number;
-        first_name: string | null;
-        last_name: string | null;
-        email: string | null;
-        phone: string | null;
-        check_in_date: string;
-        check_out_date: string;
-        number_of_guests: number;
-        number_of_rooms: number | null;
-        status: string;
-        source: string;
-        booking_type: string;
-        external_booking_id: string | null;
-        total_price: number;
-        commission_rate: number | null;
-        commission_amount: number | null;
-        commission_paid: boolean;
-        flexible_dates: boolean;
-        special_requests: string | null;
-        notes: string | null;
-    };
+    booking?: Booking;
     properties: Property[];
     submitRoute: string;
     cancelRoute: string;
@@ -47,10 +25,18 @@ const props = withDefaults(defineProps<Props>(), {
 
 const isEditing = computed(() => props.booking?.id !== undefined);
 
+// Helper function to format date for input field
+const formatDateForInput = (dateString: string | null) => {
+    if (!dateString) return '';
+    // Ensure date is in YYYY-MM-DD format for input[type="date"]
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+};
+
 // Form data
 const form = useForm({
     // Property selection
-    property_id: props.booking?.property_id || '',
+    property_id: props.booking?.property?.id || '',
     
     // Guest Information
     first_name: props.booking?.first_name || '',
@@ -59,8 +45,8 @@ const form = useForm({
     phone: props.booking?.phone || '',
     
     // Booking Details
-    check_in_date: props.booking?.check_in_date || '',
-    check_out_date: props.booking?.check_out_date || '',
+    check_in_date: formatDateForInput(props.booking?.check_in_date || ''),
+    check_out_date: formatDateForInput(props.booking?.check_out_date || ''),
     number_of_guests: props.booking?.number_of_guests || 1,
     number_of_rooms: props.booking?.number_of_rooms || null,
     
@@ -150,7 +136,7 @@ const dateError = computed(() => {
 // Submit form
 const submit = () => {
     const routeParams = isEditing.value ? [props.booking!.id] : [];
-    
+    console.log('Submitting form:', form.data());
     if (isEditing.value) {
         form.put(route(props.submitRoute, routeParams));
     } else {
@@ -181,7 +167,7 @@ const submit = () => {
                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Property & Dates</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Property -->
-                        <div class="md:col-span-2">
+                        <div class="md:col-span-2" v-if="!isEditing">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Property <span class="text-red-500">*</span>
                             </label>

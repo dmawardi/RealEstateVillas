@@ -369,6 +369,174 @@ class AdminBookingController extends Controller
     }
 
     /**
+     * Show the form for editing the specified booking.
+     *
+     * @param Booking $booking
+     * @return \Inertia\Response
+     */
+    public function edit(Booking $booking)
+    {
+        // Load the booking with its relationships
+        $booking->load('property', 'user');
+        
+        // Get all active properties for the dropdown
+        $properties = Property::where('status', 'active')
+            ->select('id', 'title', 'property_id', 'max_guests', 'max_rooms')
+            ->orderBy('title')
+            ->get();
+
+        return Inertia::render('admin/bookings/Edit', [
+            'booking' => $booking,
+            'properties' => $properties
+        ]);
+    }
+
+    /**
+     * Update the specified booking in storage.
+     *
+     * @param Request $request
+     * @param Booking $booking
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, Booking $booking)
+    {
+        // Similar validation as store but for updating
+        $validated = $request->validate([
+            // Property selection
+            'property_id' => 'required|exists:properties,id',
+            
+            // Guest Information
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:255',
+            
+            // Booking Details
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+            'number_of_guests' => 'required|integer|min:1|max:50',
+            'number_of_rooms' => 'nullable|integer|min:1|max:20',
+            'total_price' => 'required|numeric|min:0',
+            
+            // Booking Configuration
+            'status' => 'required|in:pending,confirmed,cancelled,completed,withdrawn',
+            'source' => 'required|in:direct,airbnb,booking_com,agoda,owner_blocked,maintenance,other',
+            'booking_type' => 'required|in:booking,inquiry,blocked,maintenance',
+            'external_booking_id' => 'nullable|string|max:255',
+            
+            // Commission Details
+            'commission_rate' => 'nullable|numeric|min:0|max:100',
+            'commission_amount' => 'nullable|numeric|min:0',
+            'commission_paid' => 'nullable|boolean',
+            
+            // Additional Details
+            'flexible_dates' => 'nullable|boolean',
+            'special_requests' => 'nullable|string|max:1000',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        DB::beginTransaction();
+        
+        try {
+            // Get the property
+            $property = Property::findOrFail($validated['property_id']);
+            
+            // Parse dates
+            $checkInDate = Carbon::parse($validated['check_in_date']);
+            $checkOutDate = Carbon::parse($validated['check_out_date']);
+            
+            // Handle user creation or lookup (only if email changed)
+            $userId = $booking->user_id;
+            if (!empty($validated['email']) && $validated['email'] !== $booking->email) {
+                $user = $this->createOrFindUser([
+                    'email' => $validated['email'],
+                    'first_name' => $validated['first_name'],
+                    'last_name' => $validated['last_name'],
+                    'phone' => $validated['phone']
+                ]);
+                $userId = $user->id;
+            }
+
+            // Calculate commission amount if rate is provided and amount is not explicitly set
+            $commissionAmount = $validated['commission_amount'] ?? null;
+            if (isset($validated['commission_rate']) && $validated['total_price'] && !$commissionAmount) {
+                $commissionAmount = ($validated['total_price'] * $validated['commission_rate']) / 100;
+            }
+            
+            // Update the booking
+            $booking->update([
+                'property_id' => $property->id,
+                'user_id' => $userId,
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'check_in_date' => $checkInDate->format('Y-m-d'),
+                'check_out_date' => $checkOutDate->format('Y-m-d'),
+                'number_of_guests' => $validated['number_of_guests'],
+                'number_of_rooms' => $validated['number_of_rooms'],
+                'total_price' => $validated['total_price'],
+                'status' => $validated['status'],
+                'source' => $validated['source'],
+                'booking_type' => $validated['booking_type'],
+                'external_booking_id' => $validated['external_booking_id'],
+                'commission_rate' => $validated['commission_rate'],
+                'commission_amount' => $commissionAmount,
+                'commission_paid' => $validated['commission_paid'] ?? false,
+                'flexible_dates' => $validated['flexible_dates'] ?? false,
+                'special_requests' => $validated['special_requests'],
+                'notes' => $validated['notes'],
+            ]);
+            
+            Log::info('Admin booking updated', [
+                'booking_id' => $booking->id,
+                'property_id' => $property->id,
+                'user_id' => $userId,
+                'admin_user_id' => auth()->id() ?? null,
+                'guest_email' => $booking->email,
+                'dates' => $checkInDate->format('Y-m-d') . ' to ' . $checkOutDate->format('Y-m-d'),
+                'status' => $booking->status,
+                'changes' => $booking->getChanges()
+            ]);
+
+            DB::commit();
+
+            // Return appropriate response based on request type
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Booking updated successfully.',
+                    'booking' => $booking->load('property')
+                ]);
+            }
+
+            return redirect()->route('admin.bookings.show', $booking)
+                ->with('success', 'Booking updated successfully.');
+                            
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            Log::error('Admin booking update failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'property_id' => $validated['property_id'] ?? null,
+                'admin_user_id' => auth()->id() ?? null,
+                'guest_email' => $validated['email'] ?? null,
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'An error occurred while updating the booking.',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withErrors(['error' => 'Failed to update booking: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
+
+    /**
      * Get booking status options from migration enum.
      * 
      * @return array
