@@ -16,6 +16,15 @@ const formatDate = (date: Date | null) => {
     });
 };
 
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+};
+
 const formatDateForInput = (dateString: string): string => {
     if (!dateString) return '';
     
@@ -51,4 +60,4 @@ const truncateDescription = (text: string, length: number = 150): string => {
     return text.substring(0, length) + '...';
 };
 
-export { formatPrice, formatDate, formatDateForInput, formatPaginationLabel, formatPropertyType, truncateDescription };
+export { formatCurrency, formatPrice, formatDate, formatDateForInput, formatPaginationLabel, formatPropertyType, truncateDescription };

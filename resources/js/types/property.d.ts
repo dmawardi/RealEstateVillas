@@ -97,6 +97,8 @@ interface Booking {
     created_at: string;
     updated_at: string;
     property: Property;
+    // Relationships
+    user: User;
 }
 
 export interface Feature {

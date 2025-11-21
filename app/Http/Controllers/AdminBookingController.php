@@ -161,6 +161,21 @@ class AdminBookingController extends Controller
         ]);
     }
 
+    /**
+     * Show the form for creating a new booking.
+     *
+     * @return \Inertia\Response
+     */
+    public function show(Booking $booking)
+    {
+        // Load the booking with its relationships
+        $booking->load('property', 'user');
+
+        return Inertia::render('admin/bookings/Show', [
+            'booking' => $booking,
+        ]);
+    }
+
     public function create()
     {
         // Get properties for selection
