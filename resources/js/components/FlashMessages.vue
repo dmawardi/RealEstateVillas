@@ -94,7 +94,7 @@ onMounted(() => {
     <!-- Success Toast -->
     <Transition name="slide-fade">
         <div v-if="showSuccess && successMessage" 
-             class="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg z-50 shadow-lg max-w-sm min-w-72">
+             class="fixed top-16 right-4 bg-green-500 text-white p-4 rounded-lg z-50 shadow-lg max-w-sm min-w-72">
             <div class="flex items-start justify-between">
                 <div class="flex items-start">
                     <!-- Success Icon -->
