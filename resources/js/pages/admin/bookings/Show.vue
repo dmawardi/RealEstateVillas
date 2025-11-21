@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { computed } from 'vue';
 import { Booking } from '@/types';
 import { formatCurrency, formatDate } from '@/utils';
+import { bookingTypeLabels, sourceLabels, statusLabels } from '@/utils/labels';
 
 interface Props {
     booking: Booking;
@@ -63,32 +64,6 @@ const getSourceClass = (source: string) => {
         other: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
     };
     return classes[source as keyof typeof classes] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-};
-
-const statusLabels: Record<string, string> = {
-    pending: 'Pending',
-    confirmed: 'Confirmed',
-    cancelled: 'Cancelled',
-    completed: 'Completed',
-    blocked: 'Blocked',
-    withdrawn: 'Withdrawn',
-};
-
-const sourceLabels: Record<string, string> = {
-    direct: 'Direct',
-    airbnb: 'Airbnb',
-    booking_com: 'Booking.com',
-    agoda: 'Agoda',
-    owner_blocked: 'Owner Blocked',
-    maintenance: 'Maintenance',
-    other: 'Other',
-};
-
-const bookingTypeLabels: Record<string, string> = {
-    booking: 'Booking',
-    inquiry: 'Inquiry',
-    blocked: 'Blocked',
-    maintenance: 'Maintenance',
 };
 
 // Action handlers

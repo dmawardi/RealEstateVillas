@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Booking } from '@/types';
 import { formatDate, formatPrice } from '@/utils/formatters';
+import { sourceLabels, statusLabels } from '@/utils/labels';
 import {Link, router} from '@inertiajs/vue3'
 import { computed } from 'vue';
 
@@ -69,10 +70,10 @@ const getSourceClass = (source: string) => {
                             {{ getGuestName(booking) }}
                         </h3>
                         <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusClass(booking.status)]">
-                            {{ booking.status }}
+                            {{ statusLabels[booking.status] }}
                         </span>
                         <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', getSourceClass(booking.source)]">
-                            {{ booking.source }}
+                            {{ sourceLabels[booking.source] }}
                         </span>
                     </div>
                     <div class="flex items-center space-x-2">
