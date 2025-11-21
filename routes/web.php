@@ -78,7 +78,12 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
 
     // Booking Management
     Route::get('admin/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::get('/admin/bookings/create', [AdminBookingController::class, 'create'])->name('bookings.create');
     Route::post('/admin/bookings', [AdminBookingController::class, 'store'])->name('bookings.store');
+    Route::get('admin/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
+    Route::get('admin/bookings/{booking}/edit', [AdminBookingController::class, 'edit'])->name('bookings.edit');
+    Route::put('admin/bookings/{booking}', [AdminBookingController::class, 'update'])->name('bookings.update');
+    Route::delete('admin/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
 });
 
 require __DIR__.'/settings.php';

@@ -161,6 +161,18 @@ class AdminBookingController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        // Get properties for selection
+        $properties = Property::select('id', 'title', 'property_id')
+            ->where('status', 'active')
+            ->orderBy('title')
+            ->get();
+        return Inertia::render('admin/bookings/Create', [
+            'properties' => $properties
+        ]);
+    }
+
     /**
      * Store a newly created booking in the database.
      * 
@@ -170,6 +182,7 @@ class AdminBookingController extends Controller
      * - Setting commission details
      * - Adding admin notes
      * - Bypassing some validation for administrative purposes
+     * - Creates or finds user based on email
      * 
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
@@ -243,6 +256,18 @@ class AdminBookingController extends Controller
                 }
             }
 
+            // Handle user creation or lookup
+            $userId = null;
+            if (!empty($validated['email'])) {
+                $user = $this->createOrFindUser([
+                    'email' => $validated['email'],
+                    'first_name' => $validated['first_name'],
+                    'last_name' => $validated['last_name'],
+                    'phone' => $validated['phone']
+                ]);
+                $userId = $user->id;
+            }
+
             // Calculate commission amount if rate is provided and amount is not explicitly set
             $commissionAmount = $validated['commission_amount'] ?? null;
             if (isset($validated['commission_rate']) && $validated['total_price'] && !$commissionAmount) {
@@ -252,6 +277,7 @@ class AdminBookingController extends Controller
             // Create the booking
             $booking = Booking::create([
                 'property_id' => $property->id,
+                'user_id' => $userId, // Add user_id relationship
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
                 'email' => $validated['email'],
@@ -276,6 +302,7 @@ class AdminBookingController extends Controller
             Log::info('Admin booking created', [
                 'booking_id' => $booking->id,
                 'property_id' => $property->id,
+                'user_id' => $userId,
                 'admin_user_id' => auth()->id() ?? null,
                 'guest_email' => $booking->email,
                 'dates' => $checkInDate->format('Y-m-d') . ' to ' . $checkOutDate->format('Y-m-d'),
@@ -433,5 +460,42 @@ class AdminBookingController extends Controller
             'total_revenue' => (clone $query)->where('status', 'confirmed')->sum('total_price'),
             'commission_owed' => (clone $query)->where('status', 'confirmed')->where('commission_paid', false)->sum('commission_amount'),
         ];
+    }
+
+    // Helpers
+    /**
+     * Create or find user based on email and guest information.
+     * 
+     * @param array $guestData
+     * @return \App\Models\User
+     */
+    private function createOrFindUser(array $guestData): \App\Models\User
+    {
+        // First try to find existing user by email
+        $user = \App\Models\User::where('email', $guestData['email'])->first();
+        
+        // Return existing user if found
+        if ($user) {
+            return $user;
+        }
+        
+        $fullName = trim(($guestData['first_name'] ?? '') . ' ' . ($guestData['last_name'] ?? ''));
+        // Create new user if doesn't exist
+        $user = \App\Models\User::create([
+            'name' => $fullName ?: 'Guest',
+            'email' => $guestData['email'],
+            'phone' => $guestData['phone'] ?? null,
+            'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)), // Random password
+            'email_verified_at' => null, // User needs to verify email
+            'role' => 'guest', // Default role for booking users
+        ]);
+        
+        Log::info('New user created from booking', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'created_by_admin' => auth()->id()
+        ]);
+        
+        return $user;
     }
 }
