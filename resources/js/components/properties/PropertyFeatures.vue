@@ -252,7 +252,12 @@ onMounted(() => {
                             class="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 flex items-center justify-between border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                         >
                             <div class="flex items-center space-x-3">
-                                <span class="text-lg">{{ feature.icon || '🏠' }}</span>
+                                <div></div>
+                                <div
+                                    v-if="feature.icon"
+                                    class="flex-shrink-0 w-5 h-5 text-gray-400 dark:text-gray-500"
+                                    v-html="feature.icon"
+                                />
                                 <div>
                                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ feature.name }}</div>
                                     <div class="text-xs text-gray-500 dark:text-gray-400">{{ formatCategoryName(feature.category) }}</div>
@@ -292,7 +297,11 @@ onMounted(() => {
                         >
                             <!-- Feature Info -->
                             <div class="flex items-center space-x-3 flex-1">
-                                <span class="text-lg">{{ feature.icon || '🏠' }}</span>
+                                <div
+                                    v-if="feature.icon"
+                                    class="flex-shrink-0 w-5 h-5 text-gray-400 dark:text-gray-500"
+                                    v-html="feature.icon"
+                                />
                                 <div>
                                     <div class="font-medium text-gray-900 dark:text-gray-100">{{ feature.name }}</div>
                                     <span :class="['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium', getCategoryColor(feature.category)]">
@@ -388,7 +397,11 @@ onMounted(() => {
                         class="group flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                     >
                         <div class="flex items-center space-x-3 flex-1">
-                            <span class="text-lg">{{ feature.icon || '🏠' }}</span>
+                            <div
+                                v-if="feature.icon"
+                                class="flex-shrink-0 w-5 h-5 text-gray-400 dark:text-gray-500"
+                                v-html="feature.icon"
+                            />
                             <div>
                                 <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center space-x-2">
                                     <span>{{ feature.name }}</span>
