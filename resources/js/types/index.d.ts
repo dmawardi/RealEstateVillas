@@ -17,6 +17,13 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface SEO {
+    title: string;
+    description: string;
+    keywords: string;
+    canonicalUrl: string;
+}
+
 export type AppPageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     name: string;
     quote: { message: string; author: string };

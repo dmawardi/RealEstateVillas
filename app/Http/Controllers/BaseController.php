@@ -36,15 +36,96 @@ class BaseController extends Controller
             Cache::put('properties:featured_premium', $all, 60);
         }
 
-        $featured = $all->where('is_featured', true)->values()->toArray();
-        $premium  = $all->where('is_premium', true)->values()->toArray();
+        $featured = $all->where('is_featured', true)->values();
+        $premium  = $all->where('is_premium', true)->values();
+
+        // Dynamic SEO based on current data
+        $seoData = [
+            'title' => $this->generateHomeTitle($featured->count()),
+            'description' => $this->generateHomeDescription($featured, $premium),
+            'keywords' => $this->generateHomeKeywords(),
+            'canonicalUrl' => url('/'),
+            'ogImage' => $this->selectBestOgImage($featured),
+        ];
 
         return Inertia::render('Welcome', [
-            'featured' => $featured,
-            'premium' => $premium,
+            'featured' => $featured->toArray(),
+            'premium' => $premium->toArray(),
             'businessPhone' => config('app.business_phone'),
             'businessEmail' => config('app.business_email'),
+            'seoData' => $seoData,
         ]);
+    }
+
+    private function generateHomeTitle(int $featuredCount): string
+    {
+        $base = 'Bali Villa Rentals & Land Sales';
+        if ($featuredCount > 0) {
+            return "{$base} | {$featuredCount}+ Premium Properties Available";
+        }
+        return "{$base} | Partner Villas & Investment Land in Bali";
+    }
+
+    private function generateHomeDescription($featured, $premium): string
+    {
+        $locations = $featured->pluck('district')->unique()->take(3)->implode(', ');
+        $totalCount = $featured->count() + $premium->count();
+        
+        $villaCount = $featured->where('property_type', 'villa')->count() + $premium->where('property_type', 'villa')->count();
+        $landCount = $featured->where('property_type', 'land')->count() + $premium->where('property_type', 'land')->count();
+        
+        $description = "Discover {$totalCount}+ handpicked properties in {$locations}. ";
+        
+        if ($villaCount > 0) {
+            $description .= "Rent luxury villas from our trusted partners. ";
+        }
+        
+        if ($landCount > 0) {
+            $description .= "Buy premium land for investment. ";
+        }
+        
+        $description .= "Commission-based service with expert local knowledge and full support.";
+        
+        return $description;
+    }
+
+    private function generateHomeKeywords(): string
+    {
+        return 'bali villa rental, bali land for sale, villa rental commission, ' .
+            'bali property investment, canggu villa rental, seminyak villa, ' .
+            'ubud land sale, bali property partner, villa booking bali, ' .
+            'land investment bali, bali real estate agent';
+    }
+
+    private function selectBestOgImage($featured): string
+    {
+        // Look for the best villa image first (most attractive for social sharing)
+        $bestProperty = $featured->where('property_type', 'villa')
+                                ->sortByDesc('view_count')
+                                ->first();
+        
+        // If no villas, try any property with good images
+        if (!$bestProperty) {
+            $bestProperty = $featured->sortByDesc('view_count')->first();
+        }
+        
+        if ($bestProperty && $bestProperty->attachments) {
+            // Find the first image type attachment
+            $imageAttachment = collect($bestProperty->attachments)
+                ->firstWhere('type', 'image');
+                
+            if ($imageAttachment) {
+                return asset($imageAttachment->file_path);
+            }
+            
+            // Fallback to first attachment if no specific image type
+            $firstAttachment = collect($bestProperty->attachments)->first();
+            if ($firstAttachment) {
+                return asset($firstAttachment->file_path);
+            }
+        }
+        
+        return asset('images/og-homepage.jpg');
     }
 
     /**

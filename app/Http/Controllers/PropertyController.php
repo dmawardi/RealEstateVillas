@@ -386,4 +386,92 @@ class PropertyController extends Controller
     // If JSON response needed, wrap it:
     // return response()->json($locations);
     }
+
+    // Add a new method for generating property-specific SEO
+    private function generatePropertySEO($property, $currentPricing = null): array
+    {
+        $isRental = $property->listing_type === 'for_rent';
+        $isLand = $property->property_type === 'land';
+        
+        // Generate title based on property type and listing type
+        if ($isLand) {
+            $title = "{$property->title} - Premium Land for Sale in {$property->district}";
+            if ($currentPricing) {
+                $title .= " | " . number_format($currentPricing->price / 1000000000, 1) . "B IDR";
+            }
+        } else {
+            $bedrooms = $property->bedrooms ? "{$property->bedrooms}BR " : "";
+            $action = $isRental ? "Villa Rental" : "Villa for Sale";
+            $title = "{$property->title} - {$bedrooms}{$action} in {$property->district}";
+            
+            if ($currentPricing && $isRental) {
+                $monthlyPrice = number_format($currentPricing->price / 1000000, 1);
+                $title .= " | {$monthlyPrice}M IDR/month";
+            }
+        }
+        
+        // Generate description
+        if ($isLand) {
+            $description = "Premium {$property->land_size}m² land for sale in {$property->district}, {$property->regency}. ";
+            $description .= "Investment opportunity with our commission-based service. ";
+            $description .= "Expert guidance for foreign investors in Bali property market.";
+        } else {
+            $features = [];
+            if ($property->bedrooms) $features[] = "{$property->bedrooms} bedrooms";
+            if ($property->bathrooms) $features[] = "{$property->bathrooms} bathrooms";
+            if ($property->land_size) $features[] = "{$property->land_size}m² land";
+            
+            $featureText = implode(', ', $features);
+            
+            if ($isRental) {
+                $description = "Rent {$property->title} - luxury villa with {$featureText} in {$property->district}. ";
+                $description .= "Partner villa with full booking support and local management. ";
+                $description .= "Secure reservation with our commission-based rental service.";
+            } else {
+                $description = "Buy {$property->title} - {$featureText} in {$property->district}. ";
+                $description .= "Investment property with our expert sales guidance. ";
+                $description .= "Commission-based service for international buyers.";
+            }
+        }
+        
+        // Generate keywords
+        $keywords = [
+            $property->property_type . ' ' . ($isRental ? 'rental' : 'sale'),
+            $property->district . ' ' . $property->property_type,
+            'bali ' . $property->property_type,
+            $property->regency . ' property'
+        ];
+        
+        if ($isRental) {
+            $keywords[] = 'villa booking bali';
+            $keywords[] = 'bali villa rental commission';
+        } else {
+            $keywords[] = 'bali property investment';
+            $keywords[] = 'buy property bali foreigner';
+        }
+        
+        if ($isLand) {
+            $keywords[] = 'bali land investment';
+            $keywords[] = 'land for sale bali';
+        }
+        
+        // Select best OG image
+        $ogImage = asset('images/og-default.jpg');
+        if ($property->attachments) {
+            $imageAttachment = collect($property->attachments)
+                ->firstWhere('type', 'image');
+                
+            if ($imageAttachment) {
+                $ogImage = asset($imageAttachment->file_path);
+            }
+        }
+        
+        return [
+            'title' => $title,
+            'description' => $description,
+            'keywords' => implode(', ', $keywords),
+            'canonicalUrl' => url("/properties/{$property->slug}"),
+            'ogImage' => $ogImage,
+        ];
+    }
  }
