@@ -552,6 +552,38 @@ class AdminBookingController extends Controller
     }
 
     /**
+     * Remove the specified booking from storage.
+     *
+     * @param Booking $booking
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(Booking $booking)
+    {
+        try {
+            $booking->delete();
+
+            Log::info('Admin booking deleted', [
+                'booking_id' => $booking->id,
+                'admin_user_id' => auth()->id() ?? null,
+                'guest_email' => $booking->email,
+            ]);
+
+            return redirect()->route('admin.bookings.index')
+                ->with('success', 'Booking deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error('Admin booking deletion failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+                'admin_user_id' => auth()->id() ?? null,
+                'guest_email' => $booking->email,
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->withErrors(['error' => 'Failed to delete booking: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Get booking status options from migration enum.
      * 
      * @return array
