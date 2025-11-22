@@ -54,10 +54,14 @@ const formatPropertyType = (type: string): string => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
+const formatListingType = (type: string) => {
+    return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
 // Helper function to truncate property description
 const truncateDescription = (text: string, length: number = 150): string => {
     if (text.length <= length) return text;
     return text.substring(0, length) + '...';
 };
 
-export { formatCurrency, formatPrice, formatDate, formatDateForInput, formatPaginationLabel, formatPropertyType, truncateDescription };
+export { formatCurrency, formatPrice, formatListingType, formatDate, formatDateForInput, formatPaginationLabel, formatPropertyType, truncateDescription };

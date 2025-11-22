@@ -34,9 +34,7 @@ Route::post('/email/verification-notification', function (Request $request) {
 // Logged in routes
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
-    Route::get('dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [BaseController::class, 'dashboard'])->name('dashboard');
     
     // Create Booking Request
     Route::post('properties/{property}/bookings', [BookingController::class, 'store'])->name('properties.bookings.store');

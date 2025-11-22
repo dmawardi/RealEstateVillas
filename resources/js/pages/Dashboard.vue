@@ -1,8 +1,26 @@
+<!-- resources/js/pages/Dashboard.vue -->
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+import DashboardStats from '@/components/dashboard/DashboardStats.vue';
+import TopProperties from '@/components/dashboard/TopProperties.vue';
+import BookingsDashboard from '@/components/dashboard/BookingsDashboard.vue';
+
+interface Props {
+    stats: {
+        total_properties: number;
+        active_bookings: number;
+        pending_bookings: number;
+        monthly_revenue: number;
+        properties_needing_pricing: Array<any>;
+        recent_bookings: Array<any>;
+    };
+    topProperties: Array<any>;
+    recentBookings: Array<any>;
+}
+
+const { stats, topProperties, recentBookings } = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -16,20 +34,19 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
+        <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4 overflow-x-auto">
+            <!-- Dashboard Statistics -->
+            <DashboardStats :stats="stats" />
+            
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <!-- Top Properties -->
+                <TopProperties :properties="topProperties" />
+                
+                <!-- Bookings Dashboard -->
+                <div class="xl:col-span-1">
+                    <BookingsDashboard :bookings="recentBookings" />
                 </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-            </div>
-            <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                <PlaceholderPattern />
             </div>
         </div>
     </AppLayout>
