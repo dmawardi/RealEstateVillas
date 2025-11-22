@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { Booking } from '@/types';
+import { formatDate, getStatusClass, getStatusIcon } from '@/utils';
 
 interface Props {
     bookings: Booking[];
@@ -26,40 +27,7 @@ const pastBookings = computed(() =>
     bookingsList.value.filter(booking => booking.status === 'withdrawn' || booking.status === 'cancelled' || booking.status === 'completed')
 );
 
-// Status styling
-const getStatusClass = (status: string) => {
-    const statusClasses = {
-        'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-        'confirmed': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-        'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-        'withdrawn': 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
-        'completed': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-        'blocked': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
-    };
-    return statusClasses[status as keyof typeof statusClasses] || 'bg-gray-100 text-gray-800';
-};
-
-const getStatusIcon = (status: string) => {
-    const icons = {
-        'pending': '⏳',
-        'confirmed': '✅',
-        'cancelled': '❌',
-        'withdrawn': '↩️',
-        'completed': '🏁',
-        'blocked': '🚫',
-    };
-    return icons[status as keyof typeof icons] || '📋';
-};
-
 // Format dates
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-};
-
 const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -195,7 +163,7 @@ const getDaysUntilCheckIn = (checkInDate: string) => {
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
                             <div>
                                 <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Check-in</h4>
-                                <p class="text-sm text-gray-900 dark:text-gray-100">{{ formatDate(booking.check_in_date) }}</p>
+                                <p class="text-sm text-gray-900 dark:text-gray-100">{{ formatDate(new Date(booking.check_in_date)) }}</p>
                                 <p v-if="getDaysUntilCheckIn(booking.check_in_date) > 0" class="text-xs text-blue-600 dark:text-blue-400">
                                     {{ getDaysUntilCheckIn(booking.check_in_date) }} days away
                                 </p>
@@ -203,7 +171,7 @@ const getDaysUntilCheckIn = (checkInDate: string) => {
                             
                             <div>
                                 <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Check-out</h4>
-                                <p class="text-sm text-gray-900 dark:text-gray-100">{{ formatDate(booking.check_out_date) }}</p>
+                                <p class="text-sm text-gray-900 dark:text-gray-100">{{ formatDate(new Date(booking.check_out_date)) }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     {{ calculateNights(booking.check_in_date, booking.check_out_date) }} nights
                                 </p>
@@ -284,7 +252,7 @@ const getDaysUntilCheckIn = (checkInDate: string) => {
                                     {{ booking.property.title }}
                                 </h3>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    {{ formatDate(booking.check_in_date) }} - {{ formatDate(booking.check_out_date) }} • 
+                                    {{ formatDate(new Date(booking.check_in_date)) }} - {{ formatDate(new Date(booking.check_out_date)) }} • 
                                     {{ calculateNights(booking.check_in_date, booking.check_out_date) }} nights
                                 </p>
                             </div>

@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { computed } from 'vue';
 import { Booking } from '@/types';
-import { formatCurrency, formatDate } from '@/utils';
+import { formatCurrency, formatDate, getSourceClass, getStatusClass } from '@/utils';
 import { bookingTypeLabels, sourceLabels, statusLabels } from '@/utils/labels';
 
 interface Props {
@@ -39,32 +39,6 @@ const isActive = computed(() => {
     const checkOut = new Date(booking.check_out_date);
     return today >= checkIn && today < checkOut;
 });
-
-// Status styling
-const getStatusClass = (status: string) => {
-    const classes = {
-        pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-        confirmed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-        cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-        completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-        blocked: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-        withdrawn: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    };
-    return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-};
-
-const getSourceClass = (source: string) => {
-    const classes = {
-        direct: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-        airbnb: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-        booking_com: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-        agoda: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-        owner_blocked: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-        maintenance: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-        other: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    };
-    return classes[source as keyof typeof classes] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-};
 
 // Action handlers
 const sendEmail = (email: string) => {
