@@ -21,28 +21,45 @@ const { featured, premium, businessEmail, businessPhone, seoData } = defineProps
 
 <template>
     <Head>
-        <title>{{ seoData?.title || 'Premium Real Estate Properties in Bali | Your Company' }}</title>
-        <meta name="description" :content="seoData?.description || 'Discover luxury villas, apartments and investment properties in Bali. Expert real estate services with comprehensive property management.'" />
-        <meta name="keywords" :content="seoData?.keywords || 'bali real estate, property investment, villa rental, apartment bali, property management'" />
+        <title>{{ seoData?.title || 'Bali Villa Rentals & Land Sales | BaliVillaSpot' }}</title>
+        <meta name="description" :content="seoData?.description || 'Discover luxury villas and premium land for sale in Bali. Commission-based rentals from trusted partners with expert local support.'" />
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="author" content="BaliVillaSpot" />
+        <meta name="generator" content="Laravel + Vue.js" />
         
-        <!-- Open Graph -->
-        <meta property="og:title" :content="seoData?.title || 'Premium Real Estate Properties in Bali'" />
-        <meta property="og:description" :content="seoData?.description || 'Discover luxury properties in Bali'" />
+        <!-- Geo-targeting for Bali -->
+        <meta name="geo.region" content="ID-BA" />
+        <meta name="geo.placename" content="Bali, Indonesia" />
+        <meta name="geo.position" content="-8.409518;115.188919" />
+        <meta name="ICBM" content="-8.409518, 115.188919" />
+        
+        <!-- Language and locale -->
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:locale:alternate" content="id_ID" />
+        
+        <!-- Enhanced Open Graph -->
+        <meta property="og:title" :content="seoData?.title || 'Bali Villa Rentals & Land Sales'" />
+        <meta property="og:description" :content="seoData?.description || 'Discover luxury villas and premium land'" />
         <meta property="og:type" content="website" />
         <meta property="og:url" :content="seoData?.canonicalUrl || 'https://balivillaspot.com'" />
-        <meta property="og:image" content="https://balivillaspot.com/images/og-homepage.jpg" />
-        <meta property="og:site_name" content="Your Real Estate Company" />
+        <meta property="og:image" :content="seoData?.ogImage || 'https://balivillaspot.com/images/logo/og-homepage.jpg'" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:site_name" content="BaliVillaSpot" />
         
-        <!-- Twitter Cards -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" :content="seoData?.title" />
-        <meta name="twitter:description" :content="seoData?.description" />
-        <meta name="twitter:image" content="https://balivillaspot.com/images/twitter-homepage.jpg" />
+        <!-- Business/Organization markup -->
+        <meta property="business:contact_data:street_address" content="Bali, Indonesia" />
+        <meta property="business:contact_data:locality" content="Bali" />
+        <meta property="business:contact_data:region" content="Bali" />
+        <meta property="business:contact_data:postal_code" content="" />
+        <meta property="business:contact_data:country_name" content="Indonesia" />
         
         <!-- Technical SEO -->
         <link rel="canonical" :href="seoData?.canonicalUrl || 'https://balivillaspot.com'" />
-        <meta name="robots" content="index, follow, max-image-preview:large" />
-        </Head>
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    </Head>
     <BaseLayout>
             <SearchHeader />
             <PropertyShowcase :featured="featured" :premium="premium" />

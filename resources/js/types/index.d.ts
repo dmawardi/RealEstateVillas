@@ -22,6 +22,7 @@ export interface SEO {
     description: string;
     keywords: string;
     canonicalUrl: string;
+    ogImage?: string;
 }
 
 export type AppPageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {

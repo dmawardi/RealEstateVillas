@@ -63,7 +63,7 @@ class BaseController extends Controller
         if ($featuredCount > 0) {
             return "{$base} | {$featuredCount}+ Premium Properties Available";
         }
-        return "{$base} | Partner Villas & Investment Land in Bali";
+        return "{$base} | Villas & Investment Land in Bali";
     }
 
     private function generateHomeDescription($featured, $premium): string
@@ -115,16 +115,14 @@ class BaseController extends Controller
                 ->firstWhere('type', 'image');
                 
             if ($imageAttachment) {
-                return asset($imageAttachment->file_path);
+                return asset($imageAttachment->path);
             }
-            
             // Fallback to first attachment if no specific image type
             $firstAttachment = collect($bestProperty->attachments)->first();
             if ($firstAttachment) {
                 return asset($firstAttachment->file_path);
             }
         }
-        
         return asset('images/og-homepage.jpg');
     }
 
