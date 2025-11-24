@@ -135,22 +135,42 @@ class BaseController extends Controller
         $cacheKey = 'dashboard_data_' . now()->format('Y-m-d-H');
         $cacheDuration = 60 * 60; // 1 hour
 
-        $dashboardData = Cache::remember($cacheKey, $cacheDuration, function () {
-                // Get dashboard statistics
-                $stats = $this->getDashboardStats();
-                
-                // Get top properties by view count
-                $topProperties = $this->getTopProperties();
-                
-                // Get recent bookings for dashboard
-                $recentBookings = $this->getRecentBookings();
-                return [
-                    'stats' => $stats,
-                    'topProperties' => $topProperties,
-                    'recentBookings' => $recentBookings
-                ];
-        });
-        return Inertia::render('Dashboard', $dashboardData);
+        if (auth()->user()->role === 'admin') {
+            $dashboardData = Cache::remember($cacheKey, $cacheDuration, function () {
+                    // Get dashboard statistics
+                    $stats = $this->getDashboardStats();
+                    
+                    // Get top properties by view count
+                    $topProperties = $this->getTopProperties();
+                    
+                    // Get recent bookings for dashboard
+                    $recentBookings = $this->getRecentBookings();
+                    return [
+                        'stats' => $stats,
+                        'topProperties' => $topProperties,
+                        'recentBookings' => $recentBookings
+                    ];
+            });
+            return Inertia::render('Dashboard', [...$dashboardData, 
+                'seoData' => [
+                    'title' => 'Admin Dashboard',
+                    'description' => 'Comprehensive overview of property and booking analytics.',
+                    'keywords' => 'admin dashboard, property analytics, booking statistics',
+                    'canonicalUrl' => url('/dashboard'),
+                    'ogImage' => asset('images/logo/Logo.png'),
+                ],
+            ]);
+        }
+        // Regular user dashboard
+        return Inertia::render('Dashboard', [
+            'seoData' => [
+                'title' => 'User Dashboard',
+                'description' => 'Overview of your account and activities.',
+                'keywords' => 'user dashboard, account overview',
+                'canonicalUrl' => url('/dashboard'),
+                'ogImage' => asset('images/logo/Logo.png'),
+            ],
+        ]);
     }
 
     /**

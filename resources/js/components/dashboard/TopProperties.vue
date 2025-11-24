@@ -1,24 +1,11 @@
 <script setup lang="ts">
+import { Property } from '@/types';
 import { formatCurrency, formatListingType, formatPropertyType } from '@/utils';
 import { Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
-interface Property {
-    id: number;
-    title: string;
-    property_id: string;
-    view_count: number;
-    district: string;
-    regency: string;
-    listing_type: string;
-    price: number;
-    bedrooms?: number;
-    bathrooms?: number;
-    property_type: string;
-}
-
 interface Props {
-    properties: Property[];
+    properties?: Property[];
 }
 
 const { properties } = defineProps<Props>();
@@ -27,7 +14,7 @@ const sortBy = ref<'views' | 'price'>('views');
 const filterType = ref<string>('all');
 
 const propertyTypes = computed(() => {
-    const types = [...new Set(properties.map(p => p.property_type))];
+    const types = [...new Set(properties?.map(p => p.property_type) ?? [])];
     return types;
 });
 
@@ -35,14 +22,14 @@ const filteredAndSortedProperties = computed(() => {
     let filtered = properties;
     
     if (filterType.value !== 'all') {
-        filtered = properties.filter(p => p.property_type === filterType.value);
+        filtered = properties?.filter(p => p.property_type === filterType.value);
     }
     
-    return filtered.sort((a, b) => {
+    return filtered?.sort((a, b) => {
         if (sortBy.value === 'views') {
             return b.view_count - a.view_count;
         } else {
-            return b.price - a.price;
+            return (b.price ?? 0) - (a.price ?? 0);
         }
     }).slice(0, 10);
 });
@@ -123,7 +110,7 @@ const getListingTypeBadge = (type: string) => {
                 <!-- Stats -->
                 <div class="flex items-center space-x-6 text-sm">
                     <div class="text-right">
-                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ formatCurrency(property.price) }}</div>
+                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ formatCurrency(property.price ?? 0) }}</div>
                         <div class="text-gray-500 dark:text-gray-400">{{ property.view_count }} views</div>
                     </div>
                     <Link 
