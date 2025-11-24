@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import BaseLayout from '@/layouts/BaseLayout.vue';
-import type { BreadcrumbItemType, PaginatedProperties, PropertyFilters } from '@/types';
+import type { BreadcrumbItemType, PaginatedProperties, PropertyFilters, SEO } from '@/types';
 // import PropertyFilterCard from '@/components/properties/PropertyFilterCard.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import PropertyCard from '@/components/properties/PropertyCard.vue';
 import CompactSearchHeader from '@/components/ui/navigation/CompactSearchHeader.vue';
+import SEOHead from '@/components/SEOHead.vue';
 
 interface Props {
     properties: PaginatedProperties;
     filters?: PropertyFilters;
+    seoData?: SEO
 }
 
-const { properties, filters } = defineProps<Props>();
+const { properties, filters, seoData } = defineProps<Props>();
 
 // Generate breadcrumbs
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -46,7 +48,7 @@ const getCleanLabel = (label: string): string => {
 </script>
 
 <template>
-    <Head title="Properties - Browse All Listings" />
+    <SEOHead v-if="seoData" :seoData="seoData" />
     
     <BaseLayout :breadcrumbs="breadcrumbs">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -76,7 +78,7 @@ const getCleanLabel = (label: string): string => {
             <CompactSearchHeader :initialFilters="filters" routeURL="/properties" :useTextSearch="false" />
 
             <!-- Properties Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 mt-6">
                 <PropertyCard 
                     v-for="property in properties.data" 
                     :key="property.id" 

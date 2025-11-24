@@ -7,10 +7,10 @@ import PropertyHeader from '@/components/properties/PropertyHeader.vue';
 import PropertyImages from '@/components/properties/PropertyImages.vue';
 import PropertyInfoBar from '@/components/properties/PropertyInfoBar.vue';
 import PropertyKeyStats from '@/components/properties/PropertyKeyStats.vue';
+import SEOHead from '@/components/SEOHead.vue';
 import StaticMap from '@/components/ui/map/StaticMap.vue';
 import BaseLayout from '@/layouts/BaseLayout.vue';
-import type { BreadcrumbItemType, Property, PropertyPricing } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import type { BreadcrumbItemType, Property, PropertyPricing, SEO } from '@/types';
 
 interface Props {
     property: Property;
@@ -18,9 +18,10 @@ interface Props {
     map_api_key: string;
     businessPhone: string;
     businessEmail: string;
+    seoData?: SEO;
 }
 
-const { property, current_pricing, map_api_key, businessPhone, businessEmail } = defineProps<Props>();
+const { property, current_pricing, map_api_key, businessPhone, businessEmail, seoData } = defineProps<Props>();
 
 // Generate breadcrumbs with actual property data
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -36,7 +37,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
 </script>
 
 <template>
-    <Head :title="`${property.title} - Property Details`" />
+    <SEOHead v-if="seoData" :seoData="seoData" />
     <BaseLayout :breadcrumbs="breadcrumbs">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <!-- Property Header -->
