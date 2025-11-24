@@ -22,11 +22,66 @@ class BookingController extends Controller
 
     public function index(Request $request)
     {
-        $bookings = Booking::where('user_id', $request->user()->id)->with('property')->get();
+        // Build query with user's bookings
+        $query = Booking::where('user_id', $request->user()->id)
+            ->with(['property:id,title,slug,district,regency', 'property.attachments' => function($query) {
+                $query->where('type', 'image')->orderBy('order', 'asc')->limit(1);
+            }]);
+
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('source')) {
+            $query->where('source', $request->source);
+        }
+
+        if ($request->filled('booking_type')) {
+            $query->where('booking_type', $request->booking_type);
+        }
+
+        // Date range filters
+        if ($request->filled('date_from')) {
+            $query->where('check_in_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('check_out_date', '<=', $request->date_to);
+        }
+
+        // Search by property name or guest name
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('property', function($propertyQuery) use ($search) {
+                      $propertyQuery->where('title', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Sort by most recent first
+        $bookings = $query->orderBy('created_at', 'desc')
+            ->paginate(12)
+            ->withQueryString();
+
+        // Generate SEO data
+        $seoData = [
+            'title' => 'My Bookings',
+            'description' => 'Manage and view your property bookings.',
+            'keywords' => 'bookings, property bookings, my bookings',
+            'canonicalUrl' => route('my.bookings'),
+            'ogImage' => asset('images/logo/Logo.png'),
+        ];
 
         return Inertia::render('bookings/Index', [
-                'bookings' => $bookings,
-            ]);
+            'bookings' => $bookings,
+            'filters' => $request->all(),
+            'seoData' => $seoData,
+        ]);
     }
 
     /**
