@@ -702,7 +702,7 @@ class AdminBookingController extends Controller
             'phone' => $guestData['phone'] ?? null,
             'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)), // Random password
             'email_verified_at' => null, // User needs to verify email
-            'role' => 'guest', // Default role for booking users
+            'role' => 'user', // Default role for booking users
         ]);
         
         Log::info('New user created from booking', [
