@@ -16,7 +16,7 @@ const closeMobileMenu = () => {
 </script>
 
 <template>
-    <nav class="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md dark:bg-background/80 border-b border-border/20">
+    <nav class="sticky top-0 z-50 w-full bg-background backdrop-blur-md dark:bg-background/80 border-b border-border/20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo Section -->
