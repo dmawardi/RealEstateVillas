@@ -92,129 +92,190 @@ const clearAllLocations = () => {
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-800 shadow container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+    <div class="bg-gradient-to-r from-primary/90 to-primary shadow-lg container mx-auto w-full relative overflow-hidden"
+         style="background-image: url('/images/headers/header_image.jpeg'); background-size: cover; background-position: center;">
+        
+        <!-- Overlay for better text readability -->
+        <div class="absolute inset-0 bg-primary/60 backdrop-blur-sm"></div>
+        
         <!-- Search Section -->
-        <div class="mx-auto bg-blue-300 w-full h-80 flex flex-col items-center justify-center rounded-md shadow-md mt-4">
-            <!-- Rent/Buy Toggle Bar - positioned above search bar -->
-            <div>
-                <div class="flex bg-gray-100 dark:bg-gray-700 rounded-t-lg p-1">
-                    <button
-                        @click="selectMode('for_rent')"
-                        :class="[
-                            'px-2 md:px-6 py-2 text-sm font-medium transition-all duration-200',
-                            form.mode === 'for_rent' 
-                                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm rounded-t-md' 
-                                : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 rounded-t-md'
-                        ]"
-                    >
-                        Rent
-                    </button>
-                    <button
-                        @click="selectMode('for_sale')"
-                        :class="[
-                            'px-2 md:px-6 py-2 text-sm font-medium transition-all duration-200',
-                            form.mode === 'for_sale' 
-                                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm rounded-t-md' 
-                                : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 rounded-t-md'
-                        ]"
-                    >
-                        Buy
-                    </button>
-                </div>
+        <div class="relative z-10 mx-auto w-full h-80 flex flex-col items-center justify-center px-4">
+            
+            <!-- Hero Text -->
+            <div class="text-center mb-8">
+                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+                    Find Your Perfect Villa
+                </h1>
+                <p class="font-body text-lg md:text-xl text-base/90 max-w-2xl">
+                    Discover rentals and premium land investments in beautiful Bali
+                </p>
             </div>
 
-            <!-- Search bar -->
-            <div
-                :class="[
-                    'bg-white flex flex-col md:flex-row md:items-center md:justify-between w-11/12 px-4 py-2 shadow-md space-y-2 md:space-y-0 md:space-x-2',
-                    form.locationFilter.length ? 'rounded-t-md' : 'rounded-md'
-                ]"
-            >
-                <div class="flex items-center w-full space-x-1">
-                    <SearchIcon />
-                    <LocationAutocomplete v-model="form.locationFilter" class="flex-grow" />
+            <!-- Search Container -->
+            <div class="w-full max-w-4xl">
+                <!-- Rent/Buy Toggle Bar -->
+                <div class="flex justify-center mb-1">
+                    <div class="flex bg-white/20 backdrop-blur-md rounded-t-xl p-1 border border-secondary/30">
+                        <button
+                            @click="selectMode('for_rent')"
+                            :class="[
+                                'px-4 md:px-8 py-3 text-sm md:text-base font-medium font-display transition-all duration-300',
+                                form.mode === 'for_rent' 
+                                ? 'bg-white shadow-lg rounded-lg transform scale-105' 
+                                : 'text-white hover:text-base hover:bg-white/10 rounded-lg'
+                            ]"
+                        >
+                            <span :class="['flex items-center gap-2', form.mode === 'for_rent' ? 'text-black' : 'text-white']">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                                Rent Villas
+                            </span>
+                        </button>
+                        <button
+                            @click="selectMode('for_sale')"
+                            :class="[
+                                'px-4 md:px-8 py-3 text-sm md:text-base font-medium font-display transition-all duration-300',
+                                form.mode === 'for_sale' 
+                                ? 'bg-white text-primary shadow-lg rounded-lg transform scale-105' 
+                                : 'text-white hover:text-base hover:bg-white/10 rounded-lg'
+                            ]"
+                        >
+                            <span :class="['flex items-center gap-2', form.mode === 'for_sale' ? 'text-primary' : 'text-white']">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Buy Land
+                            </span>
+                        </button>
+                    </div>
                 </div>
-                <!-- Action buttons -->
-                <div class="flex space-x-2 md:flex-shrink-0 justify-end">
-                    <button
-                        @click="modalOpen = true"
-                        class="bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        Filters
-                    </button>
-                    <button
-                        @click="handleSearch"
-                        class="bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        Search
-                    </button>
+
+                <!-- Main Search Bar -->
+                <div :class="[
+                    'bg-white/95 backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-between w-full px-6 py-4 shadow-xl border border-secondary/20 space-y-4 md:space-y-0 md:space-x-4',
+                    form.locationFilter.length ? 'rounded-t-xl' : 'rounded-xl'
+                ]">
+                    <div class="flex items-center w-full space-x-3">
+                        <SearchIcon class="text-primary/70" />
+                        <LocationAutocomplete 
+                            v-model="form.locationFilter" 
+                            class="flex-grow"
+                            :class="'border-none focus:ring-2 focus:ring-accent/50 bg-transparent text-primary font-body placeholder:text-primary/50'"
+                        />
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 md:flex-shrink-0 justify-end">
+                        <button
+                            @click="modalOpen = true"
+                            class="group bg-secondary hover:bg-secondary-600 text-white px-6 py-3 rounded-lg font-display font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-secondary/50"
+                        >
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                                </svg>
+                                Filters
+                            </span>
+                        </button>
+                        <button
+                            @click="handleSearch"
+                            class="group bg-accent hover:bg-accent-600 text-white px-8 py-3 rounded-lg font-display font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-accent/50"
+                        >
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                Search Properties
+                            </span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="bg-white w-2/3 rounded-b-md">
-                <LocationTagDisplay :locations="form.locationFilter"
-                @remove="removeLocationFromFilter" 
-                @clear-all="clearAllLocations" />
+
+                <!-- Location Tags -->
+                <div v-if="form.locationFilter.length" class="bg-white/95 backdrop-blur-md w-full rounded-b-xl border-t-0 border border-secondary/20 shadow-xl">
+                    <LocationTagDisplay 
+                        :locations="form.locationFilter"
+                        @remove="removeLocationFromFilter" 
+                        @clear-all="clearAllLocations"
+                        :class="'p-4'"
+                    />
+                </div>
             </div>
         </div>
-        <Modal v-model:open="modalOpen" title="Filters" closable @close="modalOpen = false" size="lg">
-             <!-- Modal content -->
-            <div class="space-y-4">
-                <!-- Date filter -->
-                 <BookingDateFilter v-model="form.dateFilter" />
-                <!-- Type Filter -->
+    </div>
+
+    <!-- Enhanced Modal with Brand Colors -->
+    <Modal v-model:open="modalOpen" title="Refine Your Search" closable @close="modalOpen = false" size="lg">
+        <!-- Modal content with brand styling -->
+        <div class="space-y-6">
+            <!-- Date Filter -->
+            <div class="bg-base/50 rounded-xl p-4 border border-secondary/20">
+                <h3 class="font-display text-lg font-semibold text-primary mb-3">Travel Dates</h3>
+                <BookingDateFilter v-model="form.dateFilter" />
+            </div>
+
+            <!-- Property Type Filter -->
+            <div class="bg-base/50 rounded-xl p-4 border border-secondary/20">
+                <h3 class="font-display text-lg font-semibold text-primary mb-3">Property Type</h3>
                 <PropertyTypeFilter v-model="form.propertyTypes" />
+            </div>
 
-                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
-
-                <!-- Price Filter -->
+            <!-- Price Filter -->
+            <div class="bg-base/50 rounded-xl p-4 border border-secondary/20">
+                <h3 class="font-display text-lg font-semibold text-primary mb-3">Price Range</h3>
                 <PriceFilter v-model="form.priceFilter" />
+            </div>
 
-                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
+            <!-- Property Details -->
+            <div class="bg-base/50 rounded-xl p-4 border border-secondary/20">
+                <h3 class="font-display text-lg font-semibold text-primary mb-3">Property Details</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Bedrooms -->
+                    <div>
+                        <label class="block text-sm font-medium font-body text-primary/80 mb-2">Bedrooms</label>
+                        <select 
+                            v-model="form.bedrooms"
+                            class="w-full px-4 py-3 border border-secondary/30 rounded-lg bg-white font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-colors"
+                        >
+                            <option value="">Any</option>
+                            <option value="1">1+ Bedroom</option>
+                            <option value="2">2+ Bedrooms</option>
+                            <option value="3">3+ Bedrooms</option>
+                            <option value="4">4+ Bedrooms</option>
+                            <option value="5">5+ Bedrooms</option>
+                        </select>
+                    </div>
 
-                <!-- Bedrooms Filter -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">Bedrooms</label>
-                    <select 
-                        v-model="form.bedrooms"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Any</option>
-                        <option value="1">1+</option>
-                        <option value="2">2+</option>
-                        <option value="3">3+</option>
-                        <option value="4">4+</option>
-                        <option value="5">5+</option>
-                    </select>
+                    <!-- Bathrooms -->
+                    <div>
+                        <label class="block text-sm font-medium font-body text-primary/80 mb-2">Bathrooms</label>
+                        <select 
+                            v-model="form.bathrooms"
+                            class="w-full px-4 py-3 border border-secondary/30 rounded-lg bg-white font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-colors"
+                        >
+                            <option value="">Any</option>
+                            <option value="1">1+ Bathroom</option>
+                            <option value="2">2+ Bathrooms</option>
+                            <option value="3">3+ Bathrooms</option>
+                            <option value="4">4+ Bathrooms</option>
+                        </select>
+                    </div>
                 </div>
+            </div>
 
-                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
-
-                <!-- Bathrooms Filter -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">Bathrooms</label>
-                    <select 
-                        v-model="form.bathrooms"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Any</option>
-                        <option value="1">1+</option>
-                        <option value="2">2+</option>
-                        <option value="3">3+</option>
-                        <option value="4">4+</option>
-                    </select>
-                </div>
-
-                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
-
-                <!-- Land Size Filter -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">Land Size</label>
-                    <div class="grid grid-cols-2 gap-2">
+            <!-- Land Size Filter -->
+            <div class="bg-base/50 rounded-xl p-4 border border-secondary/20">
+                <h3 class="font-display text-lg font-semibold text-primary mb-3">Land Size</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium font-body text-primary/80 mb-2">Minimum Size</label>
                         <select 
                             v-model="form.minLandSize"
-                            class="px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-4 py-3 border border-secondary/30 rounded-lg bg-white font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-colors"
                         >
-                            <option value="">Min Size</option>
+                            <option value="">No Minimum</option>
                             <option value="100">100+ m² (1 Are)</option>
                             <option value="200">200+ m² (2 Are)</option>
                             <option value="300">300+ m² (3 Are)</option>
@@ -222,61 +283,103 @@ const clearAllLocations = () => {
                             <option value="1000">1,000+ m² (10 Are)</option>
                             <option value="2000">2,000+ m² (20 Are)</option>
                         </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium font-body text-primary/80 mb-2">Maximum Size</label>
                         <select 
                             v-model="form.maxLandSize"
-                            class="px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-4 py-3 border border-secondary/30 rounded-lg bg-white font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-colors"
                         >
-                            <option value="">Max Size</option>
-                            <option value="200">200 m² (2 Are)</option>
-                            <option value="300">300 m² (3 Are)</option>
-                            <option value="500">500 m² (5 Are)</option>
-                            <option value="1000">1,000 m² (10 Are)</option>
-                            <option value="2000">2,000 m² (20 Are)</option>
-                            <option value="5000">5,000+ m² (50+ Are)</option>
+                            <option value="">No Maximum</option>
+                            <option value="200">Up to 200 m²</option>
+                            <option value="300">Up to 300 m²</option>
+                            <option value="500">Up to 500 m²</option>
+                            <option value="1000">Up to 1,000 m²</option>
+                            <option value="2000">Up to 2,000 m²</option>
+                            <option value="5000">Up to 5,000 m²</option>
                         </select>
                     </div>
                 </div>
-
-                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
-
-                <!-- Car Spaces Filter -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">Car Spaces</label>
-                    <select 
-                        v-model="form.carSpaces"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Any</option>
-                        <option value="0">No Parking</option>
-                        <option value="1">1+</option>
-                        <option value="2">2+</option>
-                        <option value="3">3+</option>
-                        <option value="4">4+</option>
-                    </select>
-                </div>
-                
-                <hr class="border-t border-gray-200 dark:border-gray-600 my-4" />
-
-                <FeatureFilter v-model="form.features" />
             </div>
 
-            <!-- Modal footer with action buttons -->
-            <template #footer>
-                <div class="flex justify-end space-x-2">
+            <!-- Parking -->
+            <div class="bg-base/50 rounded-xl p-4 border border-secondary/20">
+                <h3 class="font-display text-lg font-semibold text-primary mb-3">Parking</h3>
+                <select 
+                    v-model="form.carSpaces"
+                    class="w-full px-4 py-3 border border-secondary/30 rounded-lg bg-white font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-colors"
+                >
+                    <option value="">Any</option>
+                    <option value="0">No Parking Required</option>
+                    <option value="1">1+ Car Space</option>
+                    <option value="2">2+ Car Spaces</option>
+                    <option value="3">3+ Car Spaces</option>
+                    <option value="4">4+ Car Spaces</option>
+                </select>
+            </div>
+            
+            <!-- Features -->
+            <div class="bg-base/50 rounded-xl p-4 border border-secondary/20">
+                <h3 class="font-display text-lg font-semibold text-primary mb-3">Amenities & Features</h3>
+                <FeatureFilter v-model="form.features" />
+            </div>
+        </div>
+
+        <!-- Enhanced Modal Footer -->
+        <template #footer>
+            <div class="flex justify-between items-center">
+                <button
+                    @click="clearAllFilters"
+                    class="text-sm font-body text-primary/60 hover:text-primary underline transition-colors"
+                >
+                    Reset All Filters
+                </button>
+                
+                <div class="flex space-x-3">
                     <button
                         @click="closeModal"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
+                        class="px-6 py-3 text-sm font-medium font-display text-primary bg-secondary/20 hover:bg-secondary/30 rounded-lg transition-colors"
                     >
                         Cancel
                     </button>
                     <button
-                        @click="closeModal"
-                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                        @click="applyFiltersAndClose"
+                        class="px-8 py-3 text-sm font-medium font-display text-white bg-accent hover:bg-accent-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                     >
                         Apply Filters
                     </button>
                 </div>
-            </template>
-        </Modal>
-    </div>
+            </div>
+        </template>
+    </Modal>
 </template>
+
+<style scoped>
+/* Custom animations for enhanced UX */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Custom backdrop blur for older browsers */
+.backdrop-blur-fallback {
+    background-color: rgba(40, 69, 68, 0.85);
+}
+
+@supports (backdrop-filter: blur(4px)) {
+    .backdrop-blur-fallback {
+        background-color: rgba(40, 69, 68, 0.6);
+        backdrop-filter: blur(4px);
+    }
+}
+</style>
