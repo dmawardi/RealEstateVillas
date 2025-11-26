@@ -91,28 +91,28 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
 </script>
 
 <template>
-    <section id="property-showcase" class="py-16 bg-gray-50 dark:bg-gray-900">
+    <section id="property-showcase" class="py-16 bg-base dark:bg-gray-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Section Header -->
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 sm:text-4xl mb-4">
+                <h2 class="font-display text-3xl font-bold text-primary dark:text-gray-100 sm:text-4xl mb-4">
                     Discover Your Perfect Property
                 </h2>
-                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                <p class="font-body text-lg text-primary/70 dark:text-gray-400 max-w-2xl mx-auto">
                     Explore our carefully curated selection of featured and premium properties
                 </p>
             </div>
 
             <!-- Section Tabs -->
             <!-- <div class="flex justify-center mb-8">
-                <div class="flex bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div class="flex bg-white dark:bg-gray-800 rounded-xl p-1.5 shadow-lg border border-secondary/30 dark:border-gray-700">
                     <button
                         @click="switchSection('featured')"
                         :class="[
-                            'flex items-center px-6 py-3 rounded-md text-sm font-medium transition-all duration-200',
+                            'flex items-center px-6 py-3 rounded-lg font-display font-medium transition-all duration-300',
                             activeSection === 'featured'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                                ? 'bg-accent text-white shadow-md transform scale-105'
+                                : 'text-primary/70 dark:text-gray-400 hover:text-primary hover:bg-secondary/10 dark:hover:text-gray-100'
                         ]"
                     >
                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -123,10 +123,10 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
                     <button
                         @click="switchSection('premium')"
                         :class="[
-                            'flex items-center px-6 py-3 rounded-md text-sm font-medium transition-all duration-200',
+                            'flex items-center px-6 py-3 rounded-lg font-display font-medium transition-all duration-300',
                             activeSection === 'premium'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                                ? 'bg-accent text-white shadow-md transform scale-105'
+                                : 'text-primary/70 dark:text-gray-400 hover:text-primary hover:bg-secondary/10 dark:hover:text-gray-100'
                         ]"
                     >
                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -140,10 +140,10 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
             <!-- View Mode Toggle & Controls -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
                 <div class="mb-4 sm:mb-0">
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    <h3 class="font-display text-xl font-semibold text-primary dark:text-gray-100 mb-1">
                         {{ getSectionTitle(activeSection) }}
                     </h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">
+                    <p class="font-body text-primary/60 dark:text-gray-400 text-sm">
                         {{ getSectionDescription(activeSection) }}
                     </p>
                 </div>
@@ -151,11 +151,11 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
                 <div class="flex items-center space-x-4">
                     <!-- Items per page selector (for pagination mode) -->
                     <div v-if="viewMode === 'paginate'" class="flex items-center space-x-2">
-                        <label class="text-sm text-gray-600 dark:text-gray-400">Show:</label>
+                        <label class="font-body text-sm text-primary/70 dark:text-gray-400">Show:</label>
                         <select 
                             v-model="itemsPerPage" 
                             @change="currentPage = 1"
-                            class="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            class="font-body text-sm border border-secondary/30 dark:border-gray-600 rounded-md px-3 py-1.5 bg-white dark:bg-gray-800 text-primary dark:text-gray-100 focus:ring-2 focus:ring-accent/50 focus:border-accent transition-colors"
                         >
                             <option :value="6">6</option>
                             <option :value="9">9</option>
@@ -166,7 +166,7 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
                     <!-- View mode toggle -->
                     <button
                         @click="toggleViewMode"
-                        class="flex items-center px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        class="flex items-center px-4 py-2 font-body font-medium text-primary/70 dark:text-gray-400 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 rounded-lg hover:bg-secondary/10 hover:text-primary dark:hover:bg-gray-700 hover:border-accent/50 transition-all duration-200 shadow-sm"
                     >
                         <svg v-if="viewMode === 'scroll'" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -196,18 +196,18 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
                     <button
                         v-if="hasMoreProperties"
                         @click="loadMore"
-                        class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                        class="inline-flex items-center px-8 py-4 bg-accent hover:bg-accent/90 text-white font-display font-medium rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 shadow-sm"
                     >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
                         Load More Properties
                     </button>
-                    <div v-else class="text-gray-600 dark:text-gray-400">
-                        <p class="mb-2">You've seen all {{ currentProperties?.length || 0 }} properties!</p>
+                    <div v-else class="text-primary/60 dark:text-gray-400">
+                        <p class="font-body mb-2">You've seen all {{ currentProperties?.length || 0 }} properties!</p>
                         <button
                             @click="currentPage = 1"
-                            class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm underline"
+                            class="text-accent hover:text-accent/80 dark:text-accent dark:hover:text-accent/80 font-body text-sm underline transition-colors"
                         >
                             Back to top
                         </button>
@@ -215,23 +215,23 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
                 </div>
 
                 <!-- Pagination (Pagination Mode) -->
-                <div v-if="viewMode === 'paginate' && totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between">
+                <div v-if="viewMode === 'paginate' && totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between bg-white dark:bg-gray-800 rounded-xl p-6 border border-secondary/20 dark:border-gray-700 shadow-sm">
                     <!-- Page Info -->
-                    <div class="text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-0">
+                    <div class="font-body text-sm text-primary/70 dark:text-gray-400 mb-4 sm:mb-0">
                         Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, currentProperties?.length || 0) }} of {{ currentProperties?.length || 0 }} properties
                     </div>
 
                     <!-- Pagination Controls -->
-                    <div class="flex items-center space-x-1">
+                    <div class="flex items-center space-x-2">
                         <!-- Previous Button -->
                         <button
                             @click="goToPage(currentPage - 1)"
                             :disabled="!canGoToPrevPage"
                             :class="[
-                                'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                'px-4 py-2 font-body font-medium rounded-lg transition-all duration-200',
                                 canGoToPrevPage
-                                    ? 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                    : 'text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 cursor-not-allowed'
+                                    ? 'text-primary dark:text-gray-300 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 hover:bg-secondary/10 hover:border-accent/50 dark:hover:bg-gray-700 shadow-sm'
+                                    : 'text-primary/40 dark:text-gray-600 bg-secondary/10 dark:bg-gray-700 border border-secondary/20 dark:border-gray-600 cursor-not-allowed'
                             ]"
                         >
                             Previous
@@ -243,10 +243,10 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
                                 <button
                                     @click="goToPage(page)"
                                     :class="[
-                                        'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                        'px-3 py-2 font-display font-medium rounded-lg transition-all duration-200',
                                         page === currentPage
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                            ? 'bg-accent text-white shadow-md transform scale-105'
+                                            : 'text-primary dark:text-gray-300 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 hover:bg-secondary/10 hover:border-accent/50 dark:hover:bg-gray-700 shadow-sm'
                                     ]"
                                 >
                                     {{ page }}
@@ -255,14 +255,14 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
                             
                             <!-- Show ellipsis and last page if there are many pages -->
                             <template v-if="totalPages > 5">
-                                <span class="px-2 text-gray-500">...</span>
+                                <span class="px-2 text-primary/50 dark:text-gray-500">...</span>
                                 <button
                                     @click="goToPage(totalPages)"
                                     :class="[
-                                        'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                        'px-3 py-2 font-display font-medium rounded-lg transition-all duration-200',
                                         totalPages === currentPage
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                            ? 'bg-accent text-white shadow-md transform scale-105'
+                                            : 'text-primary dark:text-gray-300 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 hover:bg-secondary/10 hover:border-accent/50 dark:hover:bg-gray-700 shadow-sm'
                                     ]"
                                 >
                                     {{ totalPages }}
@@ -275,10 +275,10 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
                             @click="goToPage(currentPage + 1)"
                             :disabled="!canGoToNextPage"
                             :class="[
-                                'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                                'px-4 py-2 font-body font-medium rounded-lg transition-all duration-200',
                                 canGoToNextPage
-                                    ? 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                    : 'text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 cursor-not-allowed'
+                                    ? 'text-primary dark:text-gray-300 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 hover:bg-secondary/10 hover:border-accent/50 dark:hover:bg-gray-700 shadow-sm'
+                                    : 'text-primary/40 dark:text-gray-600 bg-secondary/10 dark:bg-gray-700 border border-secondary/20 dark:border-gray-600 cursor-not-allowed'
                             ]"
                         >
                             Next
@@ -289,15 +289,17 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
 
             <!-- Empty State -->
             <div v-else class="text-center py-16">
-                <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                <h3 class="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">
-                    No {{ activeSection }} properties available
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400">
-                    Check back soon for new {{ activeSection }} properties or browse other sections.
-                </p>
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 border border-secondary/20 dark:border-gray-700 shadow-sm max-w-md mx-auto">
+                    <svg class="mx-auto h-16 w-16 text-secondary mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <h3 class="font-display text-xl font-semibold text-primary dark:text-gray-100 mb-3">
+                        No {{ activeSection }} properties available
+                    </h3>
+                    <p class="font-body text-primary/60 dark:text-gray-400">
+                        Check back soon for new {{ activeSection }} properties or browse other sections.
+                    </p>
+                </div>
             </div>
         </div>
     </section>
