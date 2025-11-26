@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import SearchIcon from '../form/SearchIcon.vue';
 import Modal from '@/components/Modal.vue';
 import PriceFilter from '../filters/PriceFilter.vue';
@@ -88,6 +88,30 @@ const removeLocationFromFilter = (location: Location) => {
 
 const clearAllLocations = () => {
     form.value.locationFilter = [];
+};
+
+// Add these methods to your script section
+const clearAllFilters = () => {
+    form.value = {
+        search: '',
+        mode: form.value.mode, // Keep the current mode
+        priceFilter: { minPrice: '', maxPrice: '' },
+        propertyTypes: [],
+        bedrooms: '',
+        bathrooms: '',
+        locationFilter: [],
+        minLandSize: '',
+        maxLandSize: '',
+        carSpaces: '',
+        status: [],
+        dateFilter: { checkIn: '', checkOut: '' },
+        features: [],
+    };
+};
+
+const applyFiltersAndClose = () => {
+    handleSearch();
+    closeModal();
 };
 </script>
 
