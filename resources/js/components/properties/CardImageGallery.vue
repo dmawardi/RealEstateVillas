@@ -96,20 +96,6 @@ const toggleHover = (hovered: boolean) => {
                         <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
                     </svg>
                 </div>
-                <!-- Property Type Badge -->
-                <div class="absolute top-3 left-3">
-                    <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium capitalize">
-                        {{ formatPropertyType(property.property_type) }}
-                    </span>
-                </div>
-                
-                <!-- Listing Type Badge -->
-                <div class="absolute top-3 right-3">
-                    <span class="bg-green-600 text-white px-2 py-1 rounded text-xs font-medium capitalize">
-                        {{ formatPropertyType(property.listing_type) }}
-                    </span>
-                </div>
-
             <!-- Discount Badge -->
             <div v-if="detailedPricing?.monthly.hasDiscount && detailedPricing.monthly.discount > 15" 
                  class="absolute bottom-3 left-3">

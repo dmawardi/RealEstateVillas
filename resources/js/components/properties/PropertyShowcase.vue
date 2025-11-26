@@ -46,10 +46,10 @@ const canGoToPrevPage = computed(() => currentPage.value > 1);
 const canGoToNextPage = computed(() => currentPage.value < totalPages.value);
 
 // Methods
-const switchSection = (section: 'featured' | 'premium') => {
-    activeSection.value = section;
-    currentPage.value = 1;
-};
+// const switchSection = (section: 'featured' | 'premium') => {
+//     activeSection.value = section;
+//     currentPage.value = 1;
+// };
 
 const loadMore = () => {
     if (hasMoreProperties.value) {
@@ -83,11 +83,11 @@ const getSectionDescription = (section: 'featured' | 'premium') => {
         : 'Exclusive premium listings with exceptional features';
 };
 
-const getSectionIcon = (section: 'featured' | 'premium') => {
-    return section === 'featured' 
-        ? 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z'
-        : 'M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z';
-};
+// const getSectionIcon = (section: 'featured' | 'premium') => {
+//     return section === 'featured' 
+//         ? 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z'
+//         : 'M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z';
+// };
 </script>
 
 <template>
@@ -104,7 +104,7 @@ const getSectionIcon = (section: 'featured' | 'premium') => {
             </div>
 
             <!-- Section Tabs -->
-            <div class="flex justify-center mb-8">
+            <!-- <div class="flex justify-center mb-8">
                 <div class="flex bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-gray-700">
                     <button
                         @click="switchSection('featured')"
@@ -135,7 +135,7 @@ const getSectionIcon = (section: 'featured' | 'premium') => {
                         Premium ({{ premium?.length || 0 }})
                     </button>
                 </div>
-            </div>
+            </div> -->
 
             <!-- View Mode Toggle & Controls -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">

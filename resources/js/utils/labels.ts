@@ -24,4 +24,14 @@ const bookingTypeLabels: Record<string, string> = {
     maintenance: 'Maintenance',
 };
 
-export { statusLabels, sourceLabels, bookingTypeLabels };
+const propertyTypeLabels: Record<string, string> = {
+    apartment: 'Apartment',
+    villa: 'Villa',
+    land: 'Land',
+    house: 'House',
+    guest_house: 'Guest House',
+    townhouse: 'Townhouse',
+    commercial: 'Commercial',
+};
+
+export { statusLabels, sourceLabels, bookingTypeLabels, propertyTypeLabels };
