@@ -17,6 +17,8 @@ Route::get('/', [BaseController::class, 'home'])->name('home');
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 
+Route::get('/contact', [BaseController::class, 'contact'])->name('contact');
+
 // Support Routes
 Route::get('/support/faq', [SupportController::class, 'faq'])->name('support.faq');
 Route::get('/support/terms-of-service', [SupportController::class, 'termsOfService'])->name('support.termsOfService');

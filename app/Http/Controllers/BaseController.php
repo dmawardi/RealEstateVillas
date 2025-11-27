@@ -341,4 +341,19 @@ class BaseController extends Controller
                 ->toArray()
         ];
     }
+
+    public function contact()
+    {
+        return Inertia::render('Contact', [
+            'seoData' => [
+                'title' => 'Contact Us - Bali Villa Spot',
+                'description' => 'Get in touch with Bali Villa Spot for inquiries, support, or assistance with your property needs.',
+                'keywords' => 'contact bali villa spot, property inquiries, customer support, villa rental help',
+                'canonicalUrl' => url('/contact'),
+                'ogImage' => asset('images/logo/Logo.png'),
+            ],
+            'businessPhone' => config('app.business_phone'),
+            'businessEmail' => config('app.business_email'),
+        ]);
+    }
 }

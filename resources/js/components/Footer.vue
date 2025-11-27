@@ -47,8 +47,7 @@ const quickLinks = [
     { name: 'Villa Rentals', href: '/properties?listing_type=for_rent&property_type=villa' },
     { name: 'Land for Sale', href: '/properties?listing_type=for_sale&property_type=land' },
     { name: 'Apartments', href: '/properties?property_type=apartment' },
-    { name: 'Premium Properties', href: '/properties?featured=true' },
-    { name: 'New Listings', href: '/properties?sort=newest' },
+    { name: 'Featured Properties', href: '/properties?featured=true' },
 ];
 
 const companyLinks = [
@@ -56,7 +55,7 @@ const companyLinks = [
     // { name: 'Our Services', href: '/services' },
     // { name: 'Property Management', href: '/management' },
     // { name: 'Investment Guide', href: '/investment' },
-    { name: 'Contact', href: '/contact' },
+    { name: 'Contact', href: route('contact') },
 ];
 
 const supportLinks = [
@@ -265,17 +264,8 @@ const getSocialIcon = (iconName: string) => {
                         © {{ currentYear }} Bali Villa Spot. All rights reserved.
                     </div>
                     <div class="flex flex-wrap justify-center md:justify-end gap-6 text-sm">
-                        <Link href="/privacy" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
-                            Privacy Policy
-                        </Link>
-                        <Link href="/terms" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
-                            Terms of Service
-                        </Link>
-                        <Link href="/cookies" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
-                            Cookie Policy
-                        </Link>
-                        <Link href="/accessibility" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
-                            Accessibility
+                        <Link v-for="link in supportLinks.slice(1)" :key="link.name" :href="link.href" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
+                            {{ link.name }}
                         </Link>
                     </div>
                 </div>
