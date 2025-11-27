@@ -13,7 +13,6 @@ const email = ref('');
 const isSubmitting = ref(false);
 const subscriptionMessage = ref('');
 
-
 const subscribeToNewsletter = async () => {
     if (!email.value) return;
     
@@ -38,37 +37,40 @@ const subscribeToNewsletter = async () => {
 const currentYear = new Date().getFullYear();
 
 const socialLinks = [
-    { name: 'Facebook', icon: 'facebook', href: '#' },
-    { name: 'Twitter', icon: 'twitter', href: '#' },
-    { name: 'Instagram', icon: 'instagram', href: '#' },
-    { name: 'LinkedIn', icon: 'linkedin', href: '#' },
+    // { name: 'Facebook', icon: 'facebook', href: '#' },
+    { name: 'Instagram', icon: 'instagram', href: 'http://instagram.com/balivillaspot' },
+    { name: 'WhatsApp', icon: 'whatsapp', href: 'https://wa.me/' + businessPhone },
+    // { name: 'LinkedIn', icon: 'linkedin', href: '#' },
 ];
 
 const quickLinks = [
-    { name: 'Properties', href: '/properties' },
-    { name: 'Buy', href: '/properties?type=sale' },
-    { name: 'Rent', href: '/properties?type=rent' },
-    { name: 'Commercial', href: '/properties?category=commercial' },
-    { name: 'New Projects', href: '/projects' },
+    { name: 'Villa Rentals', href: '/properties?listing_type=for_rent&property_type=villa' },
+    { name: 'Land for Sale', href: '/properties?listing_type=for_sale&property_type=land' },
+    { name: 'Apartments', href: '/properties?property_type=apartment' },
+    { name: 'Premium Properties', href: '/properties?featured=true' },
+    { name: 'New Listings', href: '/properties?sort=newest' },
 ];
 
 const companyLinks = [
-    { name: 'About Us', href: '/about' },
-    { name: 'Our Team', href: '/team' },
-    { name: 'News & Blog', href: '/blog' },
+    // { name: 'About Us', href: '/about' },
+    // { name: 'Our Services', href: '/services' },
+    // { name: 'Property Management', href: '/management' },
+    // { name: 'Investment Guide', href: '/investment' },
     { name: 'Contact', href: '/contact' },
 ];
 
 const supportLinks = [
+    { name: 'FAQ', href: '/faq' },
     { name: 'Privacy Policy', href: '/privacy' },
     { name: 'Terms of Service', href: '/terms' },
+    { name: 'Cookie Policy', href: '/cookies' },
 ];
 
 const getSocialIcon = (iconName: string) => {
     const icons = {
         facebook: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
-        twitter: 'M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z',
-        instagram: 'M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.014 5.367 18.647.001 12.017.001zM12 16.624c-2.548 0-4.623-2.075-4.623-4.624S9.452 7.376 12 7.376s4.623 2.075 4.623 4.624S14.548 16.624 12 16.624zm4.804-8.306c-.596 0-1.08-.484-1.08-1.08s.484-1.08 1.08-1.08 1.08.484 1.08 1.08-.484 1.08-1.08 1.08z',
+        instagram: 'M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z',
+        whatsapp: 'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.473 3.488',
         linkedin: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z'
     };
     return icons[iconName as keyof typeof icons] || '';
@@ -76,7 +78,7 @@ const getSocialIcon = (iconName: string) => {
 </script>
 
 <template>
-    <footer class="bg-gray-900 text-white mt-4">
+    <footer class="bg-primary text-white mt-8">
         <!-- Main Footer Content -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
@@ -85,38 +87,40 @@ const getSocialIcon = (iconName: string) => {
                     <!-- Logo & Description -->
                     <div class="mb-8">
                         <Link href="/" class="flex items-center mb-4">
-                            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd" />
-                                </svg>
+                            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
+                                    <img 
+                                        src="/images/logo/Logo.png" 
+                                        alt="Bali Villa Spot Logo" 
+                                        class="h-8 w-auto sm:h-10 transition-transform group-hover:scale-105 rounded-full" 
+                                    />
                             </div>
-                            <span class="text-xl font-bold">RealEstate</span>
+                            <span class="text-2xl font-bold font-display">Bali Villa Spot</span>
                         </Link>
-                        <p class="text-gray-300 leading-relaxed max-w-md">
-                            Your trusted partner in finding the perfect Bali property for your needs.
+                        <p class="text-white/80 leading-relaxed max-w-md font-body text-lg">
+                            Your trusted partner for luxury villa rentals and premium property investments in beautiful Bali.
                         </p>
                     </div>
 
                     <!-- Newsletter Subscription -->
                     <div class="mb-8">
-                        <h3 class="text-lg font-semibold mb-4">Stay Updated</h3>
-                        <p class="text-gray-300 text-sm mb-4">
-                            Get the latest property listings and market insights delivered to your inbox.
+                        <h3 class="text-xl font-semibold font-display mb-4">Stay Updated</h3>
+                        <p class="text-white/70 font-body mb-4">
+                            Get the latest property listings, market insights, and exclusive offers delivered to your inbox.
                         </p>
                         <form @submit.prevent="subscribeToNewsletter" class="flex flex-col sm:flex-row gap-3">
                             <div class="flex-1">
                                 <input
                                     v-model="email"
                                     type="email"
-                                    placeholder="Enter your email"
+                                    placeholder="Enter your email address"
                                     required
-                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    class="w-full px-4 py-3 bg-white/10 border border-secondary/30 rounded-lg text-white placeholder-white/60 font-body focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 backdrop-blur-sm"
                                 />
                             </div>
                             <button
                                 type="submit"
                                 :disabled="isSubmitting"
-                                class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                class="px-8 py-3 bg-accent text-white font-display font-medium rounded-lg hover:bg-accent-dark transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                             >
                                 <span v-if="!isSubmitting">Subscribe</span>
                                 <span v-else class="flex items-center">
@@ -128,21 +132,21 @@ const getSocialIcon = (iconName: string) => {
                                 </span>
                             </button>
                         </form>
-                        <div v-if="subscriptionMessage" class="mt-3 text-sm" :class="subscriptionMessage.includes('Thank you') ? 'text-green-400' : 'text-red-400'">
+                        <div v-if="subscriptionMessage" class="mt-3 text-sm font-body" :class="subscriptionMessage.includes('Thank you') ? 'text-green-300' : 'text-red-300'">
                             {{ subscriptionMessage }}
                         </div>
                     </div>
 
                     <!-- Social Media Links -->
                     <div>
-                        <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
-                        <div class="flex space-x-4">
+                        <h3 class="text-xl font-semibold font-display mb-4">Follow Us</h3>
+                        <div class="flex space-x-3">
                             <a
                                 v-for="social in socialLinks"
                                 :key="social.name"
                                 :href="social.href"
                                 :aria-label="social.name"
-                                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-blue-600 transition-all duration-200"
+                                class="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center text-white/80 hover:text-white hover:bg-accent transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 shadow-sm hover:shadow-lg"
                             >
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path :d="getSocialIcon(social.icon)" />
@@ -154,12 +158,12 @@ const getSocialIcon = (iconName: string) => {
 
                 <!-- Quick Links -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-6">Properties</h3>
+                    <h3 class="text-xl font-semibold font-display mb-6 text-white">Properties</h3>
                     <ul class="space-y-3">
                         <li v-for="link in quickLinks" :key="link.name">
                             <Link 
                                 :href="link.href"
-                                class="text-gray-300 hover:text-white transition-colors duration-200 text-sm"
+                                class="text-white/80 hover:text-accent transition-colors duration-200 font-body hover:translate-x-1 transform inline-block"
                             >
                                 {{ link.name }}
                             </Link>
@@ -169,12 +173,12 @@ const getSocialIcon = (iconName: string) => {
 
                 <!-- Company Links -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-6">Company</h3>
+                    <h3 class="text-xl font-semibold font-display mb-6 text-white">Company</h3>
                     <ul class="space-y-3">
                         <li v-for="link in companyLinks" :key="link.name">
                             <Link 
                                 :href="link.href"
-                                class="text-gray-300 hover:text-white transition-colors duration-200 text-sm"
+                                class="text-white/80 hover:text-accent transition-colors duration-200 font-body hover:translate-x-1 transform inline-block"
                             >
                                 {{ link.name }}
                             </Link>
@@ -184,12 +188,12 @@ const getSocialIcon = (iconName: string) => {
 
                 <!-- Support Links -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-6">Support</h3>
+                    <h3 class="text-xl font-semibold font-display mb-6 text-white">Support</h3>
                     <ul class="space-y-3">
                         <li v-for="link in supportLinks" :key="link.name">
                             <Link 
                                 :href="link.href"
-                                class="text-gray-300 hover:text-white transition-colors duration-200 text-sm"
+                                class="text-white/80 hover:text-accent transition-colors duration-200 font-body hover:translate-x-1 transform inline-block"
                             >
                                 {{ link.name }}
                             </Link>
@@ -200,52 +204,52 @@ const getSocialIcon = (iconName: string) => {
         </div>
 
         <!-- Contact Info Bar -->
-        <div class="border-t border-gray-800">
+        <div class="border-t border-secondary/20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <!-- Phone -->
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center mr-4">
-                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center group">
+                        <div class="w-14 h-14 bg-secondary/20 rounded-xl flex items-center justify-center mr-4 group-hover:bg-accent transition-all duration-300 transform group-hover:scale-110">
+                            <svg class="w-6 h-6 text-accent group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.037 11.037 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                         </div>
                         <div>
-                            <div class="text-sm text-gray-400 mb-1">Call Us</div>
-                            <a :href="`tel:${businessPhone}`" class="text-white hover:text-blue-400 transition-colors">
-                                {{ businessPhone }}
+                            <div class="text-sm font-display text-white/60 mb-1">Call Us</div>
+                            <a :href="`tel:${businessPhone}`" class="text-white font-body text-lg hover:text-accent transition-colors duration-200">
+                                {{ businessPhone || '+62 123 456 7890' }}
                             </a>
                         </div>
                     </div>
 
                     <!-- Email -->
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center mr-4">
-                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center group">
+                        <div class="w-14 h-14 bg-secondary/20 rounded-xl flex items-center justify-center mr-4 group-hover:bg-accent transition-all duration-300 transform group-hover:scale-110">
+                            <svg class="w-6 h-6 text-accent group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
                         <div>
-                            <div class="text-sm text-gray-400 mb-1">Email Us</div>
-                            <a :href="`mailto:${businessEmail}`" class="text-white hover:text-blue-400 transition-colors">
-                                {{ businessEmail }}
+                            <div class="text-sm font-display text-white/60 mb-1">Email Us</div>
+                            <a :href="`mailto:${businessEmail}`" class="text-white font-body text-lg hover:text-accent transition-colors duration-200">
+                                {{ businessEmail || 'info@baliproperties.com' }}
                             </a>
                         </div>
                     </div>
 
                     <!-- Address -->
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center mr-4">
-                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center group">
+                        <div class="w-14 h-14 bg-secondary/20 rounded-xl flex items-center justify-center mr-4 group-hover:bg-accent transition-all duration-300 transform group-hover:scale-110">
+                            <svg class="w-6 h-6 text-accent group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </div>
                         <div>
-                            <div class="text-sm text-gray-400 mb-1">Service Area</div>
-                            <div class="text-white">
-                                Canggu, Seminyak, Pererenan, Umalas<br>
-                                <span class="text-sm text-gray-300">Bali, Indonesia</span>
+                            <div class="text-sm font-display text-white/60 mb-1">Service Areas</div>
+                            <div class="text-white font-body">
+                                <div class="text-lg leading-tight">Canggu, Seminyak, Pererenan</div>
+                                <div class="text-sm text-white/80">Bali, Indonesia</div>
                             </div>
                         </div>
                     </div>
@@ -254,23 +258,23 @@ const getSocialIcon = (iconName: string) => {
         </div>
 
         <!-- Bottom Bar -->
-        <div class="border-t border-gray-800">
+        <div class="border-t border-secondary/20 bg-primary/90">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div class="flex flex-col md:flex-row justify-between items-center">
-                    <div class="text-sm text-gray-400 mb-4 md:mb-0">
-                        © {{ currentYear }} RealEstate. All rights reserved.
+                    <div class="text-white/80 font-body mb-4 md:mb-0">
+                        © {{ currentYear }} Bali Villa Spot. All rights reserved.
                     </div>
                     <div class="flex flex-wrap justify-center md:justify-end gap-6 text-sm">
-                        <Link href="/privacy" class="text-gray-400 hover:text-white transition-colors">
+                        <Link href="/privacy" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
                             Privacy Policy
                         </Link>
-                        <Link href="/terms" class="text-gray-400 hover:text-white transition-colors">
+                        <Link href="/terms" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
                             Terms of Service
                         </Link>
-                        <Link href="/cookies" class="text-gray-400 hover:text-white transition-colors">
+                        <Link href="/cookies" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
                             Cookie Policy
                         </Link>
-                        <Link href="/accessibility" class="text-gray-400 hover:text-white transition-colors">
+                        <Link href="/accessibility" class="text-white/70 hover:text-accent transition-colors duration-200 font-body">
                             Accessibility
                         </Link>
                     </div>
