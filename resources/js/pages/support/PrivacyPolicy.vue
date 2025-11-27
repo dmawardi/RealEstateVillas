@@ -11,7 +11,7 @@ const { businessEmail, businessPhone, seoData } = defineProps<Props>();
 
 const lastUpdated = 'November 27, 2025';
 const companyName = 'Bali Villa Spot';
-const contactEmail = businessEmail || 'privacy@balivillaspot.com';
+const contactEmail = businessEmail || 'contact@balivillaspot.com';
 </script>
 
 <template>
