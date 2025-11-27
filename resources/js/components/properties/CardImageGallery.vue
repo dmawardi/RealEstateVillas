@@ -2,7 +2,6 @@
 import { defineProps } from 'vue';
 import { DetailedPricing, Property } from '@/types';
 import { ref } from 'vue';
-import { formatPropertyType } from '@/utils/formatters';
 
 interface Props {
     property: Property

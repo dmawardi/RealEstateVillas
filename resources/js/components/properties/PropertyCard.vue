@@ -154,13 +154,13 @@ const listingTypeColor = computed(() => {
                         <span 
                             v-for="feature in property.features.slice(0, 3)" 
                             :key="feature.id"
-                            class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium font-body bg-secondary/10 text-secondary-700 border border-secondary/20 hover:bg-secondary/20 hover:scale-105 transition-all duration-200"
+                            class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium font-body bg-secondary/10 text-secondary-600 border border-secondary/20 hover:bg-secondary/20 hover:scale-105 transition-all duration-200"
                         >
                             {{ feature.name }}
                         </span>
                         <span 
                             v-if="property.features.length > 3"
-                            class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium font-body bg-primary/10 text-primary-700 border border-primary/20 hover:scale-105 transition-transform duration-200"
+                            class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium font-body bg-primary/10 text-primary-600 border border-primary/20 hover:scale-105 transition-transform duration-200"
                         >
                             +{{ property.features.length - 3 }} more
                         </span>
