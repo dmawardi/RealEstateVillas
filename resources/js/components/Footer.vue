@@ -60,10 +60,10 @@ const companyLinks = [
 ];
 
 const supportLinks = [
-    { name: 'FAQ', href: '/faq' },
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Cookie Policy', href: '/cookies' },
+    { name: 'FAQ', href: route('support.faq') },
+    { name: 'Privacy Policy', href: route('support.privacyPolicy') },
+    { name: 'Terms of Service', href: route('support.termsOfService') },
+    { name: 'Cookie Policy', href: route('support.cookiePolicy') },
 ];
 
 const getSocialIcon = (iconName: string) => {

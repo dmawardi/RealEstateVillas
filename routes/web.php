@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AdminPropertyController;
 use App\Http\Controllers\BaseController;
+use App\Http\Controllers\SupportController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Request;
 
@@ -15,6 +16,12 @@ Route::get('/', [BaseController::class, 'home'])->name('home');
 
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
+
+// Support Routes
+Route::get('/support/faq', [SupportController::class, 'faq'])->name('support.faq');
+Route::get('/support/terms-of-service', [SupportController::class, 'termsOfService'])->name('support.termsOfService');
+Route::get('/support/cookie-policy', [SupportController::class, 'cookiePolicy'])->name('support.cookiePolicy');
+Route::get('/support/privacy-policy', [SupportController::class, 'privacyPolicy'])->name('support.privacyPolicy');
 
 // EMAIL VERIFICATION
 Route::get('/email/verify', function () {
