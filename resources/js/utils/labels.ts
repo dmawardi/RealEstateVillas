@@ -32,6 +32,7 @@ const propertyTypeLabels: Record<string, string> = {
     guest_house: 'Guest House',
     townhouse: 'Townhouse',
     commercial: 'Commercial',
+    other: 'Other',
 };
 
 export { statusLabels, sourceLabels, bookingTypeLabels, propertyTypeLabels };
