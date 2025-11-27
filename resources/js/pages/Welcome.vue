@@ -27,7 +27,7 @@ const { featured, premium, businessEmail, businessPhone, seoData } = defineProps
     <BaseLayout>
             <SearchHeader />
             <PropertyShowcase :featured="featured" :premium="premium" />
-            <ProcessGuide />
+            <ProcessGuide :businessPhone="businessPhone?? ''" />
             <Footer :businessPhone="businessPhone" :businessEmail="businessEmail" />
     </BaseLayout>
 </template>
