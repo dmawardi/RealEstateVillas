@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SupportContentCard from '@/components/support/SupportContentCard.vue';
 import SupportPageLayout from '@/components/support/SupportPageLayout.vue';
 import type { SEO } from '@/types';
 
@@ -42,7 +43,7 @@ const contactEmail = businessEmail || 'contact@balivillaspot.com';
                     <p class="font-body text-primary/80 dark:text-gray-300 leading-relaxed mb-4">
                         {{ companyName }} ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, use our services, or engage with us for villa rentals and property services in Bali, Indonesia.
                     </p>
-                    <p class="font-body text-primary/80 dark:text-gray-300 leading-relaxed mb-6">
+                    <p class="font-body text-primary/80 dark:text-gray-300 leading-relaxed">
                         By using our services, you consent to the data practices described in this policy. If you do not agree with this policy, please do not use our services.
                     </p>
                 </div>
@@ -103,7 +104,7 @@ const contactEmail = businessEmail || 'contact@balivillaspot.com';
             </SupportContentCard>
 
             <!-- Information Sharing -->
-            <SupportContentCard title="How We Share Your Information">
+            <SupportContentCard  title="How We Share Your Information">
                 <div class="prose prose-lg max-w-none">
                     <p class="font-body text-primary/80 dark:text-gray-300 leading-relaxed mb-4">
                         We may share your information in the following circumstances:
@@ -210,7 +211,7 @@ const contactEmail = businessEmail || 'contact@balivillaspot.com';
             <!-- International Transfers -->
             <SupportContentCard title="International Data Transfers">
                 <div class="prose prose-lg max-w-none">
-                    <p class="font-body text-primary/80 dark:text-gray-300 leading-relaxed mb-4">
+                    <p class="font-body text-primary/80 dark:text-gray-300 leading-relaxed">
                         As we operate in Bali, Indonesia, and may work with international service providers, your information may be transferred to and processed in countries other than your country of residence. We ensure that such transfers comply with applicable data protection laws and implement appropriate safeguards to protect your information.
                     </p>
                 </div>
