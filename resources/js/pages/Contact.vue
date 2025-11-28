@@ -14,17 +14,20 @@ const { businessEmail, businessPhone, seoData } = defineProps<Props>();
 
 const contactEmail = businessEmail || 'contact@balivillaspot.com';
 // Contact form
+// Required fields - always present
 const form = useForm({
     name: '',
     email: '',
     phone: '',
     subject: '',
     inquiry_type: 'general',
+    message: '',
+    
+    // Optional fields - based on inquiry type
     property_interest: '',
     budget: '',
     travel_dates: '',
     guests: '',
-    message: '',
 });
 
 const isSubmitting = ref(false);
@@ -56,7 +59,7 @@ const submitForm = async () => {
     submitMessage.value = '';
     
     try {
-        await form.post('/contact', {
+        await form.post(route('contact.submit'), {
             onSuccess: () => {
                 submitMessage.value = 'Thank you for your message! We\'ll get back to you within 24 hours.';
                 form.reset();

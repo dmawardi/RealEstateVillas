@@ -231,7 +231,7 @@ const getSocialIcon = (iconName: string) => {
                         <div>
                             <div class="text-sm font-display text-white/60 mb-1">Email Us</div>
                             <a :href="`mailto:${businessEmail}`" class="text-white font-body text-lg hover:text-accent transition-colors duration-200">
-                                {{ businessEmail || 'info@baliproperties.com' }}
+                                {{ businessEmail || 'contact@balivillaspot.com' }}
                             </a>
                         </div>
                     </div>

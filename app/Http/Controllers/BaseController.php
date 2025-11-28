@@ -356,4 +356,23 @@ class BaseController extends Controller
             'businessEmail' => config('app.business_email'),
         ]);
     }
+
+    public function submitContactForm(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'subject' => 'required|string|max:255',
+            'inquiry_type' => 'required|string|in:general,villa_rental,property_sale,property_listing,investment,management',
+            'property_interest' => 'nullable|string|max:255',
+            'budget' => 'nullable|string|in:under_100,100_300,300_500,500_1000,over_1000,purchase_under_100k,purchase_100k_500k,purchase_over_500k',
+            'travel_dates' => 'nullable|string|max:100',
+            'guests' => 'nullable|integer|min:1',
+            'message' => 'required|string|max:2000',
+        ]);
+
+        // Log the enquiry for now
+        Log::info('Contact Enquiry Received:', $validated);
+    }
 }
