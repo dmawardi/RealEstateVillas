@@ -179,7 +179,10 @@ class PropertyController extends Controller
             'ogImage' => $properties->first()?->attachments->first()?->path ?? asset('images/logo/Logo.png'),
         ];
 
-        return Inertia::render('properties/Index', compact('properties', 'filters', 'seoData'));
+        $businessPhone = config('app.business_phone');
+        $businessEmail = config('app.business_email');
+
+        return Inertia::render('properties/Index', compact('properties', 'filters', 'seoData', 'businessPhone', 'businessEmail'));
     }
 
     /**

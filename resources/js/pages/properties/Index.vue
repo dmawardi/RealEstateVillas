@@ -1,27 +1,22 @@
 <script setup lang="ts">
 import BaseLayout from '@/layouts/BaseLayout.vue';
-import type { BreadcrumbItemType, PaginatedProperties, PropertyFilters, SEO } from '@/types';
+import type { PaginatedProperties, PropertyFilters, SEO } from '@/types';
 // import PropertyFilterCard from '@/components/properties/PropertyFilterCard.vue';
 import { Link } from '@inertiajs/vue3';
 import PropertyCard from '@/components/properties/PropertyCard.vue';
 import CompactSearchHeader from '@/components/ui/navigation/CompactSearchHeader.vue';
 import SEOHead from '@/components/SEOHead.vue';
+import Footer from '@/components/Footer.vue';
 
 interface Props {
     properties: PaginatedProperties;
     filters?: PropertyFilters;
-    seoData?: SEO
+    seoData?: SEO;
+    businessPhone?: string;
+    businessEmail?: string;
 }
 
-const { properties, filters, seoData } = defineProps<Props>();
-
-// Generate breadcrumbs
-const breadcrumbs: BreadcrumbItemType[] = [
-    {
-        title: 'Properties',
-        href: '/properties',
-    },
-];
+const { properties, filters, seoData, businessPhone, businessEmail } = defineProps<Props>();
 
 // Pagination Link Rendering Functions
 // Function to decode HTML entities
@@ -50,7 +45,7 @@ const getCleanLabel = (label: string): string => {
 <template>
     <SEOHead v-if="seoData" :seoData="seoData" />
     
-    <BaseLayout :breadcrumbs="breadcrumbs">
+    <BaseLayout>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Page Header -->
             <div class="mb-8">
@@ -93,11 +88,11 @@ const getCleanLabel = (label: string): string => {
                     :key="link.label"
                     :href="link.url || '#'"
                     :class="[
-                        'px-3 py-2 rounded text-sm',
+                        'px-4 py-2 font-body font-medium rounded-lg border transition-all duration-300 transform hover:-translate-y-0.5',
                         link.active 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700',
-                        !link.url ? 'opacity-50 cursor-not-allowed' : ''
+                            ? 'bg-accent text-white border-accent shadow-md' 
+                            : 'bg-white dark:bg-gray-800 text-primary dark:text-gray-300 border-secondary/30 dark:border-gray-600 hover:bg-secondary/10 hover:border-accent/50 dark:hover:bg-gray-700 shadow-sm hover:shadow-md',
+                        !link.url ? 'opacity-50 cursor-not-allowed pointer-events-none transform-none' : ''
                     ]" 
                     :preserve-scroll="true"
                     >
@@ -105,5 +100,6 @@ const getCleanLabel = (label: string): string => {
                 </Link>
             </div>
         </div>
+        <Footer :businessPhone="businessPhone" :businessEmail="businessEmail" />
     </BaseLayout>
 </template>
