@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ContactEnquiryMail;
 use App\Models\Booking;
 use App\Models\Property;
 use Carbon\Carbon;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class BaseController extends Controller
@@ -372,7 +374,12 @@ class BaseController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
+        // Queue email to support team
+        Mail::to(config('app.business_email'))->queue(new ContactEnquiryMail($validated));
+
         // Log the enquiry for now
         Log::info('Contact Enquiry Received:', $validated);
+
+        return back()->with('success', 'Thank you for your message! We\'ll get back to you within 24 hours.');
     }
 }
