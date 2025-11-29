@@ -9,12 +9,6 @@ interface ProcessStep {
     detail?: string;
 }
 
-interface Props {
-    businessPhone: string;
-}
-
-const { businessPhone } = defineProps<Props>();
-
 const activeProcess = ref<'rental' | 'sale'>('rental');
 
 const rentalSteps: ProcessStep[] = [
@@ -241,7 +235,7 @@ const switchProcess = (process: 'rental' | 'sale') => {
                         </a>
                         
                         <a 
-                            :href="'https://wa.me/' + businessPhone"
+                            :href="route('contact')"
                             class="inline-flex items-center px-8 py-4 bg-white dark:bg-gray-800 text-primary dark:text-gray-100 font-display font-medium rounded-xl border border-secondary/30 dark:border-gray-600 hover:bg-secondary/10 hover:border-accent/50 dark:hover:bg-gray-700 transition-all duration-300 transform hover:-translate-y-1 shadow-sm"
                         >
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
