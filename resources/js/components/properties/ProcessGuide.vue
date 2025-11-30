@@ -35,10 +35,10 @@ const rentalSteps: ProcessStep[] = [
     },
     {
         id: 4,
-        title: 'Secure Payment',
-        description: 'Complete your payment through our secure platform',
+        title: 'Make Payment',
+        description: 'Complete payment via secure bank transfer',
         icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
-        detail: 'Pay securely online with multiple payment options. Your booking is protected by our cancellation policy.'
+        detail: 'Transfer the deposit to our account. Once received, your booking is confirmed and protected by our cancellation policy.'
     },
     {
         id: 5,

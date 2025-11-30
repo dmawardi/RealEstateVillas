@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\ContactEnquiryMail;
 use App\Models\Booking;
 use App\Models\Property;
+use App\Rules\RecaptchaRule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -356,6 +357,7 @@ class BaseController extends Controller
             ],
             'businessPhone' => config('app.business_phone'),
             'businessEmail' => config('app.business_email'),
+            'recaptchaSiteKey' => config('app.recaptcha_site_key'),
         ]);
     }
 
@@ -372,14 +374,31 @@ class BaseController extends Controller
             'travel_dates' => 'nullable|string|max:100',
             'guests' => 'nullable|integer|min:1',
             'message' => 'required|string|max:2000',
+            'cf-turnstile-response' => ['required', new RecaptchaRule()],
+            ], [
+            'cf-turnstile-response.required' => 'Please complete the reCAPTCHA verification.',
         ]);
 
-        // Queue email to support team
-        Mail::to(config('app.business_email'))->queue(new ContactEnquiryMail($validated));
+        try {
+            // Remove reCAPTCHA response before sending email
+            $emailData = collect($validated)->except('cf-turnstile-response')->toArray();
+    
+            // Queue email to support team
+            Mail::to(config('app.business_email'))->queue(new ContactEnquiryMail($emailData));
+    
+            // Log the enquiry for now
+            Log::info('Contact Enquiry Received:', $validated);
+    
+            return back()->with('success', 'Thank you for your message! We\'ll get back to you within 24 hours.');
+        } catch (\Exception $e) {
+            Log::error('Contact form submission failed:', [
+                'error' => $e->getMessage(),
+                'user_email' => $validated['email'] ?? 'unknown',
+                'ip' => $request->ip(),
+            ]);
+            
+            return back()->with('error', 'There was an issue sending your message. Please try again or contact us directly.');
+        }
 
-        // Log the enquiry for now
-        Log::info('Contact Enquiry Received:', $validated);
-
-        return back()->with('success', 'Thank you for your message! We\'ll get back to you within 24 hours.');
     }
 }

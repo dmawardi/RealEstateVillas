@@ -3,14 +3,15 @@ import SupportContentCard from '@/components/support/SupportContentCard.vue';
 import SupportPageLayout from '@/components/support/SupportPageLayout.vue';
 import type { SEO } from '@/types';
 import { useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 interface Props {
     businessEmail?: string;
     businessPhone?: string;
     seoData?: SEO;
+    recaptchaSiteKey?: string;
 }
-const { businessEmail, businessPhone, seoData } = defineProps<Props>();
+const { businessEmail, businessPhone, seoData, recaptchaSiteKey } = defineProps<Props>();
 
 const contactEmail = businessEmail || 'contact@balivillaspot.com';
 // Contact form
@@ -28,10 +29,12 @@ const form = useForm({
     budget: '',
     travel_dates: '',
     guests: '',
+    'cf-turnstile-response': '',
 });
 
 const isSubmitting = ref(false);
 const submitMessage = ref('');
+const recaptchaLoaded = ref(false);
 
 const inquiryTypes = [
     { value: 'general', label: 'General Inquiry' },
@@ -54,30 +57,90 @@ const budgetRanges = [
     { value: 'purchase_over_500k', label: 'Over $500k (Purchase)' },
 ];
 
+// Load reCAPTCHA script
+onMounted(() => {
+    if (recaptchaSiteKey && !window.turnstile) {
+        // Setup callback
+        setupTurnstileCallback();
+
+        const script = document.createElement('script');
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+            recaptchaLoaded.value = true;
+        };
+        // Handle script loading errors
+        script.onerror = () => {
+            console.error('Failed to load Turnstile script');
+        };
+        document.head.appendChild(script);
+
+        // For additional performance, preload the script using a <link> element
+        const preload = document.createElement('link');
+        preload.rel = 'preload';
+        preload.href = 'https://challenges.cloudflare.com';
+        document.head.appendChild(preload);
+    } else if (window.turnstile) {
+        setupTurnstileCallback();
+        recaptchaLoaded.value = true;
+    }
+});
+
 const submitForm = async () => {
     isSubmitting.value = true;
     submitMessage.value = '';
+
+    console.log('Submitting form with data:', form);
     
-    try {
-        await form.post(route('contact.submit'), {
-            onSuccess: () => {
-                submitMessage.value = 'Thank you for your message! We\'ll get back to you within 24 hours.';
-                form.reset();
-            },
-            onError: (errors) => {
-                submitMessage.value = 'There was an error sending your message. Please try again.';
-                console.error('Form errors:', errors);
-            },
-            onFinish: () => {
-                isSubmitting.value = false;
+    form.post(route('contact.submit'), {
+        onSuccess: () => {
+            submitMessage.value = 'Thank you for your message! We\'ll get back to you within 24 hours.';
+            form.reset();
+        },
+        onError: (errors) => {
+            if (errors['recaptcha-response']) {
+                submitMessage.value = errors['recaptcha-response'];
+            } else {
+                submitMessage.value = 'Please check the form for errors and try again.';
             }
-        });
-    } catch (error) {
-        submitMessage.value = 'There was an error sending your message. Please try again.';
-        isSubmitting.value = false;
-        console.error('Submit error:', error);
-    }
+        },
+        onFinish: () => {
+            isSubmitting.value = false;
+        }
+    });
 };
+
+// Global callback function for Turnstile
+const setupTurnstileCallback = () => {
+    window.turnstileCallback = (token: string) => {
+        form['cf-turnstile-response'] = token;
+    };
+    
+    window.turnstileErrorCallback = () => {
+        console.error('Turnstile verification failed');
+        form['cf-turnstile-response'] = '';
+    };
+};
+
+// Cleanup on unmount
+onBeforeUnmount(() => {
+    if (window.turnstileCallback) {
+        delete window.turnstileCallback;
+    }
+    if (window.turnstileErrorCallback) {
+        delete window.turnstileErrorCallback;
+    }
+});
+
+// FIXED: Global type declarations for Turnstile
+declare global {
+    interface Window {
+        turnstile: any;
+        turnstileCallback?: (token: string) => void;
+        turnstileErrorCallback?: () => void;
+    }
+}
 
 const contactMethods = [
     {
@@ -331,9 +394,35 @@ const contactMethods = [
                         <div v-if="form.errors.message" class="mt-1 text-red-500 text-sm font-body">{{ form.errors.message }}</div>
                     </div>
 
+
+                    <!--  reCAPTCHA  -->
+                    <div class="flex justify-center">
+                        <div
+                            v-if="recaptchaSiteKey && recaptchaLoaded"
+                            class="cf-turnstile" 
+                            :data-sitekey="recaptchaSiteKey"
+                            data-theme="light"
+                            data-size="normal"
+                            data-callback="turnstileCallback"
+                            data-error-callback="turnstileErrorCallback"
+                            data-expired-callback="turnstileErrorCallback"
+                        ></div>
+                        <div v-else-if="recaptchaSiteKey" class="flex items-center justify-center p-4">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+                            <span class="ml-2 font-body text-primary/60 dark:text-gray-400">Loading verification...</span>
+                        </div>
+                    </div>
+
+                    <!-- reCAPTCHA error display -->
+                    <div v-if="form.errors['cf-turnstile-response']" class="text-center">
+                        <p class="text-red-500 text-sm font-body">{{ form.errors['cf-turnstile-response'] }}</p>
+                    </div>
+
                     <!-- Submit Button -->
                     <div class="flex flex-col items-center space-y-4">
                         <button
+                            :data-sitekey="recaptchaSiteKey"
+                            data-action="submit"
                             type="submit"
                             :disabled="isSubmitting || form.processing"
                             class="w-full md:w-auto px-8 py-4 bg-accent text-white font-display font-medium rounded-xl hover:bg-accent-dark transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 shadow-lg hover:shadow-xl"

@@ -23,6 +23,8 @@ return [
     'business_email' => env('BUSINESS_EMAIL', 'support@example.com'),
     'business_phone' => env('BUSINESS_PHONE', '+0000000000'),
     'mail_from_address' => env('MAIL_FROM_ADDRESS', 'noreply@example.com'),
+    'recaptcha_site_key' => env('RECAPTCHA_SITE_KEY', ''),
+    'recaptcha_secret_key' =>  env('RECAPTCHA_SECRET_KEY', ''),
 
     /*
     |--------------------------------------------------------------------------
