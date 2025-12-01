@@ -165,9 +165,6 @@ class AdminUserController extends Controller
     {
         // Load all relationships for complete user view
         $user->load([
-            'properties' => function($query) {
-                $query->orderBy('created_at', 'desc')->take(10);
-            },
             'bookings' => function($query) {
                 $query->with('property:id,title,slug')
                       ->orderBy('created_at', 'desc')
@@ -177,8 +174,6 @@ class AdminUserController extends Controller
 
         // Get additional statistics
         $stats = [
-            'total_properties' => $user->properties()->count(),
-            'active_properties' => $user->properties()->where('status', 'active')->count(),
             'total_bookings' => $user->bookings()->count(),
             'confirmed_bookings' => $user->bookings()->where('status', 'confirmed')->count(),
             'pending_bookings' => $user->bookings()->where('status', 'pending')->count(),
@@ -309,11 +304,10 @@ class AdminUserController extends Controller
         
         try {
             // Check for associated data
-            $propertiesCount = $user->properties()->count();
             $bookingsCount = $user->bookings()->count();
 
-            if ($propertiesCount > 0 || $bookingsCount > 0) {
-                $message = "Cannot delete user. User has {$propertiesCount} properties and {$bookingsCount} bookings. Please transfer or delete associated data first.";
+            if ($bookingsCount > 0) {
+                $message = "Cannot delete user. User has {$bookingsCount} bookings. Please transfer or delete associated data first.";
                 return back()->withErrors(['error' => $message]);
             }
 
