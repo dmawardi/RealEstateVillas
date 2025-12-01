@@ -64,13 +64,11 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Favorite a property.
+     * Favorite a property. (Handles duplicates gracefully)
      */
     public function favorite(Property $property): void
     {
-        if (!$this->hasFavorited($property)) {
-            $this->favorites()->attach($property->id);
-        }
+        $this->favorites()->syncWithoutDetaching([$property->id]);
     }
 
     /**
@@ -86,13 +84,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function toggleFavorite(Property $property): bool
     {
-        if ($this->hasFavorited($property)) {
-            $this->unfavorite($property);
-            return false; // Unfavorited
-        } else {
-            $this->favorite($property);
-            return true; // Favorited
-        }
+        $result = $this->favorites()->toggle([$property->id]);
+        return !empty($result['attached']); // Returns true if favorited, false if unfavorited
     }
 
     /**
