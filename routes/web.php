@@ -7,6 +7,7 @@ use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AdminPropertyController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\SupportController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -57,6 +58,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // ADMIN ROUTES
 Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function () {
+    // User Management
+    // Export
+    Route::get('admin/users/export', [AdminUserController::class, 'export'])->name('users.export');
+    // CRUD
+    Route::get('admin/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('admin/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+    Route::get('admin/users/create', [AdminUserController::class, 'create'])->name('users.create');
+    Route::post('admin/users', [AdminUserController::class, 'store'])->name('users.store');
+    Route::get('admin/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::put('admin/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('admin/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    // Impersonate User
+    Route::post('admin/users/{user}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
+    Route::post('admin/users/stop-impersonation', [AdminUserController::class, 'stopImpersonation'])->name('users.stopImpersonation');
+
     // Properties
     Route::get('admin/properties', [AdminPropertyController::class, 'index'])->name('properties.index');
     Route::get('admin/properties/create', [AdminPropertyController::class, 'create'])->name('properties.create');

@@ -4,7 +4,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, LampCeiling } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, LampCeiling, User } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -22,6 +22,11 @@ const adminNavItems: NavItem[] = [
         title: 'Dashboard',
         href: route('dashboard'),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Users',
+        href: route('admin.users.index'),
+        icon: User,
     },
     {
         title: 'Properties',

@@ -73,7 +73,7 @@ export interface Property {
     updated_at: string;
 }
 
-interface Booking {
+export interface Booking {
     id: number;
     check_in_date: string;
     check_out_date: string;
@@ -151,12 +151,6 @@ export interface PropertyAttachment {
     updated_at: string;
     created_at: string;
     url: string;
-}
-
-export interface User {
-    id: number;
-    name: string;
-    email: string;
 }
 
 export interface PaginatedProperties {

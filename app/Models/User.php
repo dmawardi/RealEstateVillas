@@ -36,11 +36,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
-    public function properties()
-    {
-        return $this->hasMany(Property::class);
-    }
-
     public function bookings()
     {
         return $this->hasMany(Booking::class);
