@@ -34,6 +34,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
         href: `/properties/${property.id}`,
     },
 ];
+console.log('Property Data:', property);
 </script>
 
 <template>

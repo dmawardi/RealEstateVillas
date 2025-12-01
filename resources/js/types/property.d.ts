@@ -40,6 +40,8 @@ export interface Property {
     is_premium: boolean;
     available_date?: string; // date
     inspection_times?: string; // text field
+
+    is_favorited?: boolean; // Added to track if the property is favorited by the current user
     
     // Media
     floor_plan?: string; // path to floor plan

@@ -234,6 +234,13 @@ class PropertyController extends Controller
         // Increment view count (don't cache this - it should always update)
         $property->increment('view_count');
 
+        // Add favorite status for authenticated users
+        if (auth()->check()) {
+            $isFavorited = auth()->user()->hasFavorited($property);
+            Log::info('Checking favorite status for user', ['user_id' => auth()->id(), 'property_id' => $property->id, 'is_favorited' => $isFavorited]);
+            $propertyData['property']->is_favorited = $isFavorited;
+        }
+
         // Build SEO data
         $seoData = $this->generatePropertySEO($propertyData['property'], $propertyData['current_pricing']);
         
