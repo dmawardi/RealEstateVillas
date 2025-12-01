@@ -63,8 +63,8 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
     Route::get('admin/users/export', [AdminUserController::class, 'export'])->name('users.export');
     // CRUD
     Route::get('admin/users', [AdminUserController::class, 'index'])->name('users.index');
-    Route::get('admin/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     Route::get('admin/users/create', [AdminUserController::class, 'create'])->name('users.create');
+    Route::get('admin/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     Route::post('admin/users', [AdminUserController::class, 'store'])->name('users.store');
     Route::get('admin/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
     Route::put('admin/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
@@ -72,6 +72,10 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
     // Impersonate User
     Route::post('admin/users/{user}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
     Route::post('admin/users/stop-impersonation', [AdminUserController::class, 'stopImpersonation'])->name('users.stopImpersonation');
+    // Email verification
+    Route::post('admin/users/{user}/toggle-email-verification', [AdminUserController::class, 'toggleEmailVerification'])->name('users.toggle-email-verification');
+    // Resend email
+    Route::post('admin/users/{user}/resend-verification-email', [AdminUserController::class, 'resendVerificationEmail'])->name('users.resend-verification-email');
 
     // Properties
     Route::get('admin/properties', [AdminPropertyController::class, 'index'])->name('properties.index');

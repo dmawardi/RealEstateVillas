@@ -123,11 +123,14 @@ class AdminUserController extends Controller
                 $validated['email_verified_at'] = now();
             }
 
-            // Remove the email_verified boolean from validated array as it's not a database field
-            unset($validated['email_verified']);
-
             // Create the user record
-            $user = User::create($validated);
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+                'role' => $validated['role'],
+                'email_verified_at' => $validated['email_verified'] ? now() : null,
+            ]);
 
             DB::commit();
 
@@ -136,6 +139,7 @@ class AdminUserController extends Controller
                 'user_id' => $user->id,
                 'user_email' => $user->email,
                 'user_role' => $user->role,
+                'email_verified' => $user->email_verified_at,
             ]);
 
             return redirect()->route('admin.users.show', $user)
