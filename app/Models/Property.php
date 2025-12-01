@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Cache;
 
 class Property extends Model
@@ -62,7 +63,37 @@ class Property extends Model
         return $this->hasMany(Booking::class, 'property_id');
     }
 
+    /**
+     * Get users who have favorited this property.
+     */
+    public function favoritedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'favorites')
+                    ->withTimestamps()
+                    ->orderBy('favorites.created_at', 'desc');
+    }
 
+    
+    // Helper methods for favorites
+    /**
+     * Get the favorites count for this property.
+     */
+    public function getFavoritesCountAttribute(): int
+    {
+        return $this->favoritedBy()->count();
+    }
+
+    /**
+     * Check if a specific user has favorited this property.
+     */
+    public function isFavoritedBy(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        return $this->favoritedBy()->where('user_id', $user->id)->exists();
+    }
 
     // Helper methods for bookings
     /**
