@@ -393,6 +393,11 @@ class AdminUserController extends Controller
      */
     public function resendEmailVerification(User $user)
     {
+        Log::info('Admin attempting to resend email verification', [
+            'admin_id' => auth()->id(),
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+        ]);
         try {
             if ($user->hasVerifiedEmail()) {
                 return back()->withErrors(['error' => 'User email is already verified.']);

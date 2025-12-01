@@ -73,9 +73,9 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
     Route::post('admin/users/{user}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
     Route::post('admin/users/stop-impersonation', [AdminUserController::class, 'stopImpersonation'])->name('users.stopImpersonation');
     // Email verification
-    Route::post('admin/users/{user}/toggle-email-verification', [AdminUserController::class, 'toggleEmailVerification'])->name('users.toggle-email-verification');
+    Route::patch('admin/users/{user}/toggle-email-verification', [AdminUserController::class, 'toggleEmailVerification'])->name('users.toggle-email-verification');
     // Resend email
-    Route::post('admin/users/{user}/resend-verification-email', [AdminUserController::class, 'resendVerificationEmail'])->name('users.resend-verification-email');
+    Route::post('admin/users/{user}/resend-verification-email', [AdminUserController::class, 'resendEmailVerification'])->name('users.resend-email-verification');
 
     // Properties
     Route::get('admin/properties', [AdminPropertyController::class, 'index'])->name('properties.index');
