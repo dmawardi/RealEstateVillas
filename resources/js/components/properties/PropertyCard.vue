@@ -1,16 +1,55 @@
 <script setup lang="ts">
-import { defineProps, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { defineProps, computed, ref } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import type { DetailedPricing, Property } from '@/types';
 import { formatPrice } from '@/utils/formatters';
 import CardImageGallery from '@/components/properties/CardImageGallery.vue';
-import { MapPin, BedSingleIcon, BathIcon, LandPlotIcon } from 'lucide-vue-next';
+import { MapPin, BedSingleIcon, BathIcon, LandPlotIcon, Heart } from 'lucide-vue-next';
 import { calculateRates, getPriceDisplay, propertyTypeLabels } from '@/utils';
 
 interface Props {
     property: Property;
 }
 const { property } = defineProps<Props>();
+
+// Get current user
+const page = usePage();
+const user = computed(() => page.props.auth?.user);
+
+// Favorite state
+const isFavorited = ref(property.is_favorited || false);
+const isToggling = ref(false);
+
+const toggleFavorite = async (event: Event) => {
+    // Prevent Link navigation of property card
+    event?.stopPropagation();
+    event?.preventDefault()
+
+    if (user.value == null) {
+        // Redirect to login if not authenticated
+        router.visit('/login');
+        return;
+    }
+
+    isToggling.value = true;
+    try {
+        await router.post(route('properties.toggle-favorite', property.slug), {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                isFavorited.value = !isFavorited.value;
+            },
+            onError: (errors: any) => {
+                console.error('Failed to toggle favorite:', errors);
+            },
+            onFinish: () => {
+                isToggling.value = false;
+            }
+        });
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        isToggling.value = false;
+    }
+};
 
 // Computed property to show detailed pricing info
 const detailedPricing = computed((): DetailedPricing | null => {
@@ -99,6 +138,25 @@ const listingTypeColor = computed(() => {
                     <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium font-display bg-white/90 border border-secondary/30 backdrop-blur-sm text-primary transform transition-transform duration-200 group-hover:scale-105">
                         {{ property.listing_type === 'for_rent' ? 'For Rent' : 'For Sale' }}
                     </span>
+                </div>
+
+                <!-- Favorite Heart Button -->
+                <div class="absolute bottom-3 right-3">
+                    <button
+                        @click="toggleFavorite"
+                        :disabled="isToggling"
+                        class="p-2 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-sm hover:bg-white hover:scale-110 disabled:opacity-50 transition-all duration-200 group/heart"
+                        :title="isFavorited ? 'Remove from favorites' : 'Add to favorites'"
+                    >
+                        <Heart
+                            :class="[
+                                'w-5 h-5 transition-all duration-200',
+                                isFavorited 
+                                    ? 'text-red-500 fill-current' 
+                                    : 'text-gray-400 group-hover/heart:text-red-400'
+                            ]"
+                        />
+                    </button>
                 </div>
             </div>
 
