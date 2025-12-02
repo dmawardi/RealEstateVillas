@@ -6,7 +6,6 @@ interface Props {
 }
 const props = defineProps<Props>();
 const property = props.property;
-console.log("Property in key stats:", property);
 </script>
 
 <template>

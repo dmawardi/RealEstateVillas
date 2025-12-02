@@ -21,16 +21,15 @@ const isToggling = ref(false);
 
 // Toggle favorite
 const toggleFavorite = async () => {
-    if (!user.value) {
+    if (user.value == null) {
         // Redirect to login if not authenticated
         router.visit('/login');
         return;
     }
 
     isToggling.value = true;
-    
     try {
-        await router.post(route('properties.favorite.toggle', property.slug), {}, {
+        await router.post(route('properties.toggle-favorite', property.slug), {}, {
             preserveScroll: true,
             onSuccess: () => {
                 isFavorited.value = !isFavorited.value;

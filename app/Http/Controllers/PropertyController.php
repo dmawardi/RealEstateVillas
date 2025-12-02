@@ -279,6 +279,21 @@ class PropertyController extends Controller
         return redirect()->route('properties.index')->with('success', 'Property deleted successfully.');    
     }
 
+    public function toggleFavorite(Property $property)
+    {
+        // Ensure user is authenticated
+        $user = auth()->user();
+        if (!$user) {
+            return redirect('/login');
+        }
+
+        // Toggle favorite status
+        $user->toggleFavorite($property);
+        $isFavorited = $user->hasFavorited($property);
+
+        return back()->with('success', $isFavorited ? 'Property added to favorites.' : 'Property removed from favorites.');
+    }
+
 
     // If check-in and check-out dates are provided, check availability for that range and return boolean
     // Else, return unavailable periods

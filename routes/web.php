@@ -54,6 +54,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Withdraw booking
     Route::post('/bookings/{booking}/withdraw', [BookingController::class, 'withdraw'])
         ->name('bookings.withdraw');
+
+    Route::post('/properties/{property}/toggle-favorite', [PropertyController::class, 'toggleFavorite'])->name('properties.toggle-favorite');
 });
 
 // ADMIN ROUTES
