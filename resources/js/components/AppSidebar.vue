@@ -4,7 +4,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, LampCeiling, User } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, LampCeiling, User, Heart } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -42,6 +42,11 @@ const adminNavItems: NavItem[] = [
         title: 'Bookings',
         href: route('admin.bookings.index'),
         icon: BookOpen,
+    },
+    {
+        title: 'My Favorites',
+        href: route('my.favorites'),
+        icon: Heart,
     }
 ];
 
@@ -55,6 +60,11 @@ const userNavItems: NavItem[] = [
         title: 'My Bookings',
         href: route('my.bookings'),
         icon: BookOpen,
+    },
+    {
+        title: 'My Favorites',
+        href: route('my.favorites'),
+        icon: Heart,
     }
 ];
 

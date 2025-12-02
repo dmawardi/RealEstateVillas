@@ -279,6 +279,160 @@ class PropertyController extends Controller
         return redirect()->route('properties.index')->with('success', 'Property deleted successfully.');    
     }
 
+    // Show user's favorite properties
+    public function favorites(Request $request)
+    {
+        $user = auth()->user();
+    if (!$user) {
+        return redirect('/login');
+    }
+
+    // Start with the user's favorited properties
+    $query = $user->favorites()
+        ->with(['features', 'attachments' => function($q) {
+            $q->orderBy('order')->where('type', 'image');
+        }, 'pricing']);
+
+    // Apply search filter
+    if ($request->filled('search')) {
+        $searchTerm = $request->search;
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('title', 'like', "%{$searchTerm}%")
+              ->orWhere('description', 'like', "%{$searchTerm}%")
+              ->orWhere('village', 'like', "%{$searchTerm}%")
+              ->orWhere('district', 'like', "%{$searchTerm}%")
+              ->orWhere('regency', 'like', "%{$searchTerm}%");
+        });
+    }
+
+    // Apply property type filter
+    if ($request->filled('property_type')) {
+        $query->where('property_type', $request->property_type);
+    }
+
+    // Apply listing type filter
+    if ($request->filled('listing_type')) {
+        $query->where('listing_type', $request->listing_type);
+    }
+
+    // Apply location filter
+    if ($request->filled('location')) {
+        $location = $request->location;
+        $query->where(function ($q) use ($location) {
+            // Split the location if it's in "Village, District" format
+            if (strpos($location, ',') !== false) {
+                [$village, $district] = array_map('trim', explode(',', $location, 2));
+                $q->where(function ($subQ) use ($village, $district) {
+                    $subQ->where('village', $village)
+                         ->where('district', $district);
+                });
+            } else {
+                // If it's a single location, check all location fields
+                $q->where('village', $location)
+                  ->orWhere('district', $location)
+                  ->orWhere('regency', $location);
+            }
+        });
+    }
+
+    // Apply price filters (only for properties with pricing)
+    if ($request->filled('min_price') || $request->filled('max_price')) {
+        $query->whereHas('pricing', function ($pricingQuery) use ($request) {
+            if ($request->filled('min_price')) {
+                $pricingQuery->where('price', '>=', $request->min_price);
+            }
+            if ($request->filled('max_price')) {
+                $pricingQuery->where('price', '<=', $request->max_price);
+            }
+        });
+    }
+
+    // Apply bedrooms filter
+    if ($request->filled('bedrooms')) {
+        $bedrooms = $request->bedrooms;
+        if ($bedrooms == '4') {
+            // Handle "4+ bedrooms" case
+            $query->where('bedrooms', '>=', 4);
+        } else {
+            $query->where('bedrooms', '>=', $bedrooms);
+        }
+    }
+
+    // Apply bathrooms filter
+    if ($request->filled('bathrooms')) {
+        $bathrooms = $request->bathrooms;
+        if ($bathrooms == '3') {
+            // Handle "3+ bathrooms" case
+            $query->where('bathrooms', '>=', 3);
+        } else {
+            $query->where('bathrooms', '>=', $bathrooms);
+        }
+    }
+
+    // Apply sorting
+    $sortBy = $request->get('sort', 'newest');
+    switch ($sortBy) {
+        case 'oldest':
+            $query->orderBy('favorites.created_at', 'asc');
+            break;
+        case 'price_low':
+            $query->leftJoin('property_prices', function($join) {
+                $join->on('properties.id', '=', 'property_prices.property_id')
+                     ->where('property_prices.is_active', true);
+            })->orderBy('property_prices.price', 'asc');
+            break;
+        case 'price_high':
+            $query->leftJoin('property_prices', function($join) {
+                $join->on('properties.id', '=', 'property_prices.property_id')
+                     ->where('property_prices.is_active', true);
+            })->orderBy('property_prices.price', 'desc');
+            break;
+        case 'title':
+            $query->orderBy('properties.title', 'asc');
+            break;
+        case 'newest':
+        default:
+            $query->orderBy('favorites.created_at', 'desc');
+            break;
+    }
+
+    // Paginate the results
+    $favorites = $query->paginate(20)->withQueryString();
+
+    // Add favorite status to each property (they're all favorited by definition)
+    $favorites->getCollection()->each(function ($property) {
+        $property->is_favorited = true;
+    });
+
+    // Get current filters for the frontend
+    $filters = $request->only([
+        'search',
+        'property_type',
+        'listing_type',
+        'location',
+        'min_price',
+        'max_price',
+        'bedrooms',
+        'bathrooms',
+        'sort'
+    ]);
+
+    // Generate SEO data for favorites page
+    $seoData = [
+        'title' => 'My Favorite Properties - Saved Bali Villas & Land',
+        'description' => 'Your saved properties in Bali. Manage your favorite villas, land, and investment opportunities with easy filtering and sorting options.',
+        'keywords' => 'favorite properties bali, saved villas bali, property wishlist, bali property favorites',
+        'canonicalUrl' => url('/my-favorites'),
+        'ogImage' => asset('images/logo/Logo.png'),
+    ];
+
+    return Inertia::render('favorites/Index', [
+        'favorites' => $favorites,
+        'filters' => $filters,
+        'seoData' => $seoData,
+    ]);
+    }
+
     public function toggleFavorite(Property $property)
     {
         // Ensure user is authenticated
