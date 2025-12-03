@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminBookingController;
+use App\Http\Controllers\AdminCacheController;
 use App\Http\Controllers\AdminFeatureController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PropertyController;
@@ -96,8 +97,11 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
     Route::get('admin/features/{feature}/edit', [AdminFeatureController::class, 'edit'])->name('features.edit');
     Route::put('/admin/features/{feature}', [AdminFeatureController::class, 'update'])->name('features.update');
     Route::delete('/admin/features/{feature}', [AdminFeatureController::class, 'destroy'])->name('features.destroy');
-
     
+    // Cache Management
+    Route::get('/admin/cache', [AdminCacheController::class, 'index'])->name('cache.index');
+    Route::post('/admin/cache/clear', [AdminCacheController::class, 'clearAppCache'])->name('cache.clear');
+
     // Property feature pivot management routes
     Route::patch('/properties/{property}/features', [AdminPropertyController::class, 'updateFeatures'])
         ->name('properties.features.update');

@@ -47,6 +47,11 @@ const adminNavItems: NavItem[] = [
         title: 'My Favorites',
         href: route('my.favorites'),
         icon: Heart,
+    },
+    {
+        title: 'Cache Management',
+        href: route('admin.cache.index'),
+        icon: LampCeiling,
     }
 ];
 
