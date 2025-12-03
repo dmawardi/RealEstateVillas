@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, computed, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import type { DetailedPricing, Property } from '@/types';
 import { formatPrice } from '@/utils/formatters';

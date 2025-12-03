@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Property } from '@/types';
-import { defineProps } from 'vue';
 
 interface Props {
     property: Property

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps } from 'vue';
 import { DetailedPricing, Property } from '@/types';
 import { ref } from 'vue';
 

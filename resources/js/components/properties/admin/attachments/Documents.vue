@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, defineEmits, defineModel } from 'vue';
+import { defineEmits, defineModel } from 'vue';
 import { PropertyAttachment } from '@/types';
 
 interface Props {
