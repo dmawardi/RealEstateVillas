@@ -7,11 +7,13 @@ use App\Models\Booking;
 use App\Models\Property;
 use App\Rules\RecaptchaRule;
 use Carbon\Carbon;
+use DrewM\MailChimp\MailChimp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
 class BaseController extends Controller
@@ -400,5 +402,56 @@ class BaseController extends Controller
             return back()->with('error', 'There was an issue sending your message. Please try again or contact us directly.');
         }
 
+    }
+
+    public function subscribe(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return back()->with('error', 'Please provide a valid email address.');
+        }
+
+        $email = $request->email;
+
+        try {
+            // Initialize Mailchimp
+            $mailchimp = new MailChimp(config('services.mailchimp.api_key'));
+            $audienceId = config('services.mailchimp.audience_id');
+
+            // Add subscriber
+            $result = $mailchimp->post("lists/{$audienceId}/members", [
+                'email_address' => $email,
+                'status' => 'subscribed'
+            ]);
+
+            // Check for errors
+            if ($mailchimp->success()) {
+                Log::info('Newsletter subscription successful', ['email' => $email]);
+                
+                return back()->with('success', 'Thank you for subscribing to our newsletter!');
+            } else {
+                $error = $mailchimp->getLastError();
+                
+                // Handle duplicate email
+                if (str_contains($error, 'already a list member')) {
+                    return back()->with('info', 'You are already subscribed to our newsletter.');
+                }
+
+                Log::error('Mailchimp API error', ['error' => $error, 'email' => $email]);
+                
+                return back()->with('error', 'There was an issue subscribing you to the newsletter. Please try again later.');
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Newsletter subscription error', [
+                'error' => $e->getMessage(),
+                'email' => $email
+            ]);
+
+            return back()->with('error', 'An unexpected error occurred. Please try again later.');
+        }
     }
 }

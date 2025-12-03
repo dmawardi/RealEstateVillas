@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 interface Props {
@@ -19,18 +19,23 @@ const subscribeToNewsletter = async () => {
     isSubmitting.value = true;
     
     try {
-        // Replace with your actual newsletter subscription logic
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-        subscriptionMessage.value = 'Thank you for subscribing!';
-        email.value = '';
+        await router.post(route('newsletter.subscribe'), {
+            email: email.value,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                isSubmitting.value = !isSubmitting.value;
+            },
+            onError: (errors: any) => {
+                console.error('Failed to subscribe to newsletter:', errors);
+            },
+            onFinish: () => {
+                isSubmitting.value = false;
+            }
+        });
     } catch (error) {
-        subscriptionMessage.value = 'Something went wrong. Please try again.';
-        console.error(error);
-    } finally {
+        console.error('Error subscribing to newsletter:', error);
         isSubmitting.value = false;
-        setTimeout(() => {
-            subscriptionMessage.value = '';
-        }, 3000);
     }
 };
 

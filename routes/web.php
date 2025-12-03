@@ -22,6 +22,8 @@ Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->
 Route::get('/contact', [BaseController::class, 'contact'])->name('contact');
 Route::post('/contact', [BaseController::class, 'submitContactForm'])->name('contact.submit');
 
+Route::post('/newsletter/subscribe', [BaseController::class, 'subscribe'])->name('newsletter.subscribe');
+
 // Support Routes
 Route::get('/support/faq', [SupportController::class, 'faq'])->name('support.faq');
 Route::get('/support/terms-of-service', [SupportController::class, 'termsOfService'])->name('support.termsOfService');
