@@ -120,27 +120,6 @@ const insertLink = () => {
     }
 };
 
-// Convert simple markdown to HTML for preview
-const markdownToHtml = (markdown: string): string => {
-    return markdown
-        // Bold
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        // Italic
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        // Links
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 dark:text-blue-400 underline">$1</a>')
-        // Bullet lists
-        .replace(/^- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/gs, '<ul class="list-disc list-inside">$1</ul>')
-        // Numbered lists
-        .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/gs, '<ol class="list-decimal list-inside">$1</ol>')
-        // Quotes
-        .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic">$1</blockquote>')
-        // Line breaks
-        .replace(/\n/g, '<br>');
-};
-
 // Handle keyboard shortcuts
 const onKeydown = (event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey) {
