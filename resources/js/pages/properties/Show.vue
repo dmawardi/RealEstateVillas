@@ -136,7 +136,8 @@ const hasAmenities = () => {
     
                     <!-- Features -->
                     <PropertyFeatures :property="property" />
-                    <StaticMap 
+                    <StaticMap
+                        v-if="property.latitude && property.longitude"
                         :lat="Number(property.latitude)" 
                         :lng="Number(property.longitude)" 
                         :apiKey="map_api_key" 
