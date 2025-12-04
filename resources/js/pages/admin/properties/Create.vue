@@ -387,7 +387,7 @@ const completionProgress = computed(() => {
 
                 <!-- Form Content -->
                 <div class="lg:col-span-3">
-                    <form @submit.prevent="submit" class="space-y-8">
+                    <form class="space-y-8">
                         <!-- Basic Information Tab -->
                         <div v-show="activeTab === 'basic'">
                             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
@@ -576,6 +576,7 @@ const completionProgress = computed(() => {
                                                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                                     : 'bg-green-600 hover:bg-green-700 text-white'
                                             ]"
+                                            @click="submit"
                                         >
                                             {{ form.processing ? 'Creating Property...' : 'Create Property' }}
                                         </button>
