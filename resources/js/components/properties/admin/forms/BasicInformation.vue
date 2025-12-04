@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import RichTextInput from './RichTextInput.vue';
 
 interface BasicFormData {
     title: string;
@@ -179,35 +180,13 @@ const slugError = computed(() => {
             </div>
 
             <!-- Description -->
-            <div>
-                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Description <span class="text-red-500">*</span>
-                </label>
-                <textarea
-                    id="description"
-                    v-model="description"
-                    rows="6"
-                    :class="[
-                        'mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100',
-                        hasFieldError('description') 
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 dark:border-gray-600'
-                    ]"
-                    placeholder="Provide a detailed description of the property including features, location benefits, and unique selling points..."
-                    required
-                ></textarea>
-                <p v-if="getFieldError('description')" class="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {{ getFieldError('description') }}
-                </p>
-                <div v-else class="mt-1 flex justify-between items-center">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Include amenities, nearby attractions, and what makes this property special
-                    </p>
-                    <span class="text-xs text-gray-400">
-                        {{ description.length }} characters
-                    </span>
-                </div>
-            </div>
+            <RichTextInput
+                v-model="description"
+                :error="getFieldError('description')"
+                label="Property Description"
+                placeholder="Provide a detailed description of the property, its features, and amenities."
+                required
+            />
 
             <!-- Property Type and Listing Type -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
