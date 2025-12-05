@@ -39,7 +39,7 @@ const toggleHover = (hovered: boolean) => {
                 <div v-if="property.attachments && property.attachments.length > 0" class="w-full h-full relative">
                 <!-- Main Image -->
                 <img 
-                    :src="property.attachments[currentImageIndex].path" 
+                    :src="property.attachments[currentImageIndex].url" 
                     :alt="property.title"
                     class="w-full h-full object-cover transition-opacity duration-300"
                 />

@@ -41,6 +41,17 @@ class BaseController extends Controller
             Cache::put('properties:featured_premium', $all, 60);
         }
 
+        // Append URL for each attachment
+        foreach ($all as $property) {
+            if ($property->attachments) {
+                $property->attachments->each(function ($attachment) {
+                    // Force the accessor to be called and included in array conversion
+                    $attachment->makeVisible(['url']);
+                    $attachment->append('url');
+                });
+            }
+        }
+
         $featured = $all->where('is_featured', true)->values();
         $premium  = $all->where('is_premium', true)->values();
 
