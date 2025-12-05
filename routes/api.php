@@ -44,19 +44,16 @@ Route::put('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceContro
 Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('properties.pricing.destroy');
 
 // Property feature management routes
-Route::get('admin/properties/{property}/available-features', [AdminPropertyController::class, 'getAvailableFeatures'])
-    ->name('admin.properties.features.available');
-Route::get('/properties/available-features', [FeatureController::class, 'getAvailableFeatures'])->name('properties.features');
-
 // Admin routes
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth', 'admin'])->name('admin.')->group(function () {
+    Route::get('admin/properties/available-features', [FeatureController::class, 'getAvailableFeatures'])->name('properties.features');
     // Feature cache management routes
-    Route::delete('/admin/cache/features', [FeatureController::class, 'clearFeaturesCache'])->name('admin.cache.features.clear');
-    Route::post('/admin/cache/features/refresh', [FeatureController::class, 'refreshFeaturesCache'])->name('admin.cache.features.refresh');
-    Route::get('/admin/cache/features/info', [FeatureController::class, 'getCacheInfo'])->name('admin.cache.features.info');
+    Route::delete('/admin/cache/features', [FeatureController::class, 'clearFeaturesCache'])->name('cache.features.clear');
+    Route::post('/admin/cache/features/refresh', [FeatureController::class, 'refreshFeaturesCache'])->name('cache.features.refresh');
+    Route::get('/admin/cache/features/info', [FeatureController::class, 'getCacheInfo'])->name('cache.features.info');
 
     // Property Detail refresh route
-    Route::post('/admin/properties/{property}/refresh-details', [AdminPropertyController::class, 'clearPropertyDetailCache'])->name('admin.properties.refresh-details');
+    Route::post('/admin/properties/{property}/refresh-details', [AdminPropertyController::class, 'clearPropertyDetailCache'])->name('properties.refresh-details');
     // Location refresh route
-    Route::post('/admin/locations/{location}/refresh-details', [AdminPropertyController::class, 'clearLocationsCache'])->name('admin.locations.refresh-details');
+    Route::post('/admin/locations/{location}/refresh-details', [AdminPropertyController::class, 'clearLocationsCache'])->name('locations.refresh-details');
 });

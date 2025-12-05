@@ -6,7 +6,7 @@ import { formatPrice, formatDate } from '@/utils';
 import { ref } from 'vue';
 import PropertyOverview from '@/components/properties/admin/PropertyOverview.vue';
 import PropertyAddressLocation from '@/components/properties/admin/PropertyAddressLocation.vue';
-import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
+import PropertyFeatures from '@/components/properties/admin/PropertyFeatures.vue';
 import PropertyBookings from '@/components/properties/admin/PropertyBookings.vue';
 import { Booking } from '@/types';
 import PropertyAttachments from '@/components/properties/admin/PropertyAttachments.vue';
