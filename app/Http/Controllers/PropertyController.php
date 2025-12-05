@@ -147,6 +147,16 @@ class PropertyController extends Controller
         // Paginate the results
         $properties = $query->latest('listed_at')->paginate(10)->withQueryString();
 
+        // Append URL for each attachment
+        $properties->getCollection()->each(function ($property) {
+            if ($property->attachments) {
+                $property->attachments->each(function ($attachment) {
+                    $attachment->makeVisible(['url']);
+                    $attachment->append('url');
+                });
+            }
+        });
+
         // Get current filters for the frontend (including the new ones)
         $filters = $request->only([
             'property_type', 
