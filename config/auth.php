@@ -43,7 +43,7 @@ return [
         'api' => [
         'driver' => 'session', // Change from 'token' to 'session'
         'provider' => 'users',
-    ],
+        ],
     ],
 
     /*
