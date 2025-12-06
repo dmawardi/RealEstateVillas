@@ -30,21 +30,6 @@ Route::get('/support/terms-of-service', [SupportController::class, 'termsOfServi
 Route::get('/support/cookie-policy', [SupportController::class, 'cookiePolicy'])->name('support.cookiePolicy');
 Route::get('/support/privacy-policy', [SupportController::class, 'privacyPolicy'])->name('support.privacyPolicy');
 
-// EMAIL VERIFICATION
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
-
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill(); // Marks user as verified
-    return redirect('/dashboard'); // or wherever you want to send them
-})->middleware(['auth', 'signed'])->name('verification.verify');
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-    return back()->with('message', 'Verification link sent!');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-
 // Logged in routes
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
@@ -62,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/my-favorites', [PropertyController::class, 'favorites'])->name('my.favorites');
     Route::post('/properties/{property}/toggle-favorite', [PropertyController::class, 'toggleFavorite'])->name('properties.toggle-favorite');
 });
+
+
 
 // ADMIN ROUTES
 Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function () {
@@ -93,31 +80,30 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
     Route::put('admin/properties/{property}', [AdminPropertyController::class, 'update'])->name('properties.update');
     Route::delete('admin/properties/{property}', [AdminPropertyController::class, 'destroy'])->name('properties.destroy');
     // Property Features CRUD routes
-    Route::get('/admin/features', [AdminFeatureController::class, 'index'])->name('features.index');
-    Route::get('/admin/features/create', [AdminFeatureController::class, 'create'])->name('features.create');
-    Route::post('/admin/features', [AdminFeatureController::class, 'store'])->name('features.store');
+    Route::get('admin/features', [AdminFeatureController::class, 'index'])->name('features.index');
+    Route::get('admin/features/create', [AdminFeatureController::class, 'create'])->name('features.create');
+    Route::post('admin/features', [AdminFeatureController::class, 'store'])->name('features.store');
     Route::get('admin/features/{feature}/edit', [AdminFeatureController::class, 'edit'])->name('features.edit');
-    Route::put('/admin/features/{feature}', [AdminFeatureController::class, 'update'])->name('features.update');
-    Route::delete('/admin/features/{feature}', [AdminFeatureController::class, 'destroy'])->name('features.destroy');
+    Route::put('admin/features/{feature}', [AdminFeatureController::class, 'update'])->name('features.update');
+    Route::delete('admin/features/{feature}', [AdminFeatureController::class, 'destroy'])->name('features.destroy');
     
     // Cache Management
-    Route::get('/admin/cache', [AdminCacheController::class, 'index'])->name('cache.index');
-    Route::post('/admin/cache/clear', [AdminCacheController::class, 'clearAppCache'])->name('cache.clear');
-
+    Route::get('admin/cache', [AdminCacheController::class, 'index'])->name('cache.index');
+    Route::post('admin/cache/clear', [AdminCacheController::class, 'clearAppCache'])->name('cache.clear');
     // Property feature pivot management routes
-    Route::patch('/properties/{property}/features', [AdminPropertyController::class, 'updateFeatures'])
+    Route::patch('admin/properties/{property}/features', [AdminPropertyController::class, 'updateFeatures'])
         ->name('properties.features.update');
-    Route::post('/properties/{property}/features', [AdminPropertyController::class, 'attachFeature'])
+    Route::post('admin/properties/{property}/features', [AdminPropertyController::class, 'attachFeature'])
         ->name('properties.features.attach');
-    Route::delete('/properties/{property}/features/{feature}', [AdminPropertyController::class, 'detachFeature'])
+    Route::delete('admin/properties/{property}/features/{feature}', [AdminPropertyController::class, 'detachFeature'])
         ->name('properties.features.detach');
-    Route::patch('/properties/{property}/features/{feature}', [AdminPropertyController::class, 'updatePropertyFeature'])
+    Route::patch('admin/properties/{property}/features/{feature}', [AdminPropertyController::class, 'updatePropertyFeature'])
         ->name('properties.features.update-single');
 
     // Booking Management
     Route::get('admin/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
-    Route::get('/admin/bookings/create', [AdminBookingController::class, 'create'])->name('bookings.create');
-    Route::post('/admin/bookings', [AdminBookingController::class, 'store'])->name('bookings.store');
+    Route::get('admin/bookings/create', [AdminBookingController::class, 'create'])->name('bookings.create');
+    Route::post('admin/bookings', [AdminBookingController::class, 'store'])->name('bookings.store');
     Route::get('admin/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
     Route::get('admin/bookings/{booking}/edit', [AdminBookingController::class, 'edit'])->name('bookings.edit');
     Route::put('admin/bookings/{booking}', [AdminBookingController::class, 'update'])->name('bookings.update');

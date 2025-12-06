@@ -60,17 +60,19 @@ const filteredAvailableFeatures = computed(() => {
 // Load available features from API
 const loadAvailableFeatures = async () => {
     try {
-        const response:any = await PropertyApi.getAvailableFeatures(props.property.id);
+        const response: any = await PropertyApi.getAvailableFeatures();
 
-        console.log('API response for available features:', response);
-
-        if (response.success) {
-            availableFeatures.value = response.features;
+        // The response is grouped by category, we need to flatten it
+        if (response) {
+            // Flatten the grouped features into a single array
+            availableFeatures.value = Object.values(response).flat() as Feature[];
         } else {
-            console.error('API returned error:', response.message);
+            console.error('API returned empty response');
+            availableFeatures.value = [];
         }
     } catch (error) {
         console.error('Failed to load available features:', error);
+        availableFeatures.value = [];
     }
 };
 
@@ -134,7 +136,7 @@ const saveFeatures = () => {
     }));
     
     router.patch(
-        route('admin.properties.features.update', props.property.id),
+        route('admin.properties.features.update', props.property.slug),
         { features: featuresData },
         {
             preserveScroll: true,
