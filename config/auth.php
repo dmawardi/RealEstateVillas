@@ -41,8 +41,8 @@ return [
             'provider' => 'users',
         ],
         'api' => [
-        'driver' => 'session', // Change from 'token' to 'session'
-        'provider' => 'users',
+            'driver' => 'session',
+            'provider' => 'users',
         ],
     ],
 

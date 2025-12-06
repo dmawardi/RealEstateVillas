@@ -27,12 +27,8 @@ class FeatureController extends Controller
         try {
             // Try to get features from cache first
             $features = Cache::remember(self::FEATURES_CACHE_KEY, self::CACHE_DURATION, function () {
-                Log::info('Fetching features from database (cache miss)');
                 
-                return Feature::whereHas('properties', function ($query) {
-                    $query->where('status', 'active');
-                })
-                ->where('is_active', true)
+                return Feature::where('is_active', true)
                 ->select('id', 'name', 'slug', 'category', 'icon')
                 ->orderBy('category')
                 ->orderBy('name')

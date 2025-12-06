@@ -45,7 +45,7 @@ Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceCon
 
 // Property feature management routes
 // Admin routes
-Route::middleware(['auth', 'admin'])->name('admin.')->group(function () {
+Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
     Route::get('admin/properties/available-features', [FeatureController::class, 'getAvailableFeatures'])->name('properties.features');
     // Feature cache management routes
     Route::delete('/admin/cache/features', [FeatureController::class, 'clearFeaturesCache'])->name('cache.features.clear');
