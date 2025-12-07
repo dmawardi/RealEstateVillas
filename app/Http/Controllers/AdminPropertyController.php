@@ -147,6 +147,14 @@ class AdminPropertyController extends Controller
             });
         }
 
+        // If the pricing_needed filter is set, only show properties that have pricing that expires in less that 7 months
+        if ($request->filled('pricing_needed')) {
+            $sevenMonthsFromNow = Carbon::now()->addMonths(7);
+            $query->whereHas('pricing', function ($pricingQuery) use ($sevenMonthsFromNow) {
+                $pricingQuery->where('end_date', '<=', $sevenMonthsFromNow);
+            });
+        }
+
         // Paginate results
         $properties = $query->paginate(15)->withQueryString();
 

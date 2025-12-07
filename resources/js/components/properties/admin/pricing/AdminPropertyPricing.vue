@@ -175,7 +175,7 @@ const submitPricing = async () => {
     if (isEditing.value && editingPricing.value) {
         PricingApi.updatePricing(editingPricing.value.id, pricingForm.value, apiOptions);
     } else {
-        PricingApi.createPricing(property.id, pricingForm.value, apiOptions);
+        PricingApi.createPricing(property.slug, pricingForm.value, apiOptions);
     }
 };
 

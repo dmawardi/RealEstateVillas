@@ -5,8 +5,8 @@ export class PricingApi extends ApiService {
         return this.get(`/properties/${propertyId}/pricing`, options);
     }
     
-    static createPricing(propertyId: number, data: any, options = {}) {
-        return this.post(`/properties/${propertyId}/pricing`, data, options);
+    static createPricing(propertySlug: string, data: any, options = {}) {
+        return this.post(`/properties/${propertySlug}/pricing`, data, options);
     }
     
     static updatePricing(pricingId: number, data: any, options = {}) {
