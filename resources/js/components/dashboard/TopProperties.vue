@@ -43,6 +43,7 @@ const getListingTypeBadge = (type: string) => {
     };
     return badges[type as keyof typeof badges] || badges.for_sale;
 };
+console.log('properties', properties);
 </script>
 
 <template>
@@ -89,7 +90,7 @@ const getListingTypeBadge = (type: string) => {
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center space-x-2 mb-1">
                             <Link 
-                                :href="route('properties.show', property.id)"
+                                :href="route('admin.properties.show', property.slug)"
                                 class="font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 truncate"
                             >
                                 {{ property.title }}

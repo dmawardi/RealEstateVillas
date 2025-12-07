@@ -254,7 +254,7 @@ class BaseController extends Controller
     {
         return Property::where('status', 'active')
             ->select([
-                'id', 'title', 'property_id', 'view_count', 'district', 'regency',
+                'id', 'title', 'property_id', 'view_count', 'district', 'regency', 'slug',
                 'listing_type', 'price', 'bedrooms', 'bathrooms', 'property_type'
             ])
             ->orderByDesc('view_count')
