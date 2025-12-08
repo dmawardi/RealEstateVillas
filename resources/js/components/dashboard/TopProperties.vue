@@ -43,7 +43,6 @@ const getListingTypeBadge = (type: string) => {
     };
     return badges[type as keyof typeof badges] || badges.for_sale;
 };
-console.log('properties', properties);
 </script>
 
 <template>

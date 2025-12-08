@@ -43,8 +43,8 @@ const getPricingWarning = computed(() => {
 // Group properties by urgency
 const pricingByUrgency = computed(() => {
     const now = new Date();
-    const threeMonthsFromNow = new Date();
-    threeMonthsFromNow.setMonth(now.getMonth() + 3);
+    const fiveMonthsFromNow = new Date();
+    fiveMonthsFromNow.setMonth(now.getMonth() + 5);
     
     const urgent: Property[] = [];
     const warning: Property[] = [];
@@ -59,14 +59,14 @@ const pricingByUrgency = computed(() => {
                 .map(p => new Date(p.end_date!))
                 .sort((a, b) => b.getTime() - a.getTime())[0];
             
-            if (latestEndDate && latestEndDate <= threeMonthsFromNow) {
+            // Check if latest end date is within 5 months
+            if (latestEndDate && latestEndDate <= fiveMonthsFromNow) {
                 urgent.push(property);
             } else {
                 warning.push(property);
             }
         }
-    });
-    
+    });    
     return { urgent, warning, noPricing };
 });
 
@@ -113,6 +113,7 @@ const goToNoPricingPage = (page: number) => {
 const goToWarningPage = (page: number) => {
     warningCurrentPage.value = page;
 };
+console.log('Properties needing pricing', { 'properties needing pricing': stats.properties_needing_pricing });
 </script>
 
 <template>
@@ -240,7 +241,7 @@ const goToWarningPage = (page: number) => {
                             <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                             </svg>
-                            Urgent (≤3 months) - {{ urgentPaginated.totalItems }} properties
+                            Urgent (≤5 months) - {{ urgentPaginated.totalItems }} properties
                         </h4>
                         <div v-if="urgentPaginated.totalPages > 1" class="text-xs text-gray-500 dark:text-gray-400">
                             Page {{ urgentCurrentPage }} of {{ urgentPaginated.totalPages }}
@@ -307,7 +308,7 @@ const goToWarningPage = (page: number) => {
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            Warning (3-6 months) - {{ warningPaginated.totalItems }} properties
+                            Warning (6-7 months) - {{ warningPaginated.totalItems }} properties
                         </h4>
                         <div v-if="warningPaginated.totalPages > 1" class="text-xs text-gray-500 dark:text-gray-400">
                             Page {{ warningCurrentPage }} of {{ warningPaginated.totalPages }}

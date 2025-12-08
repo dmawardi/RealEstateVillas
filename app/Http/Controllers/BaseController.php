@@ -147,27 +147,22 @@ class BaseController extends Controller
      */
     public function dashboard()
     {
-        // Cache key for dashboard data
-        $cacheKey = 'dashboard_data_' . now()->format('Y-m-d-H');
-        $cacheDuration = 60 * 60; // 1 hour
-
         if (auth()->user()->role === 'admin') {
-            $dashboardData = Cache::remember($cacheKey, $cacheDuration, function () {
-                    // Get dashboard statistics
-                    $stats = $this->getDashboardStats();
-                    
-                    // Get top properties by view count
-                    $topProperties = $this->getTopProperties();
-                    
-                    // Get recent bookings for dashboard
-                    $recentBookings = $this->getRecentBookings();
-                    return [
-                        'stats' => $stats,
-                        'topProperties' => $topProperties,
-                        'recentBookings' => $recentBookings
-                    ];
-            });
-            return Inertia::render('Dashboard', [...$dashboardData, 
+
+            // Get dashboard statistics
+            $stats = $this->getDashboardStats();
+            
+            // Get top properties by view count
+            $topProperties = $this->getTopProperties();
+            
+            // Get recent bookings for dashboard
+            $recentBookings = $this->getRecentBookings();
+            Log::info('Dashboard statistics', ['properties needing pricing' => $stats['properties_needing_pricing']]);
+            
+            return Inertia::render('Dashboard', [
+                 'stats' => $stats,
+                 'topProperties' => $topProperties,
+                 'recentBookings' => $recentBookings,
                 'seoData' => [
                     'title' => 'Admin Dashboard',
                     'description' => 'Comprehensive overview of property and booking analytics.',
@@ -195,29 +190,20 @@ class BaseController extends Controller
     private function getDashboardStats(): array
     {
         $now = Carbon::now();
-        $sixMonthsFromNow = $now->copy()->addMonths(6);
-        $currentMonth = $now->format('Y-m');
+        $sevenMonthsFromNow = $now->copy()->addMonths(7);
 
-        // Properties needing pricing attention (within 6 months or no future pricing)
-        $propertiesNeedingPricing = Property::with(['pricing' => function ($query) use ($sixMonthsFromNow) {
-                $query->where('end_date', '<=', $sixMonthsFromNow)
-                      ->orWhereNull('end_date');
-            }])
-            ->whereDoesntHave('pricing', function ($query) use ($sixMonthsFromNow) {
-                $query->where('end_date', '>', $sixMonthsFromNow)
-                      ->orWhereNull('end_date');
+        // Properties needing pricing attention (within 7 months or no future pricing)
+        $propertiesNeedingPricing = Property::with('pricing')->where('listing_type', 'for_rent')
+            ->where(function ($query) use ($sevenMonthsFromNow) {
+                // Properties with no pricing at all
+                $query->whereDoesntHave('pricing')
+                    // OR properties with pricing that ends within 7 months
+                    ->orWhereHas('pricing', function ($pricingQuery) use ($sevenMonthsFromNow) {
+                        $pricingQuery->where('end_date', '<=', $sevenMonthsFromNow)
+                            ->where('end_date', '>', now()); // Don't include expired pricing
+                    });
             })
-            ->orWhereHas('pricing', function ($query) use ($sixMonthsFromNow) {
-                $query->where('end_date', '<=', $sixMonthsFromNow)
-                      ->whereNotExists(function ($subQuery) use ($sixMonthsFromNow) {
-                          $subQuery->select(DB::raw(1))
-                                   ->from('property_pricing as pp2')
-                                   ->whereColumn('pp2.property_id', 'property_pricing.property_id')
-                                   ->where('pp2.end_date', '>', $sixMonthsFromNow)
-                                   ->orWhere('pp2.end_date', null);
-                      });
-            })
-            ->select('id', 'title', 'property_id', 'slug')
+            ->select('id', 'title', 'property_id', 'slug', 'listing_type')
             ->get();
 
         // Active bookings (confirmed and currently staying)
@@ -243,7 +229,7 @@ class BaseController extends Controller
             'active_bookings' => $activeBookings,
             'pending_bookings' => $pendingBookings,
             'monthly_revenue' => $monthlyRevenue,
-            'properties_needing_pricing' => $propertiesNeedingPricing->toArray()
+            'properties_needing_pricing' => $propertiesNeedingPricing
         ];
     }
 
