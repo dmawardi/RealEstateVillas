@@ -1,10 +1,8 @@
 <script setup lang="ts">
-// filepath: /Users/d/Web Development/projects/RealEstate/resources/js/components/dashboard/DashboardStats.vue
 import { Booking, Property } from '@/types';
 import { formatCurrency } from '@/utils';
 import { computed, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import PropertyStatCard from '@/components/dashboard/PropertyStatCard.vue';
 import PaginationControls from '../ui/navigation/PaginationControls.vue';
 
 interface Stats {
@@ -12,7 +10,12 @@ interface Stats {
     active_bookings: number;
     pending_bookings: number;
     monthly_revenue: number;
-    properties_needing_pricing: Property[];
+    properties_needing_pricing: {
+        no_pricing: Property[];
+        ending_soon: Property[];
+        no_active_pricing: Property[];
+        total_count: number;
+    };
     recent_bookings: Booking[];
 }
 
@@ -23,9 +26,7 @@ interface Props {
 const { stats } = defineProps<Props>();
 
 // Pagination state
-const urgentCurrentPage = ref(1);
-const noPricingCurrentPage = ref(1);
-const warningCurrentPage = ref(1);
+const currentPage = ref(1);
 const itemsPerPage = 6;
 
 const getPendingBookingsWarning = computed(() => {
@@ -35,84 +36,73 @@ const getPendingBookingsWarning = computed(() => {
 });
 
 const getPricingWarning = computed(() => {
-    if (stats.properties_needing_pricing.length === 0) return 'success';
-    if (stats.properties_needing_pricing.length <= 2) return 'warning';
+    if (stats.properties_needing_pricing.total_count === 0) return 'success';
+    if (stats.properties_needing_pricing.total_count <= 2) return 'warning';
     return 'error';
 });
 
-// Group properties by urgency
-const pricingByUrgency = computed(() => {
-    const now = new Date();
-    const fiveMonthsFromNow = new Date();
-    fiveMonthsFromNow.setMonth(now.getMonth() + 5);
+// Combine all properties in order of priority: no_pricing (highest), no_active_pricing, ending_soon (lowest)
+const allPropertiesSorted = computed(() => {
+    const categorizedProperties: Array<Property & { category: string; urgency: string; displayText: string }> = [];
     
-    const urgent: Property[] = [];
-    const warning: Property[] = [];
-    const noPricing: Property[] = [];
+    // Add no_pricing properties first (highest priority)
+    stats.properties_needing_pricing.no_pricing.forEach(property => {
+        categorizedProperties.push({
+            ...property,
+            category: 'no_pricing',
+            urgency: 'urgent',
+            displayText: 'No pricing set'
+        });
+    });
     
-    stats.properties_needing_pricing.forEach(property => {
-        if (!property.pricing || property.pricing.length === 0) {
-            noPricing.push(property);
-        } else {
-            const latestEndDate = property.pricing
-                .filter(p => p.end_date)
-                .map(p => new Date(p.end_date!))
-                .sort((a, b) => b.getTime() - a.getTime())[0];
-            
-            // Check if latest end date is within 5 months
-            if (latestEndDate && latestEndDate <= fiveMonthsFromNow) {
-                urgent.push(property);
-            } else {
-                warning.push(property);
-            }
-        }
-    });    
-    return { urgent, warning, noPricing };
+    // Add no_active_pricing properties second
+    stats.properties_needing_pricing.no_active_pricing.forEach(property => {
+        categorizedProperties.push({
+            ...property,
+            category: 'no_active_pricing',
+            urgency: 'urgent',
+            displayText: 'No active pricing'
+        });
+    });
+    
+    // Add ending_soon properties last (lowest priority)
+    stats.properties_needing_pricing.ending_soon.forEach(property => {
+        categorizedProperties.push({
+            ...property,
+            category: 'ending_soon',
+            urgency: 'warning',
+            displayText: 'Pricing ending soon'
+        });
+    });
+    
+    return categorizedProperties;
 });
 
-// Pagination computed properties
-const urgentPaginated = computed(() => {
-    const startIndex = (urgentCurrentPage.value - 1) * itemsPerPage;
+// Pagination for sorted list
+const sortedPaginated = computed(() => {
+    const startIndex = (currentPage.value - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return {
-        items: pricingByUrgency.value.urgent.slice(startIndex, endIndex),
-        totalPages: Math.ceil(pricingByUrgency.value.urgent.length / itemsPerPage),
-        totalItems: pricingByUrgency.value.urgent.length
+        items: allPropertiesSorted.value.slice(startIndex, endIndex),
+        totalPages: Math.ceil(allPropertiesSorted.value.length / itemsPerPage),
+        totalItems: allPropertiesSorted.value.length
     };
 });
 
-const noPricingPaginated = computed(() => {
-    const startIndex = (noPricingCurrentPage.value - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return {
-        items: pricingByUrgency.value.noPricing.slice(startIndex, endIndex),
-        totalPages: Math.ceil(pricingByUrgency.value.noPricing.length / itemsPerPage),
-        totalItems: pricingByUrgency.value.noPricing.length
-    };
-});
+// Count urgent vs warning
+const urgentCount = computed(() => 
+    stats.properties_needing_pricing.no_pricing.length + stats.properties_needing_pricing.no_active_pricing.length
+);
 
-const warningPaginated = computed(() => {
-    const startIndex = (warningCurrentPage.value - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return {
-        items: pricingByUrgency.value.warning.slice(startIndex, endIndex),
-        totalPages: Math.ceil(pricingByUrgency.value.warning.length / itemsPerPage),
-        totalItems: pricingByUrgency.value.warning.length
-    };
-});
+const warningCount = computed(() => 
+    stats.properties_needing_pricing.ending_soon.length
+);
 
-// Pagination functions
-const goToUrgentPage = (page: number) => {
-    urgentCurrentPage.value = page;
+// Pagination function
+const goToPage = (page: number) => {
+    currentPage.value = page;
 };
 
-const goToNoPricingPage = (page: number) => {
-    noPricingCurrentPage.value = page;
-};
-
-const goToWarningPage = (page: number) => {
-    warningCurrentPage.value = page;
-};
 console.log('Properties needing pricing', { 'properties needing pricing': stats.properties_needing_pricing });
 </script>
 
@@ -186,7 +176,7 @@ console.log('Properties needing pricing', { 'properties needing pricing': stats.
         </div>
 
         <!-- Pricing Alert with Property List -->
-        <div v-if="stats.properties_needing_pricing.length > 0" class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+        <div v-if="stats.properties_needing_pricing.total_count > 0" class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
             <div :class="[
                 'p-4 border-l-4',
                 getPricingWarning === 'warning' 
@@ -208,14 +198,25 @@ console.log('Properties needing pricing', { 'properties needing pricing': stats.
                                 'text-sm font-medium',
                                 getPricingWarning === 'warning' ? 'text-yellow-800 dark:text-yellow-200' : 'text-red-800 dark:text-red-200'
                             ]">
-                                {{ stats.properties_needing_pricing.length }} Properties Need Pricing Update
+                                {{ stats.properties_needing_pricing.total_count }} Properties Need Pricing Update
                             </h3>
                             <p :class="[
                                 'mt-1 text-sm',
                                 getPricingWarning === 'warning' ? 'text-yellow-700 dark:text-yellow-300' : 'text-red-700 dark:text-red-300'
                             ]">
-                                Properties with pricing ending within 6 months or no future pricing set.
+                                {{ urgentCount }} urgent • {{ warningCount }} warning
                             </p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <span v-if="stats.properties_needing_pricing.no_pricing.length > 0" class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200">
+                                    {{ stats.properties_needing_pricing.no_pricing.length }} No Pricing
+                                </span>
+                                <span v-if="stats.properties_needing_pricing.no_active_pricing.length > 0" class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-200">
+                                    {{ stats.properties_needing_pricing.no_active_pricing.length }} No Active Pricing
+                                </span>
+                                <span v-if="stats.properties_needing_pricing.ending_soon.length > 0" class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
+                                    {{ stats.properties_needing_pricing.ending_soon.length }} Ending Soon
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div class="ml-4 flex-shrink-0">
@@ -234,106 +235,95 @@ console.log('Properties needing pricing', { 'properties needing pricing': stats.
 
             <!-- Properties List -->
             <div class="p-6 border-t border-gray-200 dark:border-gray-700">
-                <!-- Urgent Properties (3 months or less) -->
-                <div v-if="urgentPaginated.totalItems > 0" class="mb-8">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-sm font-semibold text-red-800 dark:text-red-200 flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                            </svg>
-                            Urgent (≤5 months) - {{ urgentPaginated.totalItems }} properties
-                        </h4>
-                        <div v-if="urgentPaginated.totalPages > 1" class="text-xs text-gray-500 dark:text-gray-400">
-                            Page {{ urgentCurrentPage }} of {{ urgentPaginated.totalPages }}
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                        Properties by Priority
+                    </h4>
+                    <div v-if="sortedPaginated.totalPages > 1" class="text-xs text-gray-500 dark:text-gray-400">
+                        Page {{ currentPage }} of {{ sortedPaginated.totalPages }}
+                    </div>
+                </div>
+                
+                <div class="space-y-3 mb-4">
+                    <div
+                        v-for="property in sortedPaginated.items" 
+                        :key="property.id"
+                        :class="[
+                            'p-4 rounded-lg border flex items-center justify-between',
+                            property.urgency === 'urgent' 
+                                ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800' 
+                                : 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800'
+                        ]"
+                    >
+                        <div class="flex items-center space-x-4 flex-1">
+                            <div :class="[
+                                'w-3 h-3 rounded-full flex-shrink-0',
+                                property.urgency === 'urgent' ? 'bg-red-500' : 'bg-yellow-500'
+                            ]"></div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h5 :class="[
+                                            'font-medium truncate',
+                                            property.urgency === 'urgent' 
+                                                ? 'text-red-900 dark:text-red-100' 
+                                                : 'text-yellow-900 dark:text-yellow-100'
+                                        ]">
+                                            {{ property.title }}
+                                        </h5>
+                                        <p :class="[
+                                            'text-sm',
+                                            property.urgency === 'urgent' 
+                                                ? 'text-red-600 dark:text-red-300' 
+                                                : 'text-yellow-600 dark:text-yellow-300'
+                                        ]">
+                                            {{ property.property_id }}
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="text-right">
+                                        <span :class="[
+                                            'inline-flex items-center px-2 py-1 rounded-md text-xs font-medium',
+                                            property.category === 'no_pricing' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200' :
+                                            property.category === 'no_active_pricing' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-200' :
+                                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200'
+                                        ]">
+                                            {{ property.displayText }}
+                                        </span>
+                                        <div :class="[
+                                            'text-xs mt-1 font-semibold',
+                                            property.urgency === 'urgent' 
+                                                ? 'text-red-500 dark:text-red-400' 
+                                                : 'text-yellow-500 dark:text-yellow-400'
+                                        ]">
+                                            {{ property.urgency === 'urgent' ? 'URGENT' : 'WARNING' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                        
+                        <Link 
+                            :href="route('admin.properties.show', property.slug)"
+                            :class="[
+                                'ml-4 px-3 py-1 text-xs font-medium rounded-md hover:opacity-80 transition-opacity',
+                                property.urgency === 'urgent' 
+                                    ? 'bg-red-600 text-white' 
+                                    : 'bg-yellow-600 text-white'
+                            ]"
+                        >
+                            Update Pricing
+                        </Link>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                        <PropertyStatCard
-                            v-for="property in urgentPaginated.items" 
-                            :key="`urgent-${property.id}`"
-                            :property="property"
-                            card-class="bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800"
-                            text-class="text-red-600 dark:text-red-400"
-                        />
-                    </div>
-
-                    <!-- Urgent Pagination -->
-                     <PaginationControls
-                        :current-page="urgentCurrentPage"
-                        :total-pages="urgentPaginated.totalPages"
-                        @page-changed="goToUrgentPage"
-                        variant="red"
-                    />
-                    
                 </div>
 
-                <!-- No Pricing Properties -->
-                <div v-if="noPricingPaginated.totalItems > 0" class="mb-8">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-sm font-semibold text-red-800 dark:text-red-200 flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                            </svg>
-                            No Future Pricing - {{ noPricingPaginated.totalItems }} properties
-                        </h4>
-                        <div v-if="noPricingPaginated.totalPages > 1" class="text-xs text-gray-500 dark:text-gray-400">
-                            Page {{ noPricingCurrentPage }} of {{ noPricingPaginated.totalPages }}
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                        <PropertyStatCard
-                            v-for="property in noPricingPaginated.items" 
-                            :key="`no-pricing-${property.id}`"
-                            :property="property"
-                            card-class="bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800"
-                            text-class="text-red-600 dark:text-red-400"
-                        />
-                    </div>
-
-                    <!-- No Pricing Pagination -->
-                    <PaginationControls
-                        :current-page="noPricingCurrentPage"
-                        :total-pages="noPricingPaginated.totalPages"
-                        @page-changed="goToNoPricingPage"
-                        variant="red"
-                    />
-                </div>
-
-                <!-- Warning Properties (3-6 months) -->
-                <div v-if="warningPaginated.totalItems > 0">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Warning (6-7 months) - {{ warningPaginated.totalItems }} properties
-                        </h4>
-                        <div v-if="warningPaginated.totalPages > 1" class="text-xs text-gray-500 dark:text-gray-400">
-                            Page {{ warningCurrentPage }} of {{ warningPaginated.totalPages }}
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                        <PropertyStatCard
-                            v-for="property in warningPaginated.items" 
-                            :key="`warning-${property.id}`"
-                            :property="property"
-                            card-class="bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800"
-                            text-class="text-yellow-600 dark:text-yellow-400"
-                        />
-                    </div>
-
-                    <!-- Warning Pagination -->
-                     
-                    <PaginationControls
-                        :current-page="warningCurrentPage"
-                        :total-pages="warningPaginated.totalPages"
-                        @page-changed="goToWarningPage"
-                        variant="yellow"
-                    />
-                </div>
+                <PaginationControls
+                    v-if="sortedPaginated.totalPages > 1"
+                    :current-page="currentPage"
+                    :total-pages="sortedPaginated.totalPages"
+                    @page-changed="goToPage"
+                />
             </div>
         </div>
     </div>

@@ -193,18 +193,44 @@ class BaseController extends Controller
         $sevenMonthsFromNow = $now->copy()->addMonths(7);
 
         // Properties needing pricing attention (within 7 months or no future pricing)
-        $propertiesNeedingPricing = Property::with('pricing')->where('listing_type', 'for_rent')
-            ->where(function ($query) use ($sevenMonthsFromNow) {
-                // Properties with no pricing at all
-                $query->whereDoesntHave('pricing')
-                    // OR properties with pricing that ends within 7 months
-                    ->orWhereHas('pricing', function ($pricingQuery) use ($sevenMonthsFromNow) {
-                        $pricingQuery->where('end_date', '<=', $sevenMonthsFromNow)
-                            ->where('end_date', '>', now()); // Don't include expired pricing
+        // Properties with no pricing at all
+        $noPricing = Property::where('listing_type', 'for_rent')
+            ->whereDoesntHave('pricing')
+            ->select('id', 'title', 'property_id', 'slug', 'listing_type')
+            ->get()
+            ->toArray();
+
+        // Properties with no currently active pricing (includes future pricing only)
+        $noActivePricing = Property::where('listing_type', 'for_rent')
+            ->whereHas('pricing') // Has pricing records
+            ->whereDoesntHave('pricing', function ($query) use ($now) {
+                // But none are currently active
+                $query->where('start_date', '<=', $now->toDateString())
+                    ->where(function ($q) use ($now) {
+                        $q->where('end_date', '>=', $now->toDateString())
+                            ->orWhereNull('end_date');
                     });
             })
             ->select('id', 'title', 'property_id', 'slug', 'listing_type')
-            ->get();
+            ->get()
+            ->toArray();
+
+        // Properties with active pricing ending within 7 months
+        $endingSoon = Property::where('listing_type', 'for_rent')
+            ->whereHas('pricing', function ($query) use ($now, $sevenMonthsFromNow) {
+                // Has currently active pricing
+                $query->where('start_date', '<=', $now->toDateString())
+                    ->where(function ($q) use ($now) {
+                        $q->where('end_date', '>=', $now->toDateString())
+                            ->orWhereNull('end_date');
+                    })
+                    // That ends within 7 months (excludes null end_date)
+                    ->where('end_date', '<=', $sevenMonthsFromNow->toDateString())
+                    ->whereNotNull('end_date');
+            })
+            ->select('id', 'title', 'property_id', 'slug', 'listing_type')
+            ->get()
+            ->toArray();
 
         // Active bookings (confirmed and currently staying)
         $activeBookings = Booking::where('status', 'confirmed')
@@ -229,7 +255,12 @@ class BaseController extends Controller
             'active_bookings' => $activeBookings,
             'pending_bookings' => $pendingBookings,
             'monthly_revenue' => $monthlyRevenue,
-            'properties_needing_pricing' => $propertiesNeedingPricing
+            'properties_needing_pricing' => [
+                'no_pricing' => $noPricing,
+                'ending_soon' => $endingSoon,
+                'no_active_pricing' => $noActivePricing,
+                'total_count' => count($noPricing) + count($endingSoon) + count($noActivePricing),
+            ]
         ];
     }
 
@@ -342,6 +373,76 @@ class BaseController extends Controller
                 ->get()
                 ->toArray()
         ];
+    }
+
+    public function getPropertiesNeedingPricing(): array
+    {
+        $now = Carbon::now();
+        $sevenMonthsFromNow = $now->copy()->addMonths(7);
+
+        // Single query to categorize all rental properties
+        $propertiesWithCategories = DB::select("
+            SELECT 
+                p.id,
+                p.title,
+                p.property_id,
+                p.slug,
+                p.listing_type,
+                CASE 
+                    WHEN pricing_count = 0 THEN 'no_pricing'
+                    WHEN active_pricing_count = 0 THEN 'no_active_pricing'
+                    WHEN ending_soon_count > 0 THEN 'ending_soon'
+                    ELSE 'good'
+                END as category
+            FROM properties p
+            LEFT JOIN (
+                SELECT 
+                    property_id,
+                    COUNT(*) as pricing_count,
+                    SUM(CASE 
+                        WHEN start_date <= ? AND (end_date >= ? OR end_date IS NULL) 
+                        THEN 1 ELSE 0 
+                    END) as active_pricing_count,
+                    SUM(CASE 
+                        WHEN start_date <= ? 
+                        AND (end_date >= ? OR end_date IS NULL)
+                        AND end_date <= ? 
+                        AND end_date IS NOT NULL
+                        THEN 1 ELSE 0 
+                    END) as ending_soon_count
+                FROM property_prices 
+                GROUP BY property_id
+            ) pricing_stats ON p.id = pricing_stats.property_id
+            WHERE p.listing_type = 'for_rent'
+        ", [
+            $now->toDateString(), // For active pricing start check
+            $now->toDateString(), // For active pricing end check
+            $now->toDateString(), // For ending soon start check
+            $now->toDateString(), // For ending soon end check
+            $sevenMonthsFromNow->toDateString() // For ending soon threshold
+        ]);
+
+        // Categorize results
+        $noPricing = [];
+        $noActivePricing = [];
+        $endingSoon = [];
+
+        foreach ($propertiesWithCategories as $property) {
+            $propertyArray = (array) $property;
+            unset($propertyArray['category']); // Remove the helper column
+            
+            switch ($property->category) {
+                case 'no_pricing':
+                    $noPricing[] = $propertyArray;
+                    break;
+                case 'no_active_pricing':
+                    $noActivePricing[] = $propertyArray;
+                    break;
+                case 'ending_soon':
+                    $endingSoon[] = $propertyArray;
+                    break;
+            }
+        }
     }
 
     public function contact()
