@@ -143,6 +143,14 @@ class Property extends Model
             ->first();
     }
 
+    public function getPricingForDateRange($startDate, $endDate)
+    {
+        return $this->pricing()
+            ->where('start_date', '<=', $startDate)
+            ->where('end_date', '>=', $endDate)
+            ->first();
+    }
+
     /**
      * The attributes that should be cast to native types.
      *

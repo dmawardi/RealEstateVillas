@@ -15,7 +15,7 @@ Route::get('/properties/locations', [PropertyController::class, 'getAllLocations
 
 // Returns calculated price by accepting check in and checkout date
 // Automatically applies any relevant discounts or promotions
-Route::get('/properties/{property}/price', [PropertyController::class, 'calculatePrice'])->name('properties.price');
+Route::get('/properties/{property}/price', [PropertyController::class, 'getPricingForDateRange'])->name('properties.price');
 
 // Property availability
 Route::get('/properties/{property}/availability', [PropertyController::class, 'getAvailability'])->name('properties.availability');

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-// Remove this line: import { debounce } from 'lodash-es';
 import type { Property, PropertyPricing } from '@/types';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
@@ -161,6 +160,7 @@ const calculatePrice = async () => {
     isLoadingPrice.value = true;
     priceError.value = null;
 
+    console.log('Calculating price for dates:', dateRange.value![0].toISOString(), 'to', dateRange.value![1].toISOString());
     try {
         await api.properties.calculatePrice(
             props.property.id,
