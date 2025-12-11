@@ -517,7 +517,6 @@ class PropertyController extends Controller
      */
     public function calculatePrice(Request $request, int $propertyId)
     {
-        Log::info('Calculating price for property', ['property_id' => $propertyId, 'request_data' => $request->all()]);
         $property = Property::findOrFail($propertyId);
         if (!$property) {
             return response()->json(['error' => 'Property not found'], 404);
@@ -533,7 +532,6 @@ class PropertyController extends Controller
 
         // Get current valid pricing for the given date range
         $pricing = $property->getPricingForDateRange($checkIn, $checkOut);
-        Log::info('Retrieved pricing for calculation', ['pricing' => $pricing ? $pricing->toArray() : null]);
         if (!$pricing) {
             return response()->json([
                 'error' => 'No pricing available for selected dates'

@@ -131,16 +131,20 @@ class Property extends Model
      */
     public function getCurrentPricing()
     {
-        return $this->pricing()
-            ->where(function($query) {
-                $query->whereNull('start_date')
-                    ->orWhere('start_date', '<=', now());
-            })
-            ->where(function($query) {
-                $query->whereNull('end_date')
-                    ->orWhere('end_date', '>=', now());
-            })
-            ->first();
+        if ($this->listing_type == 'for_rent') {
+            return $this->pricing()
+                ->where(function($query) {
+                    $query->whereNull('start_date')
+                        ->orWhere('start_date', '<=', now());
+                })
+                ->where(function($query) {
+                    $query->whereNull('end_date')
+                        ->orWhere('end_date', '>=', now());
+                })
+                ->first();
+            } else {
+                return $this->price;
+            }
     }
 
     public function getPricingForDateRange($startDate, $endDate)
