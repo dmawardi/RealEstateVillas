@@ -172,8 +172,6 @@ const calculatePrice = async () => {
             {
                 onSuccess: (response: PriceCalculation) => {
                     priceCalculation.value = response;
-
-                    console.log('Price calculation response:', response);
                 },
                 onError: (errors: any) => {
                     console.error('Failed to calculate price:', errors);
@@ -415,7 +413,7 @@ watch(dateRange, () => {
                 :nights="priceCalculation?.nights || 0"
             />
         </div>
-        <div v-if="!current_pricing" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center text-gray-900 dark:text-gray-100">
+        <div v-else-if="!current_pricing" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center text-gray-900 dark:text-gray-100">
             <p>We're sorry, but there are issues retrieving pricing information for this property at the moment.</p>
             <p>Alternatively, you can contact us via <a :href="'https://wa.me/' + businessPhone + '?text=' + encodeURIComponent('Hi, I am interested in property #' + property.property_id)" class="text-blue-600 dark:text-blue-400 hover:underline">WhatsApp</a>.</p>
         </div>

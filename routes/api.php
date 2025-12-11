@@ -15,7 +15,7 @@ Route::get('/properties/locations', [PropertyController::class, 'getAllLocations
 
 // Returns calculated price by accepting check in and checkout date
 // Automatically applies any relevant discounts or promotions
-Route::get('/properties/{property}/price', [PropertyController::class, 'getPricingForDateRange'])->name('properties.price');
+Route::get('/properties/{property}/price', [PropertyController::class, 'calculatePrice'])->name('properties.price');
 
 // Property availability
 Route::get('/properties/{property}/availability', [PropertyController::class, 'getAvailability'])->name('properties.availability');
@@ -42,6 +42,10 @@ Route::get('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropert
 Route::post('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'store'])->name('properties.pricing.store');
 Route::put('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'update'])->name('properties.pricing.update');
 Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('properties.pricing.destroy');
+
+Route::middleware(['web', 'auth'])->group(function () {
+
+});
 
 // Property feature management routes
 // Admin routes
