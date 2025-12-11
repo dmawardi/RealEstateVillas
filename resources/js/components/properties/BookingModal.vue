@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { Property } from '@/types';
 import { formatPrice } from '@/utils/formatters';
-import { api } from '@/services/api';
+import { useForm } from '@inertiajs/vue3';
 
 
 interface Props {
@@ -28,7 +28,7 @@ const isOpen = computed({
 });
 
 // Reactive form state
-const form = reactive({
+const form = useForm({
     first_name: '',
     last_name: '',
     email: '',
@@ -88,20 +88,15 @@ const submitBooking = () => {
     isSubmitting.value = true;
     errors.value = {};
 
-    // Prepare form data - exclude null values and property_id (comes from URL)
-    const formData = Object.fromEntries(
-        Object.entries(form).filter(([, value]) => value !== null && value !== '')
-    );
-
-    // Call API service to create booking
-    api.bookings.createBooking(props.property.id, formData, {
+    form.post(route('properties.bookings.store', { property: props.property.slug }), {
         onSuccess: () => {
-            closeModal();
+            form.reset();
+            isOpen.value = false;
         },
-        onError: (responseErrors: Record<string, string[]>) => {
-            console.log('Booking errors:', responseErrors);
-            errors.value = responseErrors; // No need to format - already handled by ApiService
-            console.error('Booking submission errors:', errors.value);
+        onError: (errors) => {
+            if (errors['recaptcha-response']) {
+                errors.value = errors['recaptcha-response'];
+            }
         },
         onFinish: () => {
             isSubmitting.value = false;

@@ -102,16 +102,9 @@ class BookingController extends Controller
             'number_of_rooms' => 'nullable|integer|min:1',
             'flexible_dates' => 'nullable|boolean',
             'special_requests' => 'nullable|string|max:1000',
-            'source' => 'nullable|in:direct,airbnb,booking_com,agoda,owner_blocked,maintenance,other',
-            'external_booking_id' => 'nullable|string|max:255',
-            'booking_type' => 'nullable|in:booking,inquiry,blocked,maintenance',
-            'commission_rate' => 'nullable|numeric|min:0|max:100',
-            'commission_amount' => 'nullable|numeric|min:0',
-            'commission_paid' => 'nullable|boolean',
-            'notes' => 'nullable|string|max:1000',
         ]);
-
         try {
+
             // Parse dates
             $checkInDate = Carbon::parse($validated['check_in_date']);
             $checkOutDate = Carbon::parse($validated['check_out_date']);
@@ -124,18 +117,23 @@ class BookingController extends Controller
             );
             
             if (!$isAvailable) {
-                return response()->json([
-                    'message' => 'The selected dates are not available for this property.',
-                    'errors' => [
-                        'dates' => ['The selected dates are not available for this property.']
-                    ]
-                ], 422);
+                return back()->with('error', 'The selected dates are not available for this property.');
             }
 
-            // Calculate commission amount if rate is provided and amount is not explicitly set
-            $commissionAmount = $validated['commission_amount'] ?? null;
-            if ($validated['commission_rate'] && $validated['total_price'] && !$commissionAmount) {
-                $commissionAmount = ($validated['total_price'] * $validated['commission_rate']) / 100;
+            // Calculate total price (this could include discounts, fees, etc.)
+            $totalPrice = $property->getPricingForDateRange(
+                $checkInDate,
+                $checkOutDate,
+            );
+
+            // Check for discrepancy in total price
+            if ($validated['total_price'] != $totalPrice) {
+                Log::warning('Total price discrepancy detected during booking', [
+                    'property_id' => $property->id,
+                    'calculated_price' => $totalPrice,
+                    'submitted_price' => $validated['total_price'],
+                    'guest_email' => $validated['email'] ?? null,
+                ]);
             }
             
             // Create the booking
@@ -153,11 +151,8 @@ class BookingController extends Controller
                 'number_of_rooms' => $validated['number_of_rooms'],
                 'flexible_dates' => $validated['flexible_dates'] ?? false,
                 'status' => 'pending', // Default to pending
-                'booking_type' => $validated['booking_type'] ?? 'booking',
-                'total_price' => $validated['total_price'],
-                'commission_rate' => $validated['commission_rate'],
-                'commission_amount' => $commissionAmount,
-                'commission_paid' => $validated['commission_paid'] ?? false,
+                'booking_type' => 'booking',
+                'total_price' => $totalPrice,
                 'special_requests' => $validated['special_requests'],
                 'notes' => $validated['notes'],
             ]);
@@ -189,10 +184,7 @@ class BookingController extends Controller
                 }
             }
 
-            return response()->json([
-                'message' => 'Booking created successfully.',
-                'booking' => $booking
-            ]);
+            return back()->with('success', 'Your booking request has been submitted successfully.');
                             
         } catch (\Exception $e) {
             Log::error('Booking creation failed', [
@@ -202,10 +194,7 @@ class BookingController extends Controller
                 'stack_trace' => $e->getTraceAsString()
             ]);
             
-            return response()->json([
-                'message' => 'An error occurred while processing your booking.',
-                'error' => $e->getMessage()
-            ], 500);
+            return back()->with('error', 'An error occurred while processing your booking. Please try again.');
         }
     }
 

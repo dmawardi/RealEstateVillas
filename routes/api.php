@@ -30,12 +30,6 @@ Route::put('/attachments/{attachment}', [PropertyAttachmentController::class, 'u
 // Delete
 Route::delete('/attachments/{attachment}', [PropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
 
-// Property Bookings
-Route::post('/properties/{property}/bookings', [\App\Http\Controllers\BookingController::class, 'store']);
-Route::get('/properties/{property}/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('properties.bookings.index');
-Route::get('/properties/{property}/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show'])->name('properties.bookings.show');
-Route::put('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'update'])->name('properties.bookings.update');
-Route::delete('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'destroy'])->name('properties.bookings.destroy');
 
 // Property Pricing
 Route::get('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'index'])->name('properties.pricing.index');
@@ -44,7 +38,11 @@ Route::put('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceContro
 Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('properties.pricing.destroy');
 
 Route::middleware(['web', 'auth'])->group(function () {
-
+    // Property Bookings
+    Route::get('/properties/{property}/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('properties.bookings.index');
+    Route::get('/properties/{property}/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'show'])->name('properties.bookings.show');
+    Route::put('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'update'])->name('properties.bookings.update');
+    Route::delete('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'destroy'])->name('properties.bookings.destroy');
 });
 
 // Property feature management routes
