@@ -19,8 +19,8 @@ class PropertyFactory extends Factory
     public function definition(): array
     {
         $propertyTypes = ['house', 'apartment', 'townhouse', 'villa', 'land', 'commercial', 'guest_house', 'other'];
-        $listingTypes = ['for_sale', 'for_rent', 'sold', 'off_market'];
-        $statuses = ['active', 'pending', 'sold', 'withdrawn'];
+        $listingTypes = ['for_sale', 'for_rent'];
+        $statuses = ['active', 'sold'];
         $priceTypes = ['fixed', 'negotiable', 'auction', 'poa'];
         
         $propertyType = $this->faker->randomElement($propertyTypes);
@@ -384,6 +384,8 @@ class PropertyFactory extends Factory
         return $this->afterCreating(function ($property) {
             $property->pricing()->save(\App\Models\PropertyPrice::factory()->make([
                 'property_id' => $property->id,
+                'start_date' => now(),
+                'end_date' => now()->addYear(),
             ]));
         });
     }
