@@ -196,15 +196,6 @@ class PropertyController extends Controller
     }
 
     /**
-     * Show the form for creating a new property.
-     */
-    public function create()
-    {
-        // Logic to show the property creation form
-        return view('properties.create');
-    }
-
-    /**
      * Store a newly created property in storage.
      */
     public function store(Request $request)
@@ -526,28 +517,36 @@ class PropertyController extends Controller
             'check_out_date' => 'required|date|after:check_in_date',
         ]);
 
+        Log::info('Calculating price for property', ['property_id' => $property->id, 'check_in' => $request->check_in_date, 'check_out' => $request->check_out_date]);
+
         $checkIn = Carbon::parse($request->check_in_date);
         $checkOut = Carbon::parse($request->check_out_date);
         $nights = $checkIn->diffInDays($checkOut);
 
         // Get current valid pricing for the given date range
         $pricing = $property->getPricingForDateRange($checkIn, $checkOut);
-        if (!$pricing) {
+        if ($pricing->isEmpty()) {
             return response()->json([
                 'error' => 'No pricing available for selected dates'
             ], 400);
         }
-
-        // Use the actual calculateTotalPrice method from PropertyPrice model
-        $calculation = $pricing->calculateTotalPrice($nights);
+        Log::info('Pricing retrieved for calculation', ['pricing' => $pricing->toArray()]);
         
-        // Calculate original price (ALWAYS use nightly rate for comparison)
-        $originalTotal = $nights * $pricing->nightly_rate;
+        // Calculate original price (ALWAYS use first nightly rate for comparison)
+        $originalTotal = $nights * $pricing[0]->nightly_rate;
+
+        Log::info('Original total price calculated', ['original_total' => $originalTotal]);
         
         // Calculate savings - only when using weekly/monthly rates
-        $actualTotal = $calculation['total_price'];
+        $actualTotal = $property->calculateTotalPrice($checkIn, $checkOut);
         $savings = $originalTotal - $actualTotal;
         $discountPercentage = $savings > 0 ? round(($savings / $originalTotal) * 100) : 0;
+
+        Log::info('Final price calculation', [
+            'actual_total' => $actualTotal,
+            'savings' => $savings,
+            'discount_percentage' => $discountPercentage
+        ]);
         
         return response()->json([
             'total_price' => $actualTotal,
@@ -555,10 +554,10 @@ class PropertyController extends Controller
             'savings' => max(0, $savings), // Ensure never negative
             'discount_percentage' => $discountPercentage,
             'nights' => $nights, // Use actual nights, not from calculation
-            'rate_used' => $calculation['rate_used'],
-            'rate_per_night' => $calculation['rate_per_night'],
-            'original_rate_per_night' => $pricing->nightly_rate,
-            'currency' => $pricing->currency,
+            'rate_used' => $actualTotal / $nights,
+            'rate_per_night' => $actualTotal / $nights,
+            'original_rate_per_night' => $pricing[0]->nightly_rate,
+            'currency' => $pricing[0]->currency,
             'check_in_date' => $checkIn->toDateString(),
             'check_out_date' => $checkOut->toDateString(),
         ]);
@@ -568,33 +567,33 @@ class PropertyController extends Controller
     public function getAllLocations()
     {
         return Cache::remember(self::LOCATIONS_CACHE_KEY, self::LOCATIONS_CACHE_DURATION, function () {
-        Log::info('Fetching locations from database (cache miss)');
-        
-        // Get all unique villages, districts, or regencies from active properties
-        $villages = Property::where('status', 'active')
-            ->distinct()
-            ->pluck('village')
-            ->filter()
-            ->values();
+            Log::info('Fetching locations from database (cache miss)');
+            
+            // Get all unique villages, districts, or regencies from active properties
+            $villages = Property::where('status', 'active')
+                ->distinct()
+                ->pluck('village')
+                ->filter()
+                ->values();
 
-        $districts = Property::where('status', 'active')
-            ->distinct()
-            ->pluck('district')
-            ->filter()
-            ->values();
+            $districts = Property::where('status', 'active')
+                ->distinct()
+                ->pluck('district')
+                ->filter()
+                ->values();
 
-        $regencies = Property::where('status', 'active')
-            ->distinct()
-            ->pluck('regency')
-            ->filter()
-            ->values();
+            $regencies = Property::where('status', 'active')
+                ->distinct()
+                ->pluck('regency')
+                ->filter()
+                ->values();
 
-        return [
-            'villages' => $villages,
-            'districts' => $districts,
-            'regencies' => $regencies,
-        ];
-    });
+            return [
+                'villages' => $villages,
+                'districts' => $districts,
+                'regencies' => $regencies,
+            ];
+        });
 
     // No need for response()->json() here since Cache::remember returns the data directly
     // If JSON response needed, wrap it:
@@ -611,7 +610,11 @@ class PropertyController extends Controller
         if ($isLand) {
             $title = "{$property->title} - Premium Land for Sale in {$property->district}";
             if ($currentPricing) {
-                $title .= " | " . number_format($currentPricing->price / 1000000000, 1) . "B IDR";
+                if ($property->listing_type === 'for_rent') {
+                    $title .= " | " . number_format($currentPricing->price / 1000000, 1) . "IDR";
+                } elseif ($property->listing_type === 'for_sale') {
+                    $title .= " | " . number_format($currentPricing / 1000000000, 1) . "IDR";
+                }
             }
         } else {
             $bedrooms = $property->bedrooms ? "{$property->bedrooms}BR " : "";

@@ -121,10 +121,10 @@ class BookingController extends Controller
             }
 
             // Calculate total price (this could include discounts, fees, etc.)
-            $totalPrice = $property->getPricingForDateRange(
-                $checkInDate,
-                $checkOutDate,
-            );
+            $totalPrice = $property->calculateTotalPrice($checkInDate, $checkOutDate);
+            if ($totalPrice === null) {
+                return back()->with('error', 'Unable to calculate price for the selected dates.');
+            }
 
             // Check for discrepancy in total price
             if ($validated['total_price'] != $totalPrice) {
