@@ -139,8 +139,8 @@ class BookingController extends Controller
             // Create the booking
             $booking = Booking::create([
                 'property_id' => $property->id,
-                'source' => $validated['source'] ?? 'direct',
-                'external_booking_id' => $validated['external_booking_id'],
+                'user_id' => $request->user()?->id,
+                'source' => 'direct',
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
                 'email' => $validated['email'],
@@ -154,7 +154,6 @@ class BookingController extends Controller
                 'booking_type' => 'booking',
                 'total_price' => $totalPrice,
                 'special_requests' => $validated['special_requests'],
-                'notes' => $validated['notes'],
             ]);
             
             Log::info('Booking created', [
