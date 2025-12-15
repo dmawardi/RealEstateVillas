@@ -210,7 +210,6 @@ class Property extends Model
                 }
             });
 
-            Log::info("Calculating price for date {$currentDate} in property ID {$this->id}", ['applicablePrice' => $applicablePrice]);
             // If no pricing found for the date, return null
             if (!$applicablePrice) {
                 Log::warning("No pricing found for date {$currentDate} in property ID {$this->id}");
@@ -220,7 +219,6 @@ class Property extends Model
             // Determine rate to apply (daily rate with applied discounts and premiums)
             $rate = $this->calculateDailyRate($applicablePrice, $nights, $currentDate);
 
-            Log::info("Daily rate for date {$currentDate} in property ID {$this->id}", ['rate' => $rate]);
             // Apply rate to total
             $total += $rate;
 
