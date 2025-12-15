@@ -33,7 +33,7 @@ export class PropertyApi extends ApiService {
     }
 
     // API routes (returns JSON)
-    static getAvailability(id: string, params: { start: string; end: string }, options = {}) {
+    static getAvailability(id: number, params: { start: string; end: string }, options = {}) {
         const queryParams = new URLSearchParams({
             start: params.start,
             end: params.end
