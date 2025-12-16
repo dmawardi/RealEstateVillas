@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import type { Property } from '@/types';
+import type { Property, User } from '@/types';
 import { formatPrice } from '@/utils/formatters';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
+import type { PageProps } from '@inertiajs/core';
+
 
 
 interface Props {
@@ -13,6 +15,10 @@ interface Props {
     totalPrice: number;
     nights: number;
 }
+
+const page = usePage<PageProps>();
+// Grab user from page props
+const user = page.props.auth.user as User;
 
 interface Emits {
     (e: 'update:modelValue', value: boolean): void;
@@ -30,9 +36,9 @@ const isOpen = computed({
 
 // Reactive form state
 const form = useForm({
-    first_name: '',
+    first_name: user?.name || '',
     last_name: '',
-    email: '',
+    email: user?.email || '',
     phone: '',
     check_in_date: '',
     check_out_date: '',
