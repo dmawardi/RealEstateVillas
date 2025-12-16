@@ -230,6 +230,26 @@ const openBookingModal = () => {
     }
 };
 
+// Handles successful booking by resetting state and closing modal
+const handleBookingSuccess = () => {
+    // Reset the date selection and price calculation
+    dateRange.value = null;
+    priceCalculation.value = null;
+    
+    // Clear any pending price calculation
+    if (priceTimer) {
+        clearTimeout(priceTimer);
+        priceTimer = null;
+    }
+    
+    // Close the modal
+    isBookingModalOpen.value = false;
+    
+    // Reset availability state if needed
+    availabilityLoaded.value = false;
+    unavailablePeriods.value = [];
+};
+
 // ================================================================
 // WATCHERS
 // ================================================================
@@ -411,6 +431,7 @@ watch(dateRange, () => {
                 :check-out-date="dateRange?.[1] || null"
                 :total-price="priceCalculation?.total_price || 0"
                 :nights="priceCalculation?.nights || 0"
+                @booking-success="handleBookingSuccess"
             />
         </div>
         <div v-else-if="!current_pricing" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center text-gray-900 dark:text-gray-100">

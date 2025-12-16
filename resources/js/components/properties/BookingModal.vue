@@ -16,6 +16,7 @@ interface Props {
 
 interface Emits {
     (e: 'update:modelValue', value: boolean): void;
+    (e: 'booking-success'): void;
 }
 
 const props = defineProps<Props>();
@@ -92,6 +93,7 @@ const submitBooking = () => {
         onSuccess: () => {
             form.reset();
             isOpen.value = false;
+            emit('booking-success');
         },
         onError: (errors) => {
             if (errors['recaptcha-response']) {
