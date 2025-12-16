@@ -391,13 +391,13 @@ watch(dateRange, () => {
                             <span>Nightly:</span>
                             <span class="font-medium">{{ formatPrice(current_pricing.nightly_rate) }}</span>
                         </div>
-                        <div v-if="current_pricing.weekly_rate" class="flex justify-between text-sm">
-                            <span>Weekly (7+ nights):</span>
-                            <span class="font-medium">{{ formatPrice(current_pricing.weekly_rate) }}/night</span>
+                        <div v-if="current_pricing.weekly_discount_active && current_pricing.weekly_discount_percent && current_pricing.weekly_discount_percent > 0" class="flex justify-between text-sm">
+                            <span>Weekly ({{ current_pricing.min_days_for_weekly || 7 }}+ nights):</span>
+                            <span class="font-medium">{{ formatPrice(Math.round(current_pricing.nightly_rate * (current_pricing.min_days_for_weekly || 7) * (1 - current_pricing.weekly_discount_percent / 100) / (current_pricing.min_days_for_weekly || 7))) }}/night</span>
                         </div>
-                        <div v-if="current_pricing.monthly_rate" class="flex justify-between text-sm">
-                            <span>Monthly (30+ nights):</span>
-                            <span class="font-medium">{{ formatPrice(current_pricing.monthly_rate) }}/night</span>
+                        <div v-if="current_pricing.monthly_discount_active && current_pricing.monthly_discount_percent && current_pricing.monthly_discount_percent > 0" class="flex justify-between text-sm">
+                            <span>Monthly ({{ current_pricing.min_days_for_monthly || 30 }}+ nights):</span>
+                            <span class="font-medium">{{ formatPrice(Math.round(current_pricing.nightly_rate * (current_pricing.min_days_for_monthly || 30) * (1 - current_pricing.monthly_discount_percent / 100) / (current_pricing.min_days_for_monthly || 30))) }}/night</span>
                         </div>
                     </div>
                 </div>

@@ -36,10 +36,12 @@ const filteredPricing = computed(() => {
 const pricingForm = ref({
     name: '',
     nightly_rate: 0,
-    weekly_rate: null as number | null,
-    monthly_rate: null as number | null,
-    weekly_discount_percent: null as number | null,
-    monthly_discount_percent: null as number | null,
+    weekly_discount_percent: 0,
+    monthly_discount_percent: 0,
+    weekend_premium_percent: 0,
+    weekly_discount_active: false,
+    monthly_discount_active: false,
+    weekend_premium_active: false,
     currency: 'IDR',
     start_date: '',
     end_date: '',
@@ -91,10 +93,12 @@ const resetForm = () => {
     pricingForm.value = {
         name: '',
         nightly_rate: 0,
-        weekly_rate: null,
-        monthly_rate: null,
-        weekly_discount_percent: null,
-        monthly_discount_percent: null,
+        weekly_discount_percent: 0,
+        monthly_discount_percent: 0,
+        weekend_premium_percent: 0,
+        weekly_discount_active: false,
+        monthly_discount_active: false,
+        weekend_premium_active: false,
         currency: 'IDR',
         start_date: '',
         end_date: '',
@@ -125,16 +129,19 @@ const editPricing = (pricing: PropertyPricing) => {
     pricingForm.value = {
         name: pricing.name || '',
         nightly_rate: pricing.nightly_rate || 0,
-        weekly_rate: pricing.weekly_rate ?? null,
-        monthly_rate: pricing.monthly_rate ?? null,
-        weekly_discount_percent: pricing.weekly_discount_percent ?? null,
-        monthly_discount_percent: pricing.monthly_discount_percent ?? null,
+        weekly_discount_percent: pricing.weekly_discount_percent || 0,
+        monthly_discount_percent: pricing.monthly_discount_percent || 0,
+        weekend_premium_percent: pricing.weekend_premium_percent || 0,
+        weekly_discount_active: Boolean(pricing.weekly_discount_active) || false,
+        monthly_discount_active: Boolean(pricing.monthly_discount_active) || false,
+        weekend_premium_active: Boolean(pricing.weekend_premium_active) || false,
         currency: pricing.currency || 'IDR',
         start_date: pricing.start_date ? formatDateForInput(pricing.start_date) : '',
         end_date: pricing.end_date ? formatDateForInput(pricing.end_date) : '',
         min_days_for_weekly: pricing.min_days_for_weekly || 7,
         min_days_for_monthly: pricing.min_days_for_monthly || 30,
     };
+    console.log('Editing pricing:', pricingForm.value);
     showPricingForm.value = true;
 };
 
@@ -228,19 +235,15 @@ const getPricingStatus = (pricing: PropertyPricing) => {
     }
 };
 
-// Auto-calculate rates from discounts
-const calculateWeeklyRate = () => {
-    if (pricingForm.value.weekly_discount_percent && pricingForm.value.nightly_rate) {
-        const weeklyBase = pricingForm.value.nightly_rate * 7;
-        pricingForm.value.weekly_rate = weeklyBase * (1 - pricingForm.value.weekly_discount_percent / 100);
-    }
+// Helper functions for calculated rates (for display purposes)
+const calculateWeeklyRate = (nightlyRate: number, discountPercent: number) => {
+    const weeklyBase = nightlyRate * 7;
+    return weeklyBase * (1 - discountPercent / 100);
 };
 
-const calculateMonthlyRate = () => {
-    if (pricingForm.value.monthly_discount_percent && pricingForm.value.nightly_rate) {
-        const monthlyBase = pricingForm.value.nightly_rate * 30;
-        pricingForm.value.monthly_rate = monthlyBase * (1 - pricingForm.value.monthly_discount_percent / 100);
-    }
+const calculateMonthlyRate = (nightlyRate: number, discountPercent: number) => {
+    const monthlyBase = nightlyRate * 30;
+    return monthlyBase * (1 - discountPercent / 100);
 };
 </script>
 
@@ -375,29 +378,38 @@ const calculateMonthlyRate = () => {
                             </div>
 
                             <!-- Pricing Details -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div class="space-y-1">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Nightly Rate</p>
                                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                         {{ formatPrice(pricing.nightly_rate ?? 0) }}
                                     </p>
                                 </div>
-                                <div v-if="pricing.weekly_rate" class="space-y-1">
+                                <div v-if="pricing.weekly_discount_active && (pricing.weekly_discount_percent ?? 0) > 0" class="space-y-1">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Weekly Rate</p>
                                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                        {{ formatPrice(pricing.weekly_rate ?? 0) }}
+                                        {{ formatPrice(calculateWeeklyRate(pricing.nightly_rate ?? 0, pricing.weekly_discount_percent ?? 0)) }}
                                     </p>
-                                    <p v-if="pricing.weekly_discount_percent" class="text-xs text-green-600">
+                                    <p class="text-xs text-green-600">
                                         {{ pricing.weekly_discount_percent }}% discount
                                     </p>
                                 </div>
-                                <div v-if="pricing.monthly_rate" class="space-y-1">
+                                <div v-if="pricing.monthly_discount_active && (pricing.monthly_discount_percent ?? 0) > 0" class="space-y-1">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Rate</p>
                                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                        {{ formatPrice(pricing.monthly_rate ?? 0) }}
+                                        {{ formatPrice(calculateMonthlyRate(pricing.nightly_rate ?? 0, pricing.monthly_discount_percent ?? 0)) }}
                                     </p>
-                                    <p v-if="pricing.monthly_discount_percent" class="text-xs text-green-600">
+                                    <p class="text-xs text-green-600">
                                         {{ pricing.monthly_discount_percent }}% discount
+                                    </p>
+                                </div>
+                                <div v-if="pricing.weekend_premium_active && (pricing.weekend_premium_percent ?? 0) > 0" class="space-y-1">
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Weekend Premium</p>
+                                    <p class="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                                        +{{ pricing.weekend_premium_percent }}%
+                                    </p>
+                                    <p class="text-xs text-orange-500">
+                                        {{ formatPrice((pricing.nightly_rate ?? 0) * (1 + (pricing.weekend_premium_percent ?? 0) / 100)) }}/night
                                     </p>
                                 </div>
                             </div>
@@ -547,7 +559,7 @@ const calculateMonthlyRate = () => {
 
                         <!-- Pricing -->
                         <div>
-                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Rates</h4>
+                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Base Rate</h4>
                             <div class="space-y-4">
                                 <!-- Nightly Rate -->
                                 <div>
@@ -565,64 +577,121 @@ const calculateMonthlyRate = () => {
                                     />
                                     <div v-if="errors.nightly_rate" class="mt-1 text-sm text-red-600">{{ errors.nightly_rate }}</div>
                                 </div>
+                            </div>
+                        </div>
 
-                                <!-- Weekly Pricing -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Weekly Rate
+                        <!-- Discounts & Premiums -->
+                        <div>
+                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Discounts & Premiums</h4>
+                            <div class="space-y-6">
+                                <!-- Weekly Discount -->
+                                <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Weekly Stay Discount
                                         </label>
-                                        <input
-                                            v-model.number="pricingForm.weekly_rate"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                                        />
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input v-model="pricingForm.weekly_discount_active" type="checkbox" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                        </label>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Weekly Discount %
-                                        </label>
-                                        <input
-                                            v-model.number="pricingForm.weekly_discount_percent"
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            step="0.01"
-                                            @input="calculateWeeklyRate"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                                        />
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                                Discount Percentage
+                                            </label>
+                                            <input
+                                                v-model.number="pricingForm.weekly_discount_percent"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                :disabled="!pricingForm.weekly_discount_active"
+                                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div v-if="pricingForm.weekly_discount_active && pricingForm.weekly_discount_percent > 0 && pricingForm.nightly_rate > 0">
+                                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                                Effective Weekly Rate
+                                            </label>
+                                            <div class="px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md text-green-700 dark:text-green-300 font-medium">
+                                                {{ formatPrice(calculateWeeklyRate(pricingForm.nightly_rate, pricingForm.weekly_discount_percent)) }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Monthly Pricing -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Monthly Rate
+                                <!-- Monthly Discount -->
+                                <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Monthly Stay Discount
                                         </label>
-                                        <input
-                                            v-model.number="pricingForm.monthly_rate"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                                        />
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input v-model="pricingForm.monthly_discount_active" type="checkbox" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                        </label>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Monthly Discount %
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                                Discount Percentage
+                                            </label>
+                                            <input
+                                                v-model.number="pricingForm.monthly_discount_percent"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                :disabled="!pricingForm.monthly_discount_active"
+                                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div v-if="pricingForm.monthly_discount_active && pricingForm.monthly_discount_percent > 0 && pricingForm.nightly_rate > 0">
+                                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                                Effective Monthly Rate
+                                            </label>
+                                            <div class="px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md text-green-700 dark:text-green-300 font-medium">
+                                                {{ formatPrice(calculateMonthlyRate(pricingForm.nightly_rate, pricingForm.monthly_discount_percent)) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Weekend Premium -->
+                                <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Weekend Premium
                                         </label>
-                                        <input
-                                            v-model.number="pricingForm.monthly_discount_percent"
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            step="0.01"
-                                            @input="calculateMonthlyRate"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                                        />
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input v-model="pricingForm.weekend_premium_active" type="checkbox" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                                Premium Percentage
+                                            </label>
+                                            <input
+                                                v-model.number="pricingForm.weekend_premium_percent"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                :disabled="!pricingForm.weekend_premium_active"
+                                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div v-if="pricingForm.weekend_premium_active && pricingForm.weekend_premium_percent > 0 && pricingForm.nightly_rate > 0">
+                                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                                Weekend Rate
+                                            </label>
+                                            <div class="px-3 py-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md text-orange-700 dark:text-orange-300 font-medium">
+                                                {{ formatPrice(pricingForm.nightly_rate * (1 + pricingForm.weekend_premium_percent / 100)) }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

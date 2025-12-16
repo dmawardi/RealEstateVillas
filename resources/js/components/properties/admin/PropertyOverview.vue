@@ -26,13 +26,20 @@ const getStatusBadgeClass = (status: string) => {
 
 const getPropertyPrice = () => {
     if (property.listing_type === 'for_rent' && current_pricing) {
-        if (current_pricing.monthly_rate) {
-            return `${formatPrice(current_pricing.monthly_rate)}/month`;
-        }
-        if (current_pricing.weekly_rate) {
-            return `${formatPrice(current_pricing.weekly_rate)}/week`;
-        }
         if (current_pricing.nightly_rate) {
+            // Check for monthly discount first (better value)
+            if (current_pricing.monthly_discount_active && current_pricing.monthly_discount_percent && current_pricing.monthly_discount_percent > 0) {
+                const daysForMonthly = current_pricing.min_days_for_monthly || 30;
+                const monthlyRate = current_pricing.nightly_rate * daysForMonthly * (1 - current_pricing.monthly_discount_percent / 100);
+                return `${formatPrice(monthlyRate)}/month`;
+            }
+            // Check for weekly discount
+            if (current_pricing.weekly_discount_active && current_pricing.weekly_discount_percent && current_pricing.weekly_discount_percent > 0) {
+                const daysForWeekly = current_pricing.min_days_for_weekly || 7;
+                const weeklyRate = current_pricing.nightly_rate * daysForWeekly * (1 - current_pricing.weekly_discount_percent / 100);
+                return `${formatPrice(weeklyRate)}/week`;
+            }
+            // Default to nightly rate
             return `${formatPrice(current_pricing.nightly_rate)}/night`;
         }
     }

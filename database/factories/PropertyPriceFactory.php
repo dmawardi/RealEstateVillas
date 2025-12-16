@@ -22,11 +22,13 @@ class PropertyPriceFactory extends Factory
         $monthlyRate = $nightlyRate * 0.70;  // 30% discount for 30+ nights
         return [
             'nightly_rate' => $nightlyRate,
-            'weekly_rate' => $weeklyRate,
-            'monthly_rate' => $monthlyRate,
+            'weekly_discount_percent' => 10.00,
+            'monthly_discount_percent' => 20.00,
+            'weekend_premium_percent' => 10.00,
             'name' => $this->faker->word(),
-            'weekly_discount_percent' => 15.00,
-            'monthly_discount_percent' => 30.00,
+            'monthly_discount_active' => true,
+            'weekly_discount_active' => true,
+            'weekend_premium_active' => true,
             'currency' => 'IDR', // Default currency
             'start_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'end_date' => $this->faker->dateTimeBetween('now', '+1 year'),

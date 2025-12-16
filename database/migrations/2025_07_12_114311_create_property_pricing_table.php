@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->bigInteger('nightly_rate')->nullable();
-            $table->bigInteger('weekly_rate')->nullable();
-            $table->bigInteger('monthly_rate')->nullable();
             $table->string('currency', 3)->default('IDR');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
