@@ -246,9 +246,8 @@ class AdminBookingController extends Controller
         DB::beginTransaction();
         
         try {
-            // Get the property
             $property = Property::findOrFail($validated['property_id']);
-            
+
             // Parse dates
             $checkInDate = Carbon::parse($validated['check_in_date']);
             $checkOutDate = Carbon::parse($validated['check_out_date']);
@@ -262,12 +261,8 @@ class AdminBookingController extends Controller
                 );
                 
                 if (!$isAvailable) {
-                    return response()->json([
-                        'message' => 'The selected dates are not available for this property.',
-                        'errors' => [
-                            'dates' => ['The selected dates are not available. Check "Override availability check" to force booking.']
-                        ]
-                    ], 422);
+                    return back()->with('error', 'The selected dates are not available for this property.')
+                        ->withInput();
                 }
             }
 
@@ -357,8 +352,7 @@ class AdminBookingController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.bookings.show', $booking)
-                ->with('success', 'Booking created successfully.');
+            return back()->with('success', 'Booking created successfully.');
                             
         } catch (\Exception $e) {
             DB::rollback();
@@ -378,7 +372,7 @@ class AdminBookingController extends Controller
                 ], 500);
             }
 
-            return back()->withErrors(['error' => 'Failed to create booking: ' . $e->getMessage()])
+            return back()->with('error', 'Failed to create booking: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -524,8 +518,7 @@ class AdminBookingController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.bookings.show', $booking)
-                ->with('success', 'Booking updated successfully.');
+            return back()->with('success', 'Booking updated successfully.');
                             
         } catch (\Exception $e) {
             DB::rollback();
@@ -546,7 +539,7 @@ class AdminBookingController extends Controller
                 ], 500);
             }
 
-            return back()->withErrors(['error' => 'Failed to update booking: ' . $e->getMessage()])
+            return back()->with('error', 'Failed to update booking: ' . $e->getMessage())
                 ->withInput();
         }
     }

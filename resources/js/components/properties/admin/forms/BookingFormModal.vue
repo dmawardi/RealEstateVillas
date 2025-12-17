@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { Booking, Property } from '@/types';
 import { formatDateForInput } from '@/utils/formatters';
-import { BookingApi } from '@/services/api/bookings';
 
 interface Props {
     show: boolean;
@@ -36,6 +36,7 @@ const bookingForm = ref({
     number_of_guests: 1,
     number_of_rooms: null as number | null,
     flexible_dates: false as boolean,
+    status: 'pending',
     total_price: 0,
     commission_rate: null as number | null,
     commission_amount: null as number | null,
@@ -77,6 +78,7 @@ const resetForm = () => {
         number_of_guests: 1,
         number_of_rooms: null,
         flexible_dates: false,
+        status: 'pending',
         total_price: 0,
         commission_rate: null,
         commission_amount: null,
@@ -105,6 +107,7 @@ const openForm = () => {
             number_of_guests: props.booking.number_of_guests || 1,
             number_of_rooms: props.booking.number_of_rooms || null,
             flexible_dates: props.booking.flexible_dates || false,
+            status: props.booking.status || 'pending',
             total_price: props.booking.total_price || 0,
             commission_rate: props.booking.commission_rate || null,
             commission_amount: props.booking.commission_amount || null,
@@ -168,30 +171,41 @@ const submitBooking = async () => {
     processing.value = true;
     errors.value = {};
     
-    try {
-        // Submit to appropriate route
-        if (isEditing.value && props.booking) {
-            // Update existing booking
-            await BookingApi.updateBooking(props.booking.id, bookingForm.value);
-        } else {
-            // Create new booking
-            await BookingApi.createBooking(props.property.id, bookingForm.value);
-        }
-        
-        closeForm();
-        emit('success');
-    } catch (error: any) {
-        console.error('Booking operation errors:', error);
-        
-        // Handle validation errors
-        if (error.response?.data?.errors) {
-            errors.value = error.response.data.errors;
-        } else {
-            // Handle general errors
-            alert('An error occurred while saving the booking. Please try again.');
-        }
-    } finally {
-        processing.value = false;
+    // Submit to appropriate route using router
+    if (isEditing.value && props.booking) {
+        console.log('Submitting update for booking ID:', props.booking.id); // Debug log
+        // Update existing booking
+        router.put(route('admin.bookings.update', props.booking.id), {...bookingForm.value, 'property_id': props.property.id}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeForm();
+                emit('success');
+            },
+            onError: (validationErrors) => {
+                console.error('Booking update errors:', validationErrors);
+                errors.value = validationErrors;
+            },
+            onFinish: () => {
+                processing.value = false;
+            }
+        });
+    } else {
+        console.log('Submitting new booking for property ID:', props.property.id); // Debug log
+        // Create new booking
+        router.post(route('admin.bookings.store'), { ...bookingForm.value, 'property_id': props.property.id }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeForm();
+                // emit('success');
+            },
+            onError: (validationErrors) => {
+                console.error('Booking creation errors:', validationErrors);
+                errors.value = validationErrors;
+            },
+            onFinish: () => {
+                processing.value = false;
+            }
+        });
     }
 };
 
@@ -381,10 +395,10 @@ watch(() => props.booking, () => {
                         </div>
                     </div>
 
-                    <!-- Booking Source and Type -->
+                    <!-- Booking Source, Type and Status -->
                     <div>
-                        <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Source & Type</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Source, Type & Status</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Source
@@ -422,6 +436,26 @@ watch(() => props.booking, () => {
                                 </select>
                                 <div v-if="errors.booking_type" class="mt-1 text-sm text-red-600">
                                     {{ errors.booking_type }}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Status
+                                </label>
+                                <select
+                                    v-model="bookingForm.status"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                    :class="{ 'border-red-500': errors.status }"
+                                >
+                                    <option value="pending">Pending</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="blocked">Blocked</option>
+                                    <option value="withdrawn">Withdrawn</option>
+                                </select>
+                                <div v-if="errors.status" class="mt-1 text-sm text-red-600">
+                                    {{ errors.status }}
                                 </div>
                             </div>
                         </div>
