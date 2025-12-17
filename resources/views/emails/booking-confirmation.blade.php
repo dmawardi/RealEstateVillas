@@ -38,39 +38,39 @@
                 
                 <div class="detail-row">
                     <strong>Booking Reference:</strong>
-                    <span>#{{ $booking->id }}</span>
+                    <span> #{{ $booking->id }}</span>
                 </div>
                 
                 <div class="detail-row">
                     <strong>Check-in Date:</strong>
-                    <span>{{ $checkInDate }}</span>
+                    <span> {{ $checkInDate }}</span>
                 </div>
                 
                 <div class="detail-row">
                     <strong>Check-out Date:</strong>
-                    <span>{{ $checkOutDate }}</span>
+                    <span> {{ $checkOutDate }}</span>
                 </div>
                 
                 <div class="detail-row">
                     <strong>Duration:</strong>
-                    <span>{{ $nights }} night{{ $nights !== 1 ? 's' : '' }}</span>
+                    <span> {{ $nights }} night{{ $nights !== 1 ? 's' : '' }}</span>
                 </div>
                 
                 <div class="detail-row">
                     <strong>Guests:</strong>
-                    <span>{{ $booking->number_of_guests }}</span>
+                    <span> {{ $booking->number_of_guests }}</span>
                 </div>
                 
                 @if($booking->number_of_rooms)
                 <div class="detail-row">
                     <strong>Rooms:</strong>
-                    <span>{{ $booking->number_of_rooms }}</span>
+                    <span> {{ $booking->number_of_rooms }}</span>
                 </div>
                 @endif
                 
                 <div class="detail-row">
                     <strong>Quoted Price:</strong>
-                    <span>${{ number_format($booking->total_price, 2) }} <small>(subject to change)</small></span>
+                    <span>IDR {{ number_format($booking->total_price, 2) }} <small>(subject to change)</small></span>
                 </div>
                 
                 @if($booking->special_requests)

@@ -113,12 +113,11 @@ const openPricingForm = () => {
     editingPricing.value = null;
     
     // Set default dates (next month for 30 days)
-    const nextMonth = new Date();
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-    const endDate = new Date(nextMonth);
-    endDate.setDate(endDate.getDate() + 30);
+    const today = new Date();
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + 180); // 180 days from today
     
-    pricingForm.value.start_date = nextMonth.toISOString().split('T')[0];
+    pricingForm.value.start_date = today.toISOString().split('T')[0];
     pricingForm.value.end_date = endDate.toISOString().split('T')[0];
     
     showPricingForm.value = true;
