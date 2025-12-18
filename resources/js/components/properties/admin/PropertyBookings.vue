@@ -4,8 +4,7 @@ import { formatPrice, formatDate } from '@/utils';
 import { Booking, Property } from '@/types';
 import BookingForm from '@/components/properties/admin/forms/BookingFormModal.vue';
 import BookingDetailsModal from '@/components/properties/admin/bookings/Details.vue';
-import { BookingApi } from '@/services/api/bookings';
-
+import { router } from '@inertiajs/vue3';
 interface Props {
     property: Property
 }
@@ -189,13 +188,17 @@ const deleteBooking = async (booking: Booking) => {
     deleting.value = true;
 
     try {
-        await BookingApi.deleteBooking(booking.id);
+        await router.delete(route('admin.bookings.destroy', booking.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                },
+            onError: (validationErrors) => {
+                console.error('Booking delete errors:', validationErrors);
+            },
+        });
         
         // Close the modal
         closeBookingModal();
-        
-        // Refresh the page to update the bookings list
-        window.location.reload();
     } catch (error: any) {
         console.error('Booking deletion failed:', error);
         

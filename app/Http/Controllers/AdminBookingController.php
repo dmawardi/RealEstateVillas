@@ -604,7 +604,7 @@ class AdminBookingController extends Controller
                 'guest_email' => $booking->email,
             ]);
 
-            return redirect()->route('admin.bookings.index')
+            return back()
                 ->with('success', 'Booking deleted successfully.');
         } catch (\Exception $e) {
             Log::error('Admin booking deletion failed', [
