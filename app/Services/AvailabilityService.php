@@ -36,18 +36,31 @@ class AvailabilityService
     /**
      * Check if a property is available for the given date range
      * This is the core method - everything else should use this
+     * 
+     * @param Property $property
+     * @param Carbon $checkIn
+     * @param Carbon $checkOut
+     * @param Booking|int|null $excludeBooking Booking to exclude from availability check (for updates)
      */
-    public function isPropertyAvailable(Property $property, Carbon $checkIn, Carbon $checkOut): bool
+    public function isPropertyAvailable(Property $property, Carbon $checkIn, Carbon $checkOut, $excludeBooking = null): bool
     {
-        // Simple query: are there any confirmed bookings that conflict?
-        return !Booking::forProperty($property->id)
+        $query = Booking::forProperty($property->id)
             ->whereIn('status', ['confirmed', 'completed'])
             ->where(function ($query) use ($checkIn, $checkOut) {
                 // A booking conflicts if it overlaps with our desired period
                 $query->where('check_in_date', '<', $checkOut)
                       ->where('check_out_date', '>', $checkIn);
-            })
-            ->exists();
+            });
+
+        // Exclude a specific booking (useful when updating an existing booking)
+        if ($excludeBooking) {
+            // If it's an object, get the ID, else assume it's an ID
+            $bookingId = is_object($excludeBooking) ? $excludeBooking->id : $excludeBooking;
+            $query->where('id', '!=', $bookingId);
+        }
+
+        // If no conflicting bookings exist, the property is available
+        return !$query->exists();
     }
 
     /**

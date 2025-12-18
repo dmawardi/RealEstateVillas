@@ -458,17 +458,13 @@ class AdminBookingController extends Controller
         $checkOutDate = Carbon::parse($validated['check_out_date']);
         
         // Check availability BEFORE transaction for confirmed/completed bookings
-        if (in_array($validated['status'], ['confirmed'])) {
+        if (in_array($validated['status'], ['confirmed', 'completed'])) {
             $isAvailable = $this->availabilityService->isPropertyAvailable(
                 $property,
                 $checkInDate,
                 $checkOutDate,
+                $booking // Exclude the current booking from availability check
             );
-            Log::info('Admin booking availability check during update', [
-                'booking_id' => $booking->id,
-                'property_id' => $property->id,
-                'is_available' => $isAvailable
-            ]);
             
             if (!$isAvailable) {
                 if ($request->expectsJson()) {
@@ -479,8 +475,7 @@ class AdminBookingController extends Controller
                         ]
                     ], 422);
                 }
-                return back()->with('error', 'The selected dates are not available for this property.')
-                    ->withInput();
+                return back()->with('error', 'The selected dates are not available for this property.');
             }
         }
 
