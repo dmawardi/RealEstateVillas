@@ -41,7 +41,7 @@ class AvailabilityService
     {
         // Simple query: are there any confirmed bookings that conflict?
         return !Booking::forProperty($property->id)
-            ->confirmed()
+            ->whereIn('status', ['confirmed', 'completed'])
             ->where(function ($query) use ($checkIn, $checkOut) {
                 // A booking conflicts if it overlaps with our desired period
                 $query->where('check_in_date', '<', $checkOut)

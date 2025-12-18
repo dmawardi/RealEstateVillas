@@ -243,28 +243,36 @@ class AdminBookingController extends Controller
             'override_availability_check' => 'nullable|boolean',
         ]);
 
+        // Parse dates and check availability BEFORE starting transaction
+        $property = Property::findOrFail($validated['property_id']);
+        $checkInDate = Carbon::parse($validated['check_in_date']);
+        $checkOutDate = Carbon::parse($validated['check_out_date']);
+        
+        // Check availability unless admin overrides
+        if (!$request->boolean('override_availability_check')) {
+            $isAvailable = $this->availabilityService->isPropertyAvailable(
+                $property,
+                $checkInDate,
+                $checkOutDate
+            );
+            
+            if (!$isAvailable) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'The selected dates are not available for this property.',
+                        'errors' => [
+                            'check_in_date' => ['The selected dates are not available for this property.']
+                        ]
+                    ], 422);
+                }
+                return back()->with('error', 'The selected dates are not available for this property.')
+                    ->withInput();
+            }
+        }
+
         DB::beginTransaction();
         
         try {
-            $property = Property::findOrFail($validated['property_id']);
-
-            // Parse dates
-            $checkInDate = Carbon::parse($validated['check_in_date']);
-            $checkOutDate = Carbon::parse($validated['check_out_date']);
-            
-            // Check availability unless admin overrides
-            if (!$request->boolean('override_availability_check')) {
-                $isAvailable = $this->availabilityService->isPropertyAvailable(
-                    $property,
-                    $checkInDate,
-                    $checkOutDate
-                );
-                
-                if (!$isAvailable) {
-                    return back()->with('error', 'The selected dates are not available for this property.')
-                        ->withInput();
-                }
-            }
 
             // Handle user creation or lookup
             $userId = null;
@@ -444,16 +452,41 @@ class AdminBookingController extends Controller
             'notes' => 'nullable|string|max:2000',
         ]);
 
+        // Get the property and parse dates BEFORE starting transaction
+        $property = Property::findOrFail($validated['property_id']);
+        $checkInDate = Carbon::parse($validated['check_in_date']);
+        $checkOutDate = Carbon::parse($validated['check_out_date']);
+        
+        // Check availability BEFORE transaction for confirmed/completed bookings
+        if (in_array($validated['status'], ['confirmed'])) {
+            $isAvailable = $this->availabilityService->isPropertyAvailable(
+                $property,
+                $checkInDate,
+                $checkOutDate,
+            );
+            Log::info('Admin booking availability check during update', [
+                'booking_id' => $booking->id,
+                'property_id' => $property->id,
+                'is_available' => $isAvailable
+            ]);
+            
+            if (!$isAvailable) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'The selected dates are not available for this property.',
+                        'errors' => [
+                            'check_in_date' => ['The selected dates are not available for this property.']
+                        ]
+                    ], 422);
+                }
+                return back()->with('error', 'The selected dates are not available for this property.')
+                    ->withInput();
+            }
+        }
+
         DB::beginTransaction();
         
         try {
-            // Get the property
-            $property = Property::findOrFail($validated['property_id']);
-            
-            // Parse dates
-            $checkInDate = Carbon::parse($validated['check_in_date']);
-            $checkOutDate = Carbon::parse($validated['check_out_date']);
-            
             // Handle user creation or lookup (only if email changed)
             $userId = $booking->user_id;
             if (!empty($validated['email']) && $validated['email'] !== $booking->email) {
@@ -465,6 +498,16 @@ class AdminBookingController extends Controller
                 ]);
                 $userId = $user->id;
             }
+
+            Log::info('Admin booking update attempt', [
+                'booking_id' => $booking->id,
+                'property_id' => $property->id,
+                'user_id' => $userId,
+                'admin_user_id' => auth()->id() ?? null,
+                'guest_email' => $validated['email'] ?? null,
+                'dates' => $checkInDate->format('Y-m-d') . ' to ' . $checkOutDate->format('Y-m-d'),
+                'status' => $validated['status']
+            ]);
 
             // Calculate commission amount if rate is provided and amount is not explicitly set
             $commissionAmount = $validated['commission_amount'] ?? null;

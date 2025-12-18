@@ -209,11 +209,6 @@ const deleteBooking = async (booking: Booking) => {
         deleting.value = false;
     }
 };
-
-const onBookingSuccess = () => {
-    // Refresh the page or update bookings list
-    window.location.reload();
-};
 </script>
 
 <template>
@@ -466,7 +461,6 @@ const onBookingSuccess = () => {
             :property="property"
             :booking="editingBooking"
             @close="closeBookingForm"
-            @success="onBookingSuccess"
         />
     </div>
 </template>

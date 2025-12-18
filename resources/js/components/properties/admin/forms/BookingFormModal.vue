@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { Booking, Property } from '@/types';
 import { formatDateForInput } from '@/utils/formatters';
 
@@ -12,7 +12,6 @@ interface Props {
 
 interface Emits {
     (e: 'close'): void;
-    (e: 'success'): void;
 }
 
 const props = defineProps<Props>();
@@ -26,7 +25,8 @@ const processing = ref(false);
 const errors = ref<Record<string, string>>({});
 
 // Booking form data - updated to match nullable fields
-const bookingForm = ref({
+const bookingForm = useForm({
+    property_id: props.property.id, // For updates
     first_name: '',
     last_name: '',
     email: '',
@@ -50,80 +50,73 @@ const bookingForm = ref({
 
 // Updated form validation - only check_in_date and check_out_date are truly required
 const isFormValid = computed(() => {
-    const checkInDate = new Date(bookingForm.value.check_in_date);
-    const checkOutDate = new Date(bookingForm.value.check_out_date);
+    const checkInDate = new Date(bookingForm.check_in_date);
+    const checkOutDate = new Date(bookingForm.check_out_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     return (
-        bookingForm.value.check_in_date &&
-        bookingForm.value.check_out_date &&
+        bookingForm.check_in_date &&
+        bookingForm.check_out_date &&
         (isEditing.value || checkInDate >= today) && // Allow past dates when editing
         checkOutDate > checkInDate &&
-        bookingForm.value.number_of_guests > 0 &&
-        bookingForm.value.number_of_guests <= (props.property.bedrooms ? props.property.bedrooms * 2 : 20) &&
-        bookingForm.value.total_price >= 0
+        bookingForm.number_of_guests > 0 &&
+        bookingForm.number_of_guests <= (props.property.bedrooms ? props.property.bedrooms * 2 : 20) &&
+        bookingForm.total_price >= 0
     );
 });
 
 // Methods
 const resetForm = () => {
-    bookingForm.value = {
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        check_in_date: '',
-        check_out_date: '',
-        number_of_guests: 1,
-        number_of_rooms: null,
-        flexible_dates: false,
-        status: 'pending',
-        total_price: 0,
-        commission_rate: null,
-        commission_amount: null,
-        commission_paid: false,
-        source: 'direct',
-        booking_type: 'booking',
-        special_requests: '',
-        external_booking_id: '',
-        notes: ''
-    };
+    bookingForm.first_name = '';
+    bookingForm.last_name = '';
+    bookingForm.email = '';
+    bookingForm.phone = '';
+    bookingForm.check_in_date = '';
+    bookingForm.check_out_date = '';
+    bookingForm.number_of_guests = 1;
+    bookingForm.number_of_rooms = null;
+    bookingForm.flexible_dates = false;
+    bookingForm.status = 'pending';
+    bookingForm.total_price = 0;
+    bookingForm.commission_rate = null;
+    bookingForm.commission_amount = null;
+    bookingForm.commission_paid = false;
+    bookingForm.source = 'direct';
+    bookingForm.booking_type = 'booking';
+    bookingForm.special_requests = '';
+    bookingForm.external_booking_id = '';
+    bookingForm.notes = '';
     errors.value = {};
 };
 
 const openForm = () => {
     if (isEditing.value && props.booking) {
         // Pre-populate form with booking data for editing
-        console.log('Editing booking:', props.booking); // Debug log
-        
-        bookingForm.value = {
-            first_name: props.booking.first_name || '',
-            last_name: props.booking.last_name || '',
-            email: props.booking.email || '',
-            phone: props.booking.phone || '',
-            check_in_date: formatDateForInput(props.booking.check_in_date),
-            check_out_date: formatDateForInput(props.booking.check_out_date),
-            number_of_guests: props.booking.number_of_guests || 1,
-            number_of_rooms: props.booking.number_of_rooms || null,
-            flexible_dates: props.booking.flexible_dates || false,
-            status: props.booking.status || 'pending',
-            total_price: props.booking.total_price || 0,
-            commission_rate: props.booking.commission_rate || null,
-            commission_amount: props.booking.commission_amount || null,
-            commission_paid: props.booking.commission_paid || false,
-            source: props.booking.source || 'direct',
-            booking_type: props.booking.booking_type || 'booking',
-            special_requests: props.booking.special_requests || '',
-            external_booking_id: props.booking.external_booking_id || '',
-            notes: props.booking.notes || ''
-        };
-        
-        console.log('Formatted check_in_date:', bookingForm.value.check_in_date); // Debug log
-        console.log('Formatted check_out_date:', bookingForm.value.check_out_date); // Debug log
+        bookingForm.first_name = props.booking.first_name || '';
+        bookingForm.last_name = props.booking.last_name || '';
+        bookingForm.email = props.booking.email || '';
+        bookingForm.phone = props.booking.phone || '';
+        bookingForm.check_in_date = formatDateForInput(props.booking.check_in_date);
+        bookingForm.check_out_date = formatDateForInput(props.booking.check_out_date);
+        bookingForm.number_of_guests = props.booking.number_of_guests || 1;
+        bookingForm.number_of_rooms = props.booking.number_of_rooms || null;
+        bookingForm.flexible_dates = props.booking.flexible_dates || false;
+        bookingForm.status = props.booking.status || 'pending';
+        bookingForm.total_price = props.booking.total_price || 0;
+        bookingForm.commission_rate = props.booking.commission_rate || null;
+        bookingForm.commission_amount = props.booking.commission_amount || null;
+        bookingForm.commission_paid = props.booking.commission_paid || false;
+        bookingForm.source = props.booking.source || 'direct';
+        bookingForm.booking_type = props.booking.booking_type || 'booking';
+        bookingForm.special_requests = props.booking.special_requests || '';
+        bookingForm.external_booking_id = props.booking.external_booking_id || '';
+        bookingForm.notes = props.booking.notes || '';
     } else {
         // Reset form for new booking
         resetForm();
+        // Set property_id to current property
+        bookingForm.property_id = props.property.id;
         
         // Set default dates (today + 1 for check-in, today + 2 for check-out)
         const tomorrow = new Date();
@@ -131,8 +124,8 @@ const openForm = () => {
         const dayAfter = new Date();
         dayAfter.setDate(dayAfter.getDate() + 2);
         
-        bookingForm.value.check_in_date = formatDateForInput(tomorrow.toISOString());
-        bookingForm.value.check_out_date = formatDateForInput(dayAfter.toISOString());
+        bookingForm.check_in_date = formatDateForInput(tomorrow.toISOString());
+        bookingForm.check_out_date = formatDateForInput(dayAfter.toISOString());
     }
 };
 
@@ -149,8 +142,8 @@ const submitBooking = async () => {
     }
     
     // Validate dates
-    const checkInDate = new Date(bookingForm.value.check_in_date);
-    const checkOutDate = new Date(bookingForm.value.check_out_date);
+    const checkInDate = new Date(bookingForm.check_in_date);
+    const checkOutDate = new Date(bookingForm.check_out_date);
     
     if (checkInDate >= checkOutDate) {
         alert('Check-out date must be after check-in date');
@@ -164,8 +157,8 @@ const submitBooking = async () => {
     }
     
     // Calculate commission amount if rate is provided
-    if (bookingForm.value.commission_rate && bookingForm.value.total_price > 0) {
-        bookingForm.value.commission_amount = Math.round((bookingForm.value.total_price * bookingForm.value.commission_rate) / 100);
+    if (bookingForm.commission_rate && bookingForm.total_price > 0) {
+        bookingForm.commission_amount = Math.round((bookingForm.total_price * bookingForm.commission_rate) / 100);
     }
     
     processing.value = true;
@@ -173,13 +166,11 @@ const submitBooking = async () => {
     
     // Submit to appropriate route using router
     if (isEditing.value && props.booking) {
-        console.log('Submitting update for booking ID:', props.booking.id); // Debug log
         // Update existing booking
-        router.put(route('admin.bookings.update', props.booking.id), {...bookingForm.value, 'property_id': props.property.id}, {
+        bookingForm.put(route('admin.bookings.update', props.booking.id), {
             preserveScroll: true,
             onSuccess: () => {
                 closeForm();
-                emit('success');
             },
             onError: (validationErrors) => {
                 console.error('Booking update errors:', validationErrors);
@@ -189,21 +180,20 @@ const submitBooking = async () => {
                 processing.value = false;
             }
         });
+        
     } else {
-        console.log('Submitting new booking for property ID:', props.property.id); // Debug log
         // Create new booking
-        router.post(route('admin.bookings.store'), { ...bookingForm.value, 'property_id': props.property.id }, {
+        bookingForm.post(route('admin.bookings.store'), {
             preserveScroll: true,
             onSuccess: () => {
-                closeForm();
-                // emit('success');
+            closeForm();
             },
             onError: (validationErrors) => {
-                console.error('Booking creation errors:', validationErrors);
-                errors.value = validationErrors;
+            console.error('Booking creation errors:', validationErrors);
+            errors.value = validationErrors;
             },
             onFinish: () => {
-                processing.value = false;
+            processing.value = false;
             }
         });
     }
