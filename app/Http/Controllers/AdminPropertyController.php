@@ -259,8 +259,6 @@ class AdminPropertyController extends Controller
             
             // Rental Pricing (for PropertyPrice model)
             'nightly_rate' => 'nullable|integer|min:0',
-            'weekly_rate' => 'nullable|integer|min:0',
-            'monthly_rate' => 'nullable|integer|min:0',
             
             // Image Uploads
             'images' => 'nullable|array|max:20',
@@ -290,17 +288,7 @@ class AdminPropertyController extends Controller
 
             // Handle multiple image uploads
             if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('property-images', 'public');
-                    
-                    PropertyAttachment::create([
-                        'property_id' => $property->id,
-                        'title' => "Property Image " . ($index + 1),
-                        'path' => Storage::url($path),
-                        'type' => 'image',
-                        'order' => $index,
-                    ]);
-                }
+                $this->handleAttachments($request->file('images'), $property);
             }
 
             DB::commit();
@@ -434,7 +422,6 @@ class AdminPropertyController extends Controller
             'agent_email' => 'nullable|email|max:255',
             'agency_name' => 'nullable|string|max:255',
             'nightly_rate' => 'nullable|integer|min:0',
-            'monthly_rate' => 'nullable|integer|min:0',
             'images' => 'nullable|array|max:20',
             'images.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
@@ -462,16 +449,12 @@ class AdminPropertyController extends Controller
                     // Update existing pricing
                     $pricing->update([
                         'nightly_rate' => $validated['nightly_rate'] ?? null,
-                        'weekly_rate' => $validated['weekly_rate'] ?? null,
-                        'monthly_rate' => $validated['monthly_rate'] ?? null,
                     ]);
                 } else {
                     // Create new pricing record
                     PropertyPrice::create([
                         'property_id' => $property->id,
                         'nightly_rate' => $validated['nightly_rate'] ?? null,
-                        'weekly_rate' => $validated['weekly_rate'] ?? null,
-                        'monthly_rate' => $validated['monthly_rate'] ?? null,
                         'currency' => 'IDR',
                         'start_date' => now(),
                     ]);
@@ -832,7 +815,7 @@ class AdminPropertyController extends Controller
         $request->validate([
             'feature_id' => 'required|exists:features,id',
             'quantity' => 'nullable|integer|min:1|max:999',
-            'custom_value' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:255',
         ]);
         
         try {
@@ -855,8 +838,8 @@ class AdminPropertyController extends Controller
                 $pivotData['quantity'] = $request->quantity;
             }
             
-            if ($request->filled('custom_value')) {
-                $pivotData['custom_value'] = $request->custom_value;
+            if ($request->filled('notes')) {
+                $pivotData['notes'] = $request->notes;
             }
             
             // Attach the feature
@@ -906,7 +889,7 @@ class AdminPropertyController extends Controller
     {
         $request->validate([
             'quantity' => 'nullable|integer|min:1|max:999',
-            'custom_value' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:255',
         ]);
         
         try {
@@ -929,10 +912,10 @@ class AdminPropertyController extends Controller
                 $updateData['quantity'] = null;
             }
             
-            if ($request->filled('custom_value')) {
-                $updateData['custom_value'] = $request->custom_value;
+            if ($request->filled('notes')) {
+                $updateData['notes'] = $request->notes;
             } else {
-                $updateData['custom_value'] = null;
+                $updateData['notes'] = null;
             }
             
             // Update the pivot record

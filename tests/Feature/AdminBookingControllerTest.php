@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AdminBookingControllerTest extends TestCase
@@ -52,7 +53,7 @@ class AdminBookingControllerTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[Test]
     public function test_index_displays_bookings_list()
     {
         // Arrange
@@ -72,7 +73,7 @@ class AdminBookingControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_index_filters_by_search_term()
     {
         // Arrange
@@ -100,7 +101,7 @@ class AdminBookingControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_show_displays_specific_booking()
     {
         // Arrange
@@ -120,7 +121,7 @@ class AdminBookingControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_create_displays_booking_creation_form()
     {
         // Act
@@ -135,7 +136,7 @@ class AdminBookingControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_store_creates_booking_successfully()
     {
         // Arrange
@@ -182,7 +183,7 @@ class AdminBookingControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_store_fails_when_dates_unavailable()
     {
         // Arrange
@@ -214,7 +215,7 @@ class AdminBookingControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_store_validates_required_fields()
     {
         // Act
@@ -234,7 +235,7 @@ class AdminBookingControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_edit_displays_booking_edit_form()
     {
         // Arrange
@@ -255,7 +256,7 @@ class AdminBookingControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_update_modifies_booking_successfully()
     {
         // Arrange
@@ -295,7 +296,7 @@ class AdminBookingControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_update_fails_when_confirmed_dates_unavailable()
     {
         // Arrange
@@ -329,7 +330,7 @@ class AdminBookingControllerTest extends TestCase
         $response->assertSessionHas('error');
     }
 
-    /** @test */
+    #[Test]
     public function test_destroy_deletes_booking()
     {
         // Arrange
@@ -349,7 +350,7 @@ class AdminBookingControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_unauthorized_user_cannot_access_admin_routes()
     {
         // Act & Assert
@@ -358,7 +359,7 @@ class AdminBookingControllerTest extends TestCase
             ->assertStatus(302); // Redirect for unauthorized access
     }
 
-    /** @test */
+    #[Test]
     public function test_json_requests_return_json_errors()
     {
         // Arrange

@@ -6,6 +6,7 @@ use App\Models\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AdminFeatureControllerTest extends TestCase
@@ -30,7 +31,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_index_displays_features_list()
     {
         // Arrange
@@ -48,7 +49,7 @@ class AdminFeatureControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_index_filters_by_search_term()
     {
         // Arrange
@@ -75,7 +76,7 @@ class AdminFeatureControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_index_filters_by_category()
     {
         // Arrange
@@ -94,7 +95,7 @@ class AdminFeatureControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_create_displays_feature_creation_form()
     {
         // Act
@@ -108,7 +109,7 @@ class AdminFeatureControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_store_creates_feature_successfully()
     {
         // Arrange
@@ -136,7 +137,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_store_validates_required_fields()
     {
         // Act
@@ -153,7 +154,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_store_validates_unique_slug()
     {
         // Arrange
@@ -175,7 +176,7 @@ class AdminFeatureControllerTest extends TestCase
         $response->assertSessionHasErrors(['slug']);
     }
 
-    /** @test */
+    #[Test]
     public function test_edit_displays_feature_edit_form()
     {
         // Arrange
@@ -193,7 +194,7 @@ class AdminFeatureControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function test_update_modifies_feature_successfully()
     {
         // Arrange
@@ -228,7 +229,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_update_validates_unique_slug_except_current()
     {
         // Arrange
@@ -251,7 +252,7 @@ class AdminFeatureControllerTest extends TestCase
         $response->assertSessionHasErrors(['slug']);
     }
 
-    /** @test */
+    #[Test]
     public function test_update_allows_keeping_same_slug()
     {
         // Arrange
@@ -276,7 +277,7 @@ class AdminFeatureControllerTest extends TestCase
         $response->assertSessionHas('success');
     }
 
-    /** @test */
+    #[Test]
     public function test_destroy_deletes_feature()
     {
         // Arrange
@@ -294,7 +295,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_unauthorized_user_cannot_access_admin_routes()
     {
         // Act & Assert
@@ -303,7 +304,7 @@ class AdminFeatureControllerTest extends TestCase
             ->assertStatus(302); // Redirect for unauthorized access
     }
 
-    /** @test */
+    #[Test]
     public function test_store_handles_nullable_fields_correctly()
     {
         // Arrange - minimal required data, nullable fields omitted
@@ -332,7 +333,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_update_handles_nullable_fields_correctly()
     {
         // Arrange
