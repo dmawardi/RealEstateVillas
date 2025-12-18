@@ -279,9 +279,9 @@ class AdminBookingController extends Controller
             if (!empty($validated['email'])) {
                 $user = $this->createOrFindUser([
                     'email' => $validated['email'],
-                    'first_name' => $validated['first_name'],
-                    'last_name' => $validated['last_name'],
-                    'phone' => $validated['phone']
+                    'first_name' => $validated['first_name'] ?? null,
+                    'last_name' => $validated['last_name'] ?? null,
+                    'phone' => $validated['phone'] ?? null
                 ]);
                 $userId = $user->id;
             }
@@ -296,25 +296,25 @@ class AdminBookingController extends Controller
             $booking = Booking::create([
                 'property_id' => $property->id,
                 'user_id' => $userId, // Add user_id relationship
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
+                'first_name' => $validated['first_name'] ?? null,
+                'last_name' => $validated['last_name'] ?? null,
+                'email' => $validated['email'] ?? null,
+                'phone' => $validated['phone'] ?? null,
                 'check_in_date' => $checkInDate->format('Y-m-d'),
                 'check_out_date' => $checkOutDate->format('Y-m-d'),
                 'number_of_guests' => $validated['number_of_guests'],
-                'number_of_rooms' => $validated['number_of_rooms'],
+                'number_of_rooms' => $validated['number_of_rooms'] ?? null,
                 'total_price' => $validated['total_price'],
                 'status' => $validated['status'],
                 'source' => $validated['source'],
                 'booking_type' => $validated['booking_type'],
-                'external_booking_id' => $validated['external_booking_id'],
-                'commission_rate' => $validated['commission_rate'],
+                'external_booking_id' => $validated['external_booking_id'] ?? null,
+                'commission_rate' => $validated['commission_rate'] ?? null,
                 'commission_amount' => $commissionAmount,
                 'commission_paid' => $validated['commission_paid'] ?? false,
                 'flexible_dates' => $validated['flexible_dates'] ?? false,
-                'special_requests' => $validated['special_requests'],
-                'notes' => $validated['notes'],
+                'special_requests' => $validated['special_requests'] ?? null,
+                'notes' => $validated['notes'] ?? null,
             ]);
             
             Log::info('Admin booking created', [
@@ -492,9 +492,9 @@ class AdminBookingController extends Controller
             if (!empty($validated['email']) && $validated['email'] !== $booking->email) {
                 $user = $this->createOrFindUser([
                     'email' => $validated['email'],
-                    'first_name' => $validated['first_name'],
-                    'last_name' => $validated['last_name'],
-                    'phone' => $validated['phone']
+                    'first_name' => $validated['first_name'] ?? null,
+                    'last_name' => $validated['last_name'] ?? null,
+                    'phone' => $validated['phone'] ?? null
                 ]);
                 $userId = $user->id;
             }
@@ -519,25 +519,25 @@ class AdminBookingController extends Controller
             $booking->update([
                 'property_id' => $property->id,
                 'user_id' => $userId,
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
+                'first_name' => $validated['first_name'] ?? null,
+                'last_name' => $validated['last_name'] ?? null,
+                'email' => $validated['email'] ?? null,
+                'phone' => $validated['phone'] ?? null,
                 'check_in_date' => $checkInDate->format('Y-m-d'),
                 'check_out_date' => $checkOutDate->format('Y-m-d'),
                 'number_of_guests' => $validated['number_of_guests'],
-                'number_of_rooms' => $validated['number_of_rooms'],
+                'number_of_rooms' => $validated['number_of_rooms'] ?? null,
                 'total_price' => $validated['total_price'],
                 'status' => $validated['status'],
                 'source' => $validated['source'],
                 'booking_type' => $validated['booking_type'],
-                'external_booking_id' => $validated['external_booking_id'],
-                'commission_rate' => $validated['commission_rate'],
+                'external_booking_id' => $validated['external_booking_id'] ?? null,
+                'commission_rate' => $validated['commission_rate'] ?? null,
                 'commission_amount' => $commissionAmount,
                 'commission_paid' => $validated['commission_paid'] ?? false,
                 'flexible_dates' => $validated['flexible_dates'] ?? false,
-                'special_requests' => $validated['special_requests'],
-                'notes' => $validated['notes'],
+                'special_requests' => $validated['special_requests'] ?? null,
+                'notes' => $validated['notes'] ?? null,
             ]);
             
             Log::info('Admin booking updated', [
