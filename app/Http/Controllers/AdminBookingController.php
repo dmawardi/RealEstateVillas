@@ -450,6 +450,7 @@ class AdminBookingController extends Controller
             'flexible_dates' => 'nullable|boolean',
             'special_requests' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:2000',
+            'override_availability_check' => 'nullable|boolean',
         ]);
 
         // Get the property and parse dates BEFORE starting transaction
@@ -459,23 +460,25 @@ class AdminBookingController extends Controller
         
         // Check availability BEFORE transaction for confirmed/completed bookings
         if (in_array($validated['status'], ['confirmed', 'completed'])) {
-            $isAvailable = $this->availabilityService->isPropertyAvailable(
-                $property,
-                $checkInDate,
-                $checkOutDate,
-                $booking // Exclude the current booking from availability check
-            );
-            
-            if (!$isAvailable) {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'message' => 'The selected dates are not available for this property.',
-                        'errors' => [
-                            'check_in_date' => ['The selected dates are not available for this property.']
-                        ]
-                    ], 422);
+            if (!$request->boolean('override_availability_check')) {
+                $isAvailable = $this->availabilityService->isPropertyAvailable(
+                    $property,
+                    $checkInDate,
+                    $checkOutDate,
+                    $booking // Exclude the current booking from availability check
+                );
+                
+                if (!$isAvailable) {
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'message' => 'The selected dates are not available for this property.',
+                            'errors' => [
+                                'check_in_date' => ['The selected dates are not available for this property.']
+                            ]
+                        ], 422);
+                    }
+                    return back()->with('error', 'The selected dates are not available for this property.');
                 }
-                return back()->with('error', 'The selected dates are not available for this property.');
             }
         }
 

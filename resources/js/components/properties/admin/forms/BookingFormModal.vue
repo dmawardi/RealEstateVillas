@@ -45,7 +45,9 @@ const bookingForm = useForm({
     booking_type: 'booking',
     special_requests: '',
     external_booking_id: '',
-    notes: '' // Internal notes
+    notes: '', // Internal notes
+    send_confirmation_email: false as boolean,
+    override_availability_check: false as boolean,
 });
 
 // Updated form validation - only check_in_date and check_out_date are truly required
@@ -87,6 +89,8 @@ const resetForm = () => {
     bookingForm.special_requests = '';
     bookingForm.external_booking_id = '';
     bookingForm.notes = '';
+    bookingForm.send_confirmation_email = false;
+    bookingForm.override_availability_check = false;
     errors.value = {};
 };
 
@@ -112,6 +116,8 @@ const openForm = () => {
         bookingForm.special_requests = props.booking.special_requests || '';
         bookingForm.external_booking_id = props.booking.external_booking_id || '';
         bookingForm.notes = props.booking.notes || '';
+        bookingForm.send_confirmation_email = false;
+        bookingForm.override_availability_check = false;
     } else {
         // Reset form for new booking
         resetForm();
@@ -555,6 +561,44 @@ watch(() => props.booking, () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Admin Options (Only for new bookings) -->
+                    <div>
+                        <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4">Admin Options</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div v-if="!isEditing" class="flex items-center">
+                                <input
+                                    v-model="bookingForm.send_confirmation_email"
+                                    type="checkbox"
+                                    id="send_confirmation_email"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label for="send_confirmation_email" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                    Send confirmation email to guest
+                                </label>
+                                <div v-if="errors.send_confirmation_email" class="mt-1 text-sm text-red-600">
+                                    {{ errors.send_confirmation_email }}
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <input
+                                    v-model="bookingForm.override_availability_check"
+                                    type="checkbox"
+                                    id="override_availability_check"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label for="override_availability_check" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                    Override availability check
+                                </label>
+                                <div v-if="errors.override_availability_check" class="mt-1 text-sm text-red-600">
+                                    {{ errors.override_availability_check }}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <strong>Override availability check:</strong> Allow booking even if dates conflict with existing bookings.
+                        </p>
                     </div>
 
                     <!-- Form Actions -->
