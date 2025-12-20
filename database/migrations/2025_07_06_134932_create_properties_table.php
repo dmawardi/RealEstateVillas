@@ -46,6 +46,10 @@ return new class extends Migration
             $table->decimal('land_size', 10, 2)->nullable(); // in square meters (are)
             $table->decimal('floor_area', 10, 2)->nullable(); // in square meters
             $table->year('year_built')->nullable();
+
+            // Modifiers
+            $table->boolean('always_override_availability')->default(false); // For properties that are always available (eg. Rooms at a hotel)
+            $table->boolean('only_monthly_allowed')->default(false); // For properties that can only be booked monthly (Future feature for Monthly Only Rentals)
             
             // Amenities
             $table->json('amenities')->nullable(); // nearby schools, transport, etc.

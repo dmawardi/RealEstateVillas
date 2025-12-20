@@ -245,6 +245,9 @@ class AdminPropertyController extends Controller
             'is_premium' => 'boolean',
             'available_date' => 'nullable|date|after_or_equal:today',
             'inspection_times' => 'nullable|string',
+            // Admin Modifiers
+            'always_override_availability' => 'nullable|boolean',
+            'only_monthly_allowed' => 'nullable|boolean',
             
             // Media
             'floor_plan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
@@ -424,6 +427,9 @@ class AdminPropertyController extends Controller
             'nightly_rate' => 'nullable|integer|min:0',
             'images' => 'nullable|array|max:20',
             'images.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
+            // Admin Modifiers
+            'always_override_availability' => 'nullable|boolean',
+            'only_monthly_allowed' => 'nullable|boolean',
         ]);
 
         DB::beginTransaction();

@@ -384,7 +384,7 @@ class PropertyFactory extends Factory
         return $this->afterCreating(function ($property) {
             $property->pricing()->save(\App\Models\PropertyPrice::factory()->make([
                 'property_id' => $property->id,
-                'start_date' => now(),
+                'start_date' => now()->subDay(),
                 'end_date' => now()->addYear(),
             ]));
         });

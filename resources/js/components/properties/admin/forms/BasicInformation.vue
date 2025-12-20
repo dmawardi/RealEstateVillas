@@ -11,6 +11,8 @@ interface BasicFormData {
     status: string;
     is_featured: boolean;
     is_premium: boolean;
+    always_override_availability: boolean;
+    only_monthly_allowed: boolean;
 }
 
 interface Props {
@@ -102,6 +104,16 @@ const isFeatured = computed({
 const isPremium = computed({
     get: () => formData.value.is_premium,
     set: (value: boolean) => formData.value = { ...formData.value, is_premium: value }
+});
+
+const alwaysOverrideAvailability = computed({
+    get: () => formData.value.always_override_availability,
+    set: (value: boolean) => formData.value = { ...formData.value, always_override_availability: value }
+});
+
+const onlyMonthlyAllowed = computed({
+    get: () => formData.value.only_monthly_allowed,
+    set: (value: boolean) => formData.value = { ...formData.value, only_monthly_allowed: value }
 });
 
 // Validation helper for slug
@@ -242,7 +254,7 @@ const slugError = computed(() => {
             </div>
 
             <!-- Status and Property Flags -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 items-start">
                 <!-- Status -->
                 <div>
                     <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -303,6 +315,42 @@ const slugError = computed(() => {
                         </label>
                     </div>
                 </div>
+
+                <!-- Always Override Availability Flag -->
+                <div class="pt-6">
+                    <div class="flex items-center">
+                        <input
+                            id="always_override_availability"
+                            v-model="alwaysOverrideAvailability"
+                            type="checkbox"
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                        />
+                        <label for="always_override_availability" class="ml-3 text-sm">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">Always Available</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400">
+                                Ignore booking conflicts (hotels)
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Only Monthly Allowed Flag -->
+                <div class="pt-6">
+                    <div class="flex items-center">
+                        <input
+                            id="only_monthly_allowed"
+                            v-model="onlyMonthlyAllowed"
+                            type="checkbox"
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                        />
+                        <label for="only_monthly_allowed" class="ml-3 text-sm">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">Monthly Only</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400">
+                                Only allow monthly bookings
+                            </span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
             <!-- Property Flags Info -->
@@ -315,12 +363,14 @@ const slugError = computed(() => {
                     </div>
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">
-                            Property Visibility Options
+                            Property Options
                         </h3>
                         <div class="mt-2 text-sm text-blue-700 dark:text-blue-400">
                             <ul class="list-disc list-inside space-y-1">
                                 <li><strong>Featured:</strong> Appears in featured sections and gets priority placement</li>
                                 <li><strong>Premium:</strong> Enhanced listing with better visibility and additional marketing features</li>
+                                <li><strong>Always Available:</strong> Bypasses booking conflicts (ideal for hotels with multiple rooms)</li>
+                                <li><strong>Monthly Only:</strong> Restricts property to monthly bookings only (long-term rentals)</li>
                             </ul>
                         </div>
                     </div>

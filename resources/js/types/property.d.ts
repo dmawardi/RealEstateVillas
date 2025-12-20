@@ -40,6 +40,8 @@ export interface Property {
     is_premium: boolean;
     available_date?: string; // date
     inspection_times?: string; // text field
+    always_override_availability?: boolean; // For hotels with multiple rooms
+    only_monthly_allowed?: boolean; // For long-term rentals
 
     is_favorited?: boolean; // Added to track if the property is favorited by the current user
     

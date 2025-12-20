@@ -28,6 +28,8 @@ const form = useForm({
     status: 'active',
     is_featured: false,
     is_premium: false,
+    always_override_availability: false,
+    only_monthly_allowed: false,
     
     // Location
     street_number: null as string | null,
@@ -84,6 +86,8 @@ const basicInformation = computed({
         status: form.status,
         is_featured: form.is_featured,
         is_premium: form.is_premium,
+        always_override_availability: form.always_override_availability,
+        only_monthly_allowed: form.only_monthly_allowed,
     }),
     set: (value) => {
         form.title = value.title;
@@ -94,6 +98,8 @@ const basicInformation = computed({
         form.status = value.status;
         form.is_featured = value.is_featured;
         form.is_premium = value.is_premium;
+        form.always_override_availability = value.always_override_availability;
+        form.only_monthly_allowed = value.only_monthly_allowed;
     }
 });
 
@@ -228,6 +234,10 @@ const prevTab = () => {
 // Submit function
 const submit = () => {
     console.log("Form data being sent:", form.data());
+    console.log("New fields specifically:", {
+        always_override_availability: form.always_override_availability,
+        only_monthly_allowed: form.only_monthly_allowed
+    });
 
     form.post(route('admin.properties.store'), {
         preserveScroll: true,

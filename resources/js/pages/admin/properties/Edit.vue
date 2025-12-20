@@ -25,6 +25,14 @@ interface Props {
 
 const { property, propertyTypes, listingTypes, priceTypes, statusOptions } = defineProps<Props>();
 
+// Debug: Log the property values for the boolean fields
+console.log('Property boolean values from database:', {
+    is_featured: property.is_featured,
+    is_premium: property.is_premium,
+    always_override_availability: property.always_override_availability,
+    only_monthly_allowed: property.only_monthly_allowed
+});
+
 // Get current pricing for form initialization
 const currentPricing = property.pricing?.[0];
 
@@ -37,8 +45,10 @@ const form = useForm({
     property_type: property.property_type,
     listing_type: property.listing_type,
     status: property.status,
-    is_featured: property.is_featured,
-    is_premium: property.is_premium,
+    is_featured: !!property.is_featured,
+    is_premium: !!property.is_premium,
+    always_override_availability: !!property.always_override_availability,
+    only_monthly_allowed: !!property.only_monthly_allowed,
     
     // Location - flattened
     street_number: property.street_number ?? null,
@@ -72,8 +82,8 @@ const form = useForm({
     price: property.price || null,
     price_type: property.price_type || null,
     nightly_rate: currentPricing?.nightly_rate || null,
-    weekly_rate: currentPricing?.weekly_rate || null,
-    monthly_rate: currentPricing?.monthly_rate || null,
+    weekly_rate: null,
+    monthly_rate: null,
     available_date: property.available_date ?? null,
     inspection_times: property.inspection_times ?? null,
     
@@ -101,6 +111,8 @@ const basicInformation = computed({
         status: form.status,
         is_featured: form.is_featured,
         is_premium: form.is_premium,
+        always_override_availability: form.always_override_availability,
+        only_monthly_allowed: form.only_monthly_allowed,
     }),
     set: (value) => {
         form.title = value.title;
@@ -111,6 +123,8 @@ const basicInformation = computed({
         form.status = value.status;
         form.is_featured = value.is_featured;
         form.is_premium = value.is_premium;
+        form.always_override_availability = value.always_override_availability;
+        form.only_monthly_allowed = value.only_monthly_allowed;
     }
 });
 
@@ -365,6 +379,7 @@ const handleDeleteAttachment = async (attachmentId: number) => {
                                 :listing-types="listingTypes"
                                 :status-options="statusOptions"
                                 :errors="form.errors"
+                                :is-editing="true"
                             />
                         </div>
 
