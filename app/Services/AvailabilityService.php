@@ -44,6 +44,12 @@ class AvailabilityService
      */
     public function isPropertyAvailable(Property $property, Carbon $checkIn, Carbon $checkOut, $excludeBooking = null): bool
     {
+        // If the property is set to always override availability, it's always available
+        if ($property->always_override_availability) {
+            return true;
+        }
+        // Else
+        // Check for conflicting bookings
         $query = Booking::forProperty($property->id)
             ->whereIn('status', ['confirmed', 'completed'])
             ->where(function ($query) use ($checkIn, $checkOut) {
