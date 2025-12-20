@@ -85,4 +85,66 @@ class Booking extends Model
     {
         return trim($this->first_name . ' ' . $this->last_name);
     }
+
+    // Helper methods for Mail
+    // Get important changes between two sets of booking data
+    public static function getImportantChanges(array $originalData, array $newData): array
+    {
+        $importantFields = [
+            'check_in_date',
+            'check_out_date', 
+            'status',
+            'total_price',
+            'number_of_guests',
+            'number_of_rooms'
+        ];
+
+        $dateFields = ['check_in_date', 'check_out_date'];
+        $changes = [];
+        
+        foreach ($importantFields as $field) {
+            if (isset($originalData[$field]) && isset($newData[$field])) {
+                // Handle date fields with proper comparison
+                if (in_array($field, $dateFields)) {
+                    $originalDate = \Carbon\Carbon::parse($originalData[$field])->format('Y-m-d');
+                    $newDate = \Carbon\Carbon::parse($newData[$field])->format('Y-m-d');
+                    
+                    if ($originalDate !== $newDate) {
+                        $changes[$field] = [
+                            'old' => $originalDate,
+                            'new' => $newDate
+                        ];
+                    }
+                } else {
+                    // Handle non-date fields with standard comparison
+                    if ($originalData[$field] != $newData[$field]) {
+                        $changes[$field] = [
+                            'old' => $originalData[$field],
+                            'new' => $newData[$field]
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $changes;
+    }
+
+    // Determine the type of update based on changes
+    public static function determineUpdateType(array $changes): string
+    {
+        if (isset($changes['status']) && $changes['status']['new'] === 'cancelled') {
+            return 'cancellation';
+        }
+        
+        if (isset($changes['status'])) {
+            return 'status_change';
+        }
+        
+        if (isset($changes['check_in_date']) || isset($changes['check_out_date'])) {
+            return 'date_change';
+        }
+        
+        return 'modification';
+    }
 }

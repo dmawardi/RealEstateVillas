@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\BookingConfirmationAdminMail;
 use App\Mail\BookingConfirmationMail;
+use App\Mail\BookingUpdateAdminMail;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Services\AvailabilityService;
@@ -210,11 +211,7 @@ class BookingController extends Controller
             'status' => 'required|string|max:255',
         ]);
 
-        Log::info('Booking withdrawal initiated', [
-            'booking_id' => $booking->id,
-            'user_id' => $request->user()?->id,
-            'status' => $validated['status']
-        ]);
+        $originalData = $booking->getOriginal();
 
         // Check if user is logged in
         if (!$request->user()) {
@@ -236,23 +233,22 @@ class BookingController extends Controller
             ]);
         }
 
-        Log::info('Booking withdrawal initial tests passed', [
-            'booking_id' => $booking->id,
-            'user_id' => $request->user()->id,
-            'status' => $validated['status']
-        ]);
-
         try {
             // Update the booking status to withdrawn
             $booking->update([
                 'status' => $validated['status'],
             ]);
 
-            Log::info('Booking withdrawal successful', [
-                'booking_id' => $booking->id,
-                'user_id' => $request->user()->id,
-                'new_status' => $validated['status']
-            ]);
+            // Check for important changes
+            $changes = Booking::getImportantChanges($originalData, $booking->toArray());
+            
+            if (!empty($changes)) {
+                $updateType = Booking::determineUpdateType($changes);
+                
+                // Send admin notification
+                Mail::to(config('app.business_email'))
+                    ->queue(new BookingUpdateAdminMail($booking, $changes, $updateType));
+            }
 
             return back()->with('success', 'Booking withdrawn successfully.');
 
@@ -293,6 +289,9 @@ class BookingController extends Controller
             'commission_paid' => 'nullable|boolean',
             'notes' => 'nullable|string|max:1000', // Added notes field
         ]);
+
+        // Store original data before update
+        $originalData = $booking->getOriginal();
 
         try {
             $checkInDate = Carbon::parse($validated['check_in_date']);
@@ -356,6 +355,17 @@ class BookingController extends Controller
                 'source' => $booking->source,
                 'updated_fields' => array_keys($validated)
             ]);
+
+            // Check for important changes
+            $changes = Booking::getImportantChanges($originalData, $booking->toArray());
+            
+            if (!empty($changes)) {
+                $updateType = Booking::determineUpdateType($changes);
+                
+                // Send admin notification
+                Mail::to(config('app.business_email'))
+                    ->queue(new BookingUpdateAdminMail($booking, $changes, $updateType));
+            }
 
             // Return JSON response for API calls
             return response()->json([
