@@ -202,6 +202,18 @@ const hasAmenities = () => {
                     <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Inspection Times</span>
                     <p class="mt-1 text-sm text-gray-900 dark:text-gray-100 whitespace-pre-line">{{ property.inspection_times }}</p>
                 </div>
+
+                <div v-if="property.always_override_availability || property.only_monthly_allowed" class="mt-4">
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Rental Settings</span>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <span v-if="property.always_override_availability" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            Always Override Availability
+                        </span>
+                        <span v-if="property.only_monthly_allowed" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                            Only Monthly Allowed
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
