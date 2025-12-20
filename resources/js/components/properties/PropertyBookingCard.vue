@@ -4,7 +4,6 @@ import type { Property, PropertyPricing } from '@/types';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { formatPrice, formatDate } from '@/utils/formatters';
-import BookingModal from '@/components/properties/BookingModal.vue';
 import { api } from '@/services/api';
 import { usePage } from '@inertiajs/vue3';
 
@@ -70,8 +69,11 @@ const priceCalculation = ref<PriceCalculation | null>(null);
 const isLoadingPrice = ref(false);
 const priceError = ref<string | null>(null);
 
-// Modal state
-const isBookingModalOpen = ref(false);
+interface Emits {
+    (e: 'open-booking', dates: [Date, Date] | null, price: PriceCalculation | null): void;
+}
+
+const emit = defineEmits<Emits>();
 
 // Debounce timer
 let priceTimer: number | null = null;
@@ -226,28 +228,8 @@ const clearDates = () => {
 
 const openBookingModal = () => {
     if (canProceedToBooking.value) {
-        isBookingModalOpen.value = true;
+        emit('open-booking', dateRange.value, priceCalculation.value);
     }
-};
-
-// Handles successful booking by resetting state and closing modal
-const handleBookingSuccess = () => {
-    // Reset the date selection and price calculation
-    dateRange.value = null;
-    priceCalculation.value = null;
-    
-    // Clear any pending price calculation
-    if (priceTimer) {
-        clearTimeout(priceTimer);
-        priceTimer = null;
-    }
-    
-    // Close the modal
-    isBookingModalOpen.value = false;
-    
-    // Reset availability state if needed
-    availabilityLoaded.value = false;
-    unavailablePeriods.value = [];
 };
 
 // ================================================================
@@ -421,18 +403,7 @@ watch(dateRange, () => {
                         </div>
                     </div>
                 </div>
-            </div>
-    
-            <!-- Booking Modal -->
-            <BookingModal 
-                v-model="isBookingModalOpen"
-                :property="property" 
-                :check-in-date="dateRange?.[0] || null"
-                :check-out-date="dateRange?.[1] || null"
-                :total-price="priceCalculation?.total_price || 0"
-                :nights="priceCalculation?.nights || 0"
-                @booking-success="handleBookingSuccess"
-            />
+            </div>            
         </div>
         <div v-else-if="!current_pricing" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center text-gray-900 dark:text-gray-100">
             <p>We're sorry, but there are issues retrieving pricing information for this property at the moment.</p>

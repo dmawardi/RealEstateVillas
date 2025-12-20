@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Footer from '@/components/Footer.vue';
+import BookingModal from '@/components/properties/BookingModal.vue';
 import PropertyBookingBottomNav from '@/components/properties/PropertyBookingBottomNav.vue';
 import PropertyBookingCard from '@/components/properties/PropertyBookingCard.vue';
 import PropertyFeatures from '@/components/properties/PropertyFeatures.vue';
@@ -12,6 +13,7 @@ import StaticMap from '@/components/ui/map/StaticMap.vue';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 import type { BreadcrumbItemType, Property, PropertyPricing, SEO } from '@/types';
 import { getAmenityIcon, getAmenityLabel } from '@/utils';
+import { ref } from 'vue';
 
 interface Props {
     property: Property;
@@ -35,6 +37,22 @@ const breadcrumbs: BreadcrumbItemType[] = [
         href: `/properties/${property.id}`,
     },
 ];
+
+const isBookingModalOpen = ref(false);
+const selectedDateRange = ref<[Date, Date] | null>(null);
+const priceCalculation = ref<any>(null);
+
+const openBookingModal = (dates: [Date, Date] | null, price: any) => {
+    selectedDateRange.value = dates;
+    priceCalculation.value = price;
+    isBookingModalOpen.value = true;
+};
+
+const closeBookingModal = () => {
+    isBookingModalOpen.value = false;
+    selectedDateRange.value = null;
+    priceCalculation.value = null;
+};
 
 const hasAmenities = () => {
     if (!property.amenities) return false;
@@ -149,14 +167,20 @@ const hasAmenities = () => {
                 <!-- Sidebar -->
                 <div class="lg:col-span-1">
                     <div class="space-y-6 lg:sticky lg:top-24 lg:self-start">
-                        <PropertyBookingCard class="hidden lg:block" :property="property" :current_pricing="current_pricing" :businessPhone="businessPhone" />
+                        <PropertyBookingCard 
+                            class="hidden lg:block" 
+                            :property="property" 
+                            :current_pricing="current_pricing" 
+                            :businessPhone="businessPhone"
+                            @open-booking="openBookingModal"
+                        />
                         <!-- Property Info -->
                         <PropertyInfoBar :property="property" />
                     </div>
+
                 </div>
             </div>
         </div>
-        
         <!-- Sticky Bottom Navigation for Mobile -->
         <PropertyBookingBottomNav 
             v-if="property.listing_type === 'for_rent'"
@@ -164,6 +188,17 @@ const hasAmenities = () => {
             :current_pricing="current_pricing" 
             :businessPhone="businessPhone"
         />
+
+        <BookingModal
+            v-model="isBookingModalOpen"
+            :property="property" 
+            :check-in-date="selectedDateRange?.[0] || null"
+            :check-out-date="selectedDateRange?.[1] || null"
+            :total-price="priceCalculation?.total_price || 0"
+            :nights="priceCalculation?.nights || 0"
+            @booking-success="closeBookingModal"
+        />
+        
         <Footer :businessEmail="businessEmail" :businessPhone="businessPhone" />
     </BaseLayout>
 </template>

@@ -1,6 +1,6 @@
 <!-- resources/js/components/properties/PropertyBookingBottomNav.vue -->
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import type { Property, PropertyPricing } from '@/types';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
@@ -150,7 +150,8 @@ const loadAvailability = async () => {
     }
 };
 
-const toggleDatePicker = () => {
+const toggleDatePicker = (event?: Event) => {
+    event?.stopPropagation();
     if (!showDatePicker.value) {
         loadAvailability();
     }
@@ -187,7 +188,10 @@ const handleOutsideClick = (event: Event) => {
 // Add event listener for outside clicks
 watch(showDatePicker, (isOpen) => {
     if (isOpen) {
-        document.addEventListener('click', handleOutsideClick);
+        // Delay adding the listener to prevent immediate closure
+        nextTick(() => {
+            document.addEventListener('click', handleOutsideClick);
+        });
     } else {
         document.removeEventListener('click', handleOutsideClick);
     }
@@ -287,7 +291,7 @@ watch(showDatePicker, (isOpen) => {
 
                 <!-- Date Selection Button -->
                 <button 
-                    @click="toggleDatePicker"
+                    @click="toggleDatePicker($event)"
                     class="flex-shrink-0 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg font-medium text-sm"
                     :class="{ 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100': showDatePicker }"
                 >
