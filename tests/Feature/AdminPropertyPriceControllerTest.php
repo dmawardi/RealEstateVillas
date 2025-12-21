@@ -290,38 +290,38 @@ class AdminPropertyPriceControllerTest extends TestCase
         ]);
     }
 
-    // #[Test]
-    // public function test_update_prevents_overlapping_with_other_pricing()
-    // {
-    //     // Arrange
-    //     $pricing1 = PropertyPrice::factory()->create([
-    //         'property_id' => $this->property->id,
-    //         'start_date' => '2025-01-01',
-    //         'end_date' => '2025-01-31',
-    //     ]);
+    #[Test]
+    public function test_update_prevents_overlapping_with_other_pricing()
+    {
+        // Arrange
+        $pricing1 = PropertyPrice::factory()->create([
+            'property_id' => $this->property->id,
+            'start_date' => '2025-01-01',
+            'end_date' => '2025-01-31',
+        ]);
 
-    //     $pricing2 = PropertyPrice::factory()->create([
-    //         'property_id' => $this->property->id,
-    //         'start_date' => '2025-03-01',
-    //         'end_date' => '2025-03-31',
-    //     ]);
+        $pricing2 = PropertyPrice::factory()->create([
+            'property_id' => $this->property->id,
+            'start_date' => '2025-03-01',
+            'end_date' => '2025-03-31',
+        ]);
 
-    //     $updateData = [
-    //         'nightly_rate' => 150.00,
-    //         'start_date' => '2025-02-15', // Would overlap with pricing2
-    //         'end_date' => '2025-03-15',
-    //     ];
+        $updateData = [
+            'nightly_rate' => 150.00,
+            'start_date' => '2025-02-15', // Would overlap with pricing2
+            'end_date' => '2025-03-15',
+        ];
         
-    //     // Act
-    //     $response = $this->actingAs($this->admin)
-    //         ->putJson(route('admin.properties.pricing.update', $pricing1), $updateData);
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->putJson(route('admin.properties.pricing.update', $pricing1), $updateData);
         
-    //     // Assert
-    //     $response->assertStatus(422)
-    //         ->assertJson([
-    //             'message' => 'The date range overlaps with an existing pricing period.'
-    //         ]);
-    // }
+        // Assert
+        $response->assertStatus(422)
+            ->assertJson([
+                'message' => 'The date range overlaps with an existing pricing period.'
+            ]);
+    }
 
     #[Test]
     public function test_update_allows_same_pricing_dates()

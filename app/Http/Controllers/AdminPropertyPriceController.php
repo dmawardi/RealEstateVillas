@@ -40,12 +40,21 @@ class AdminPropertyPriceController extends Controller
             // Check for overlapping pricing periods for the same property
             $overlapping = PropertyPrice::where('property_id', $property->id)
                 ->where(function ($query) use ($startDate, $endDate) {
-                    $query->whereBetween('start_date', [$startDate, $endDate])
-                        ->orWhereBetween('end_date', [$startDate, $endDate])
-                        ->orWhere(function ($q) use ($startDate, $endDate) {
-                            $q->where('start_date', '<=', $startDate)
-                              ->where('end_date', '>=', $endDate);
-                        });
+                    $query->where(function($q) use ($startDate, $endDate) {
+                        // Check if new start date falls within existing range
+                        $q->where('start_date', '<=', $startDate)
+                          ->where('end_date', '>=', $startDate);
+                    })
+                    ->orWhere(function($q) use ($startDate, $endDate) {
+                        // Check if new end date falls within existing range  
+                        $q->where('start_date', '<=', $endDate)
+                          ->where('end_date', '>=', $endDate);
+                    })
+                    ->orWhere(function($q) use ($startDate, $endDate) {
+                        // Check if new range completely encompasses existing range
+                        $q->where('start_date', '>=', $startDate)
+                          ->where('end_date', '<=', $endDate);
+                    });
                 })
                 ->exists();
 
@@ -105,7 +114,7 @@ class AdminPropertyPriceController extends Controller
         }
     }
 
-    public function update(Request $request, Property $property, PropertyPrice $pricing)
+    public function update(Request $request, PropertyPrice $pricing)
     {
         // Validate the incoming request
         $validated = $request->validate([
@@ -130,17 +139,37 @@ class AdminPropertyPriceController extends Controller
             $endDate = Carbon::parse($validated['end_date']);
 
             // Check for overlapping pricing periods for the same property (excluding current record)
-            $overlapping = PropertyPrice::where('property_id', $property->id)
+            $overlapping = PropertyPrice::where('property_id', $pricing->property_id)
                 ->where('id', '!=', $pricing->id) // Exclude the current pricing record
                 ->where(function ($query) use ($startDate, $endDate) {
-                    $query->whereBetween('start_date', [$startDate, $endDate])
-                        ->orWhereBetween('end_date', [$startDate, $endDate])
-                        ->orWhere(function ($q) use ($startDate, $endDate) {
-                            $q->where('start_date', '<=', $startDate)
-                            ->where('end_date', '>=', $endDate);
-                        });
+                    $query->where(function($q) use ($startDate, $endDate) {
+                        // Check if new start date falls within existing range
+                        $q->where('start_date', '<=', $startDate)
+                          ->where('end_date', '>=', $startDate);
+                    })
+                    ->orWhere(function($q) use ($startDate, $endDate) {
+                        // Check if new end date falls within existing range  
+                        $q->where('start_date', '<=', $endDate)
+                          ->where('end_date', '>=', $endDate);
+                    })
+                    ->orWhere(function($q) use ($startDate, $endDate) {
+                        // Check if new range completely encompasses existing range
+                        $q->where('start_date', '>=', $startDate)
+                          ->where('end_date', '<=', $endDate);
+                    });
                 })
                 ->exists();
+
+            // Debug logging
+            Log::info('Overlap check', [
+                'property_id' => $pricing->property_id,
+                'pricing_id' => $pricing->id,
+                'new_start_date' => $startDate->toDateString(),
+                'new_end_date' => $endDate->toDateString(),
+                'existing_pricing' => PropertyPrice::where('property_id', $pricing->property_id)
+                    ->where('id', '!=', $pricing->id)->get()->toArray(),
+                'overlap_found' => $overlapping
+            ]);
 
             if ($overlapping) {
                 return response()->json([
@@ -170,7 +199,7 @@ class AdminPropertyPriceController extends Controller
 
             Log::info('Property pricing updated', [
                 'pricing_id' => $pricing->id,
-                'property_id' => $property->id,
+                'property_id' => $pricing->property_id,
                 'name' => $pricing->name,
                 'nightly_rate' => $pricing->nightly_rate,
                 'date_range' => $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d'),
@@ -187,7 +216,7 @@ class AdminPropertyPriceController extends Controller
             Log::error('Property pricing update failed', [
                 'error' => $e->getMessage(),
                 'pricing_id' => $pricing->id,
-                'property_id' => $property->id,
+                'property_id' => $pricing->property_id,
                 'name' => $validated['name'] ?? null,
                 'stack_trace' => $e->getTraceAsString()
             ]);
