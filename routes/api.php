@@ -31,11 +31,6 @@ Route::put('/attachments/{attachment}', [PropertyAttachmentController::class, 'u
 Route::delete('/attachments/{attachment}', [PropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
 
 
-// Property Pricing
-Route::get('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'index'])->name('properties.pricing.index');
-Route::post('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'store'])->name('properties.pricing.store');
-Route::put('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'update'])->name('properties.pricing.update');
-Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('properties.pricing.destroy');
 
 Route::middleware(['web', 'auth'])->group(function () {
     // Property Bookings
@@ -49,6 +44,12 @@ Route::middleware(['web', 'auth'])->group(function () {
 // Admin routes
 Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
     Route::get('admin/properties/available-features', [FeatureController::class, 'getAvailableFeatures'])->name('properties.features');
+
+     // Property Pricing
+    Route::get('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'index'])->name('properties.pricing.index');
+    Route::post('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'store'])->name('properties.pricing.store');
+    Route::put('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'update'])->name('properties.pricing.update');
+    Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('properties.pricing.destroy');
     
     // Feature cache management routes
     Route::delete('admin/cache/features', [FeatureController::class, 'clearFeaturesCache'])->name('cache.features.clear');

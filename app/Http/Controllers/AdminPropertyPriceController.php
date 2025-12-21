@@ -61,7 +61,7 @@ class AdminPropertyPriceController extends Controller
             // Create the pricing record
             $pricing = PropertyPrice::create([
                 'property_id' => $property->id,
-                'name' => $validated['name'],
+                'name' => $validated['name'] ?? null,
                 'nightly_rate' => $validated['nightly_rate'],
                 'weekly_discount_percent' => $validated['weekly_discount_percent'] ?? 0,
                 'monthly_discount_percent' => $validated['monthly_discount_percent'] ?? 0,
@@ -153,7 +153,7 @@ class AdminPropertyPriceController extends Controller
 
             // Update the pricing record
             $pricing->update([
-                'name' => $validated['name'],
+                'name' => $validated['name'] ?? $pricing->name,
                 'nightly_rate' => $validated['nightly_rate'],
                 'weekly_discount_percent' => $validated['weekly_discount_percent'] ?? $pricing->weekly_discount_percent ?? 0,
                 'monthly_discount_percent' => $validated['monthly_discount_percent'] ?? $pricing->monthly_discount_percent ?? 0,
