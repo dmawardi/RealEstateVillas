@@ -620,34 +620,6 @@ class AdminPropertyControllerTest extends TestCase
         $response->assertSessionHasErrors(['year_built']);
     }
 
-    // #[Test]
-    // public function test_get_available_features_returns_unattached_features()
-    // {
-    //     // Arrange
-    //     $property = Property::factory()->create();
-    //     $attachedFeature = Feature::factory()->create(['is_active' => true]);
-    //     $unattachedFeature = Feature::factory()->create(['is_active' => true]);
-    //     $inactiveFeature = Feature::factory()->create(['is_active' => false]);
-        
-    //     $property->features()->attach($attachedFeature->id);
-        
-    //     // Act
-    //     $response = $this->actingAs($this->admin)
-    //         ->get(route('properties.features', $property));
-        
-    //     // Assert
-    //     $response->assertStatus(200);
-    //     $response->assertJson([
-    //         'success' => true,
-    //         'features' => [
-    //             [
-    //                 'id' => $unattachedFeature->id,
-    //                 'name' => $unattachedFeature->name
-    //             ]
-    //         ]
-    //     ]);
-    // }
-
     #[Test]
     public function test_update_features_syncs_property_features()
     {

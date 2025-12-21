@@ -883,38 +883,6 @@ class AdminPropertyController extends Controller
     }
 
     /**
-     * Get available features that can be attached to a property.
-     * 
-     * @param Property $property
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getAvailableFeatures(Property $property)
-    {
-        Log::info('Loading available features for property ID: ' . $property->id);
-        try {
-            // Get features that are active but not already attached to this property
-            $availableFeatures = \App\Models\Feature::where('is_active', true)
-                ->whereNotIn('id', $property->features()->pluck('features.id'))
-                ->orderBy('category')
-                ->orderBy('name')
-                ->get(['id', 'name', 'category', 'icon', 'is_quantifiable']);
-
-            Log::info('Available features loaded successfully for property ID: ' . $property->id);
-            Log::debug('Available features data: ', $availableFeatures->toArray());
-            return response()->json([
-                'success' => true,
-                'features' => $availableFeatures
-            ], 200);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to load available features.'
-            ], 500);
-        }
-    }
-
-    /**
      * Clear location cache
      */
     public function clearLocationsCache(): bool
