@@ -260,9 +260,6 @@ class AdminPropertyController extends Controller
             'agent_email' => 'nullable|email|max:255',
             'agency_name' => 'nullable|string|max:255',
             
-            // Rental Pricing (for PropertyPrice model)
-            'nightly_rate' => 'nullable|integer|min:0',
-            
             // Image Uploads
             'images' => 'nullable|array|max:20',
             'images.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
@@ -424,7 +421,6 @@ class AdminPropertyController extends Controller
             'agent_phone' => 'nullable|string|max:20',
             'agent_email' => 'nullable|email|max:255',
             'agency_name' => 'nullable|string|max:255',
-            'nightly_rate' => 'nullable|integer|min:0',
             'images' => 'nullable|array|max:20',
             'images.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
             // Admin Modifiers
@@ -446,29 +442,6 @@ class AdminPropertyController extends Controller
 
             // Update the property
             $property->update($validated);
-
-            // Update or create PropertyPrice for rental properties
-            if ($validated['listing_type'] === 'for_rent') {
-                $pricing = $property->pricing()->first();
-                
-                if ($pricing) {
-                    // Update existing pricing
-                    $pricing->update([
-                        'nightly_rate' => $validated['nightly_rate'] ?? null,
-                    ]);
-                } else {
-                    // Create new pricing record
-                    PropertyPrice::create([
-                        'property_id' => $property->id,
-                        'nightly_rate' => $validated['nightly_rate'] ?? null,
-                        'currency' => 'IDR',
-                        'start_date' => now(),
-                    ]);
-                }
-            } else {
-                // Remove pricing for non-rental properties
-                $property->pricing()->delete();
-            }
 
             // Handle new image uploads
             if ($request->hasFile('images')) {
@@ -551,31 +524,6 @@ class AdminPropertyController extends Controller
 
         $status = $property->is_premium ? 'marked as premium' : 'removed from premium';
         return back()->with('success', "Property has been {$status} successfully.");
-    }
-
-    /**
-     * Delete a specific image attachment from a property.
-     * 
-     * @param Property $property
-     * @param PropertyAttachment $attachment
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function deleteImage(Property $property, PropertyAttachment $attachment)
-    {
-        // Verify the attachment belongs to this property
-        if ($attachment->property_id !== $property->id) {
-            abort(404, 'Image not found for this property.');
-        }
-
-        // Delete the file from storage
-        if ($attachment->type === 'image') {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $attachment->path));
-        }
-
-        // Delete the database record
-        $attachment->delete();
-
-        return back()->with('success', 'Image deleted successfully.');
     }
 
     /**
