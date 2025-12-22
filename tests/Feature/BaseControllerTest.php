@@ -370,6 +370,9 @@ class BaseControllerTest extends TestCase
     public function test_submit_contact_form_sends_email_successfully()
     {
         // Arrange
+        // Set a test business email to ensure it's not null/empty in CI
+        config(['app.business_email' => 'test@business.com']);
+        
         Mail::fake();
 
         $contactData = [
@@ -393,8 +396,12 @@ class BaseControllerTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
         
+        // More robust email assertion - check if any ContactEnquiryMail was queued
+        Mail::assertQueued(ContactEnquiryMail::class);
+        
+        // Also verify it was sent to the business email
         Mail::assertQueued(ContactEnquiryMail::class, function ($mail) {
-            return $mail->hasTo(config('app.business_email'));
+            return $mail->hasTo('test@business.com');
         });
     }
 

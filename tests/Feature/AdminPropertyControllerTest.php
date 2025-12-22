@@ -62,7 +62,7 @@ class AdminPropertyControllerTest extends TestCase
         // Arrange
         $property1 = Property::factory()->create([
             'title' => 'Beautiful Villa in Canggu',
-            'property_id' => 'PROP-2025-ABC123'
+            'property_id' => 'PROP-2025-ABC123',
         ]);
         
         $property2 = Property::factory()->create([
