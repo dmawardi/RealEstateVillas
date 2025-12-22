@@ -18,6 +18,33 @@ use Inertia\Inertia;
 
 class BaseController extends Controller
 {
+    private $mailchimp = null;
+    private $recaptchaRule = null;
+
+    /**
+     * Get MailChimp instance (lazy loading)
+     */
+    protected function getMailChimp(): MailChimp
+    {
+        if ($this->mailchimp === null) {
+            $this->mailchimp = new MailChimp(config('services.mailchimp.api_key'));
+        }
+        
+        return $this->mailchimp;
+    }
+
+    /**
+     * Get RecaptchaRule instance (lazy loading for better testability)
+     */
+    protected function getRecaptchaRule(): RecaptchaRule
+    {
+        if ($this->recaptchaRule === null) {
+            $this->recaptchaRule = new RecaptchaRule();
+        }
+        
+        return $this->recaptchaRule;
+    }
+
     public function home()
     {
         $all = Cache::get('properties:featured_premium');
@@ -404,7 +431,7 @@ class BaseController extends Controller
             'travel_dates' => 'nullable|string|max:100',
             'guests' => 'nullable|integer|min:1',
             'message' => 'required|string|max:2000',
-            'cf-turnstile-response' => ['required', new RecaptchaRule()],
+            'cf-turnstile-response' => ['required', $this->getRecaptchaRule()],
             ], [
             'cf-turnstile-response.required' => 'Please complete the reCAPTCHA verification.',
         ]);
@@ -445,8 +472,8 @@ class BaseController extends Controller
         $email = $request->email;
 
         try {
-            // Initialize Mailchimp
-            $mailchimp = new MailChimp(config('services.mailchimp.api_key'));
+            // Get MailChimp instance
+            $mailchimp = $this->getMailChimp();
             $audienceId = config('services.mailchimp.audience_id');
 
             // Add subscriber
