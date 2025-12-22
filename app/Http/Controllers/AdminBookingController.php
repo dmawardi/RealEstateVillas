@@ -47,6 +47,7 @@ class AdminBookingController extends Controller
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
                   ->orWhere('id', 'like', "%{$search}%")
                   ->orWhere('external_booking_id', 'like', "%{$search}%")
                   ->orWhereHas('property', function($propertyQuery) use ($search) {

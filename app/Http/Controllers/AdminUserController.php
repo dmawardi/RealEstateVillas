@@ -111,28 +111,18 @@ class AdminUserController extends Controller
             'email_verified' => ['boolean'],
         ]);
 
-        // Use database transaction to ensure data integrity
-        DB::beginTransaction();
-        
         try {
             // Hash the password
             $validated['password'] = Hash::make($validated['password']);
             
-            // Set email verification timestamp if marked as verified
-            if ($request->boolean('email_verified')) {
-                $validated['email_verified_at'] = now();
-            }
-
             // Create the user record
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => $validated['password'],
                 'role' => $validated['role'],
-                'email_verified_at' => $validated['email_verified'] ? now() : null,
+                'email_verified_at' => $request->boolean('email_verified') ? now() : null,
             ]);
-
-            DB::commit();
 
             Log::info('Admin created new user', [
                 'admin_id' => auth()->id(),
@@ -146,8 +136,6 @@ class AdminUserController extends Controller
                 ->with('success', 'User created successfully.');
 
         } catch (\Exception $e) {
-            DB::rollback();
-            
             Log::error('Failed to create user', [
                 'admin_id' => auth()->id(),
                 'error' => $e->getMessage(),
@@ -235,8 +223,6 @@ class AdminUserController extends Controller
         if ($user->id === auth()->id() && $request->role !== 'admin') {
             return back()->withErrors(['role' => 'You cannot change your own role.']);
         }
-
-        DB::beginTransaction();
         
         try {
             // Remove password from validated array if not provided
@@ -259,8 +245,6 @@ class AdminUserController extends Controller
             // Update the user
             $user->update($validated);
 
-            DB::commit();
-
             Log::info('Admin updated user', [
                 'admin_id' => auth()->id(),
                 'user_id' => $user->id,
@@ -272,8 +256,6 @@ class AdminUserController extends Controller
                 ->with('success', 'User updated successfully.');
 
         } catch (\Exception $e) {
-            DB::rollback();
-            
             Log::error('Failed to update user', [
                 'admin_id' => auth()->id(),
                 'user_id' => $user->id,
@@ -304,17 +286,15 @@ class AdminUserController extends Controller
             return back()->withErrors(['error' => 'You cannot delete your own account.']);
         }
 
-        DB::beginTransaction();
-        
+        // Check for associated data before attempting delete
+        $bookingsCount = $user->bookings()->count();
+
+        if ($bookingsCount > 0) {
+            $message = "Cannot delete user. User has {$bookingsCount} bookings. Please transfer or delete associated data first.";
+            return back()->withErrors(['error' => $message]);
+        }
+
         try {
-            // Check for associated data
-            $bookingsCount = $user->bookings()->count();
-
-            if ($bookingsCount > 0) {
-                $message = "Cannot delete user. User has {$bookingsCount} bookings. Please transfer or delete associated data first.";
-                return back()->withErrors(['error' => $message]);
-            }
-
             // Store user info for logging before deletion
             $userInfo = [
                 'id' => $user->id,
@@ -326,8 +306,6 @@ class AdminUserController extends Controller
             // Delete the user
             $user->delete();
 
-            DB::commit();
-
             Log::warning('Admin deleted user', [
                 'admin_id' => auth()->id(),
                 'deleted_user' => $userInfo,
@@ -337,8 +315,6 @@ class AdminUserController extends Controller
                 ->with('success', 'User deleted successfully.');
 
         } catch (\Exception $e) {
-            DB::rollback();
-            
             Log::error('Failed to delete user', [
                 'admin_id' => auth()->id(),
                 'user_id' => $user->id,

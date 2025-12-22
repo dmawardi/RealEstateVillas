@@ -92,7 +92,7 @@ class AdminBookingControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->get(route('admin.bookings.index', ['search' => 'John']));
+            ->get(route('admin.bookings.index', ['search' => 'John Doe']));
         
         // Assert
         $response->assertStatus(200);
