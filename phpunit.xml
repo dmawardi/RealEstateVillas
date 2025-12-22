@@ -29,5 +29,8 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="APP_BUSINESS_EMAIL" value="test@example.com"/>
+        <env name="RECAPTCHA_SITE_KEY" value="test-site-key"/>
+        <env name="RECAPTCHA_SECRET_KEY" value="test-secret-key"/>
     </php>
 </phpunit>
