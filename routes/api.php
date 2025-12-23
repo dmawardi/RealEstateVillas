@@ -2,8 +2,7 @@
 
 use App\Http\Controllers\AdminPropertyController;
 use App\Http\Controllers\PropertyAttachmentController;
-use App\Http\Controllers\AdminPropertyPriceController;
-use App\Http\Controllers\FeatureController;
+use App\Http\Controllers\AdminFeatureController;
 use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,7 +42,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 // Property feature management routes
 // Admin routes
 Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
-    Route::get('admin/properties/available-features', [FeatureController::class, 'getAvailableFeatures'])->name('properties.features');
+    Route::get('admin/properties/available-features', [AdminFeatureController::class, 'getAvailableFeatures'])->name('properties.features');
 
      // Property Pricing
     Route::get('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'index'])->name('properties.pricing.index');
@@ -52,9 +51,9 @@ Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
     Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('properties.pricing.destroy');
     
     // Feature cache management routes
-    Route::delete('admin/cache/features', [FeatureController::class, 'clearFeaturesCache'])->name('cache.features.clear');
-    Route::post('admin/cache/features/refresh', [FeatureController::class, 'refreshFeaturesCache'])->name('cache.features.refresh');
-    Route::get('admin/cache/features/info', [FeatureController::class, 'getCacheInfo'])->name('cache.features.info');
+    Route::delete('admin/cache/features', [AdminFeatureController::class, 'clearFeaturesCache'])->name('cache.features.clear');
+    Route::post('admin/cache/features/refresh', [AdminFeatureController::class, 'refreshFeaturesCache'])->name('cache.features.refresh');
+    Route::get('admin/cache/features/info', [AdminFeatureController::class, 'getCacheInfo'])->name('cache.features.info');
 
     // Property Detail refresh route
     Route::post('admin/properties/{property}/refresh-details', [AdminPropertyController::class, 'clearPropertyDetailCache'])->name('properties.refresh-details');

@@ -6,13 +6,10 @@ use App\Http\Controllers\AdminFeatureController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\AdminPropertyController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\SupportController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Support\Facades\Request;
 
 Route::get('/', [BaseController::class, 'home'])->name('home');
 
