@@ -165,32 +165,6 @@ class BookingController extends Controller
                 'dates' => $checkInDate->format('Y-m-d') . ' to ' . $checkOutDate->format('Y-m-d'),
                 'source' => $booking->source
             ]);
-
-            // Queue Email booking confirmation
-            if ($booking->email) {
-                try {
-                    // Mail to user
-                    Mail::to($booking->email)->queue(new BookingConfirmationMail($booking));
-                    
-                    Log::info('Booking confirmation email queued', [
-                        'booking_id' => $booking->id,
-                        'guest_email' => $booking->email
-                    ]);
-
-                    // Mail to admin
-                    Mail::to(config('app.business_email'))->queue(new BookingConfirmationAdminMail($booking));
-                } catch (\Exception $emailError) {
-                    // Don't fail the booking if email fails
-                    Log::error('Failed to queue booking confirmation email', [
-                        'booking_id' => $booking->id,
-                        'guest_email' => $booking->email,
-                        'error' => $emailError->getMessage(),
-                        'admin_email' => config('app.business_email')
-                    ]);
-                }
-            }
-
-            return back()->with('success', 'Your booking request has been submitted successfully.');
                             
         } catch (\Exception $e) {
             Log::error('Booking creation failed', [
@@ -202,6 +176,33 @@ class BookingController extends Controller
             
             return back()->with('error', 'An error occurred while processing your booking. Please try again.');
         }
+
+        // Else if booking created successfully, proceed to send confirmation emails
+        // Queue Email booking confirmation
+        if ($booking->email) {
+            try {
+                // Mail to user
+                Mail::to($booking->email)->queue(new BookingConfirmationMail($booking));
+                
+                Log::info('Booking confirmation email queued', [
+                    'booking_id' => $booking->id,
+                    'guest_email' => $booking->email
+                ]);
+
+                // Mail to admin
+                Mail::to(config('app.business_email'))->queue(new BookingConfirmationAdminMail($booking));
+            } catch (\Exception $emailError) {
+                // Don't fail the booking if email fails
+                Log::error('Failed to queue booking confirmation email', [
+                    'booking_id' => $booking->id,
+                    'guest_email' => $booking->email,
+                    'error' => $emailError->getMessage(),
+                    'admin_email' => config('app.business_email')
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Your booking request has been submitted successfully.');
     }
 
     public function withdraw(Request $request, Booking $booking)
@@ -281,12 +282,6 @@ class BookingController extends Controller
             'number_of_rooms' => 'nullable|integer|min:1',
             'flexible_dates' => 'nullable|boolean',
             'special_requests' => 'nullable|string|max:1000',
-            'source' => 'nullable|in:direct,airbnb,booking_com,agoda,owner_blocked,maintenance,other',
-            'external_booking_id' => 'nullable|string|max:255',
-            'booking_type' => 'nullable|in:booking,inquiry,blocked,maintenance',
-            'commission_rate' => 'nullable|numeric|min:0|max:100', // Added commission fields
-            'commission_amount' => 'nullable|numeric|min:0',
-            'commission_paid' => 'nullable|boolean',
             'notes' => 'nullable|string|max:1000', // Added notes field
         ]);
 
@@ -319,32 +314,20 @@ class BookingController extends Controller
                 }
             }
 
-            // Calculate commission amount if rate is provided and amount is not explicitly set
-            $commissionAmount = $validated['commission_amount'] ?? null;
-            if ($validated['commission_rate'] && $validated['total_price'] && !$commissionAmount) {
-                $commissionAmount = ($validated['total_price'] * $validated['commission_rate']) / 100;
-            }
-
             // Update booking fields - include all fields from the form
             $booking->update([
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
+                'first_name' => $validated['first_name'] ?? null,
+                'last_name' => $validated['last_name'] ?? null,
+                'email' => $validated['email'] ?? null,
+                'phone' => $validated['phone'] ?? null,
                 'check_in_date' => $checkInDate->format('Y-m-d'),
                 'check_out_date' => $checkOutDate->format('Y-m-d'),
                 'number_of_guests' => $validated['number_of_guests'],
                 'number_of_rooms' => $validated['number_of_rooms'],
                 'flexible_dates' => $validated['flexible_dates'] ?? false,
-                'source' => $validated['source'] ?? $booking->source,
-                'external_booking_id' => $validated['external_booking_id'],
-                'booking_type' => $validated['booking_type'] ?? $booking->booking_type,
                 'total_price' => $validated['total_price'],
-                'commission_rate' => $validated['commission_rate'],
-                'commission_amount' => $commissionAmount,
-                'commission_paid' => $validated['commission_paid'] ?? false,
-                'special_requests' => $validated['special_requests'],
-                'notes' => $validated['notes'], // Add notes field
+                'special_requests' => $validated['special_requests'] ?? null,
+                'notes' => $validated['notes'] ?? null,
             ]);
 
             Log::info('Booking updated', [
@@ -390,6 +373,11 @@ class BookingController extends Controller
 
     public function destroy(Booking $booking)
     {
+        if (!auth()->check() || auth()->id() !== $booking->user_id) {
+            return response()->json([
+                'message' => 'Unauthorized to delete this booking.'
+            ], 403);
+        }
         try {
             $booking->delete();
 

@@ -31,6 +31,8 @@ class BookingControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        config(['app.business_email' => 'test@business.com']);
         
         // Create users for testing
         $this->user = User::factory()->create(['role' => 'user']);
@@ -277,254 +279,273 @@ class BookingControllerTest extends TestCase
         ]);
     }
 
-    // #[Test]
-    // public function test_store_handles_email_failure()
-    // {
-    //     // Arrange
-    //     $this->mock(AvailabilityService::class, function ($mock) {
-    //         $mock->shouldReceive('isPropertyAvailable')->andReturn(true);
-    //     });
+    #[Test]
+    public function test_store_handles_email_failure()
+    {
+        // Arrange
+        $this->mock(AvailabilityService::class, function ($mock) {
+            $mock->shouldReceive('isPropertyAvailable')->andReturn(true);
+        });
 
-    //     // Don't mock Mail to throw exception - let the booking creation succeed
-    //     // but simulate that email sending fails in the nested try-catch
-    //     Mail::fake();
+        // Mock the Mail facade to simulate email failure in the nested try-catch
+        Mail::shouldReceive('to')->andReturnSelf();
+        Mail::shouldReceive('queue')->andThrow(new \Exception('Email service unavailable'));
         
-    //     // Mock the Mail facade to simulate email failure without breaking the main flow
-    //     Mail::shouldReceive('to')->andReturnSelf();
-    //     Mail::shouldReceive('queue')->andThrow(new \Exception('Email service unavailable'));
+        // Expect error logging for email failure
+        Log::shouldReceive('info')->once(); // For booking creation success
+        Log::shouldReceive('error')->once(); // For email failure
+
+        $bookingData = [
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john.doe@example.com',
+            'phone' => '123-456-7890',
+            'check_in_date' => now()->addDays(1)->format('Y-m-d'),
+            'check_out_date' => now()->addDays(3)->format('Y-m-d'),
+            'number_of_guests' => 2,
+            'number_of_rooms' => 1,
+            'flexible_dates' => false,
+            'special_requests' => 'Late check-in requested',
+            'total_price' => 200.00
+        ];
+
+        // Act
+        $response = $this->actingAs($this->user)->post(
+            route('properties.bookings.store', $this->property),
+            $bookingData
+        );
+
+        // Assert - Booking should still be created and return success even if email fails
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Your booking request has been submitted successfully.');
         
-    //     Log::shouldReceive('error')->once(); // For email failure logging
+        $this->assertDatabaseHas('bookings', [
+            'property_id' => $this->property->id,
+            'user_id' => $this->user->id,
+            'email' => 'john.doe@example.com',
+            'status' => 'pending',
+            'source' => 'direct'
+        ]);
+    }
 
-    //     $bookingData = [
-    //         'first_name' => 'John',
-    //         'last_name' => 'Doe',
-    //         'email' => 'john.doe@example.com',
-    //         'check_in_date' => now()->addDays(1)->format('Y-m-d'),
-    //         'check_out_date' => now()->addDays(3)->format('Y-m-d'),
-    //         'number_of_guests' => 2,
-    //         'total_price' => 200
-    //     ];
+    #[Test]
+    public function test_withdraw_updates_booking_status()
+    {
+        // Arrange
+        Mail::fake();
+        $booking = Booking::factory()->create([
+            'user_id' => $this->user->id,
+            'property_id' => $this->property->id,
+            'status' => 'pending'
+        ]);
 
-    //     // Act
-    //     $response = $this->actingAs($this->user)->post(
-    //         route('properties.bookings.store', $this->property),
-    //         $bookingData
-    //     );
+        // Act
+        $response = $this->actingAs($this->user)->post(
+            route('bookings.withdraw', $booking),
+            ['status' => 'withdrawn']
+        );
 
-    //     // Assert - Booking should still be created even if email fails
-    //     $response->assertRedirect();
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
         
-    //     // Debug what's actually in the session
-    //     $sessionData = $response->getSession()->all();
+        $booking->refresh();
+        $this->assertEquals('withdrawn', $booking->status);
         
-    //     if ($response->getSession()->has('success')) {
-    //         $response->assertSessionHas('success');
-    //     } else {
-    //         $this->fail('Expected success session message not found. Session contains: ' . json_encode($sessionData));
-    //     }
+        Mail::assertQueued(BookingUpdateAdminMail::class);
+    }
+
+    #[Test]
+    public function test_withdraw_requires_authentication()
+    {
+        // Arrange
+        $booking = Booking::factory()->create([
+            'user_id' => $this->user->id,
+            'property_id' => $this->property->id,
+            'status' => 'pending'
+        ]);
+
+        // Act
+        $response = $this->post(route('bookings.withdraw', $booking), ['status' => 'withdrawn']);
+
+        // Assert
+        $response->assertRedirect('/login');
+    }
+
+    #[Test]
+    public function test_withdraw_prevents_unauthorized_access()
+    {
+        // Arrange
+        $otherUser = User::factory()->create();
+        $booking = Booking::factory()->create([
+            'user_id' => $otherUser->id,
+            'property_id' => $this->property->id,
+            'status' => 'pending'
+        ]);
+
+        // Act
+        $response = $this->actingAs($this->user)->post(
+            route('bookings.withdraw', $booking),
+            ['status' => 'withdrawn']
+        );
+
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['message']);
         
-    //     $this->assertDatabaseHas('bookings', [
-    //         'property_id' => $this->property->id,
-    //         'user_id' => $this->user->id,
-    //         'email' => 'john.doe@example.com'
-    //     ]);
-    // }
+        $booking->refresh();
+        $this->assertEquals('pending', $booking->status); // Status unchanged
+    }
 
-    // #[Test]
-    // public function test_withdraw_updates_booking_status()
-    // {
-    //     // Arrange
-    //     Mail::fake();
-    //     $booking = Booking::factory()->create([
-    //         'user_id' => $this->user->id,
-    //         'property_id' => $this->property->id,
-    //         'status' => 'pending'
-    //     ]);
+    #[Test]
+    public function test_withdraw_only_allows_pending_or_confirmed_bookings()
+    {
+        // Arrange
+        $booking = Booking::factory()->create([
+            'user_id' => $this->user->id,
+            'property_id' => $this->property->id,
+            'status' => 'completed'
+        ]);
 
-    //     // Act
-    //     $response = $this->actingAs($this->user)->post(
-    //         route('bookings.withdraw', $booking),
-    //         ['status' => 'withdrawn']
-    //     );
+        // Act
+        $response = $this->actingAs($this->user)->post(
+            route('bookings.withdraw', $booking),
+            ['status' => 'withdrawn']
+        );
 
-    //     // Assert
-    //     $response->assertRedirect();
-    //     $response->assertSessionHas('success');
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['message']);
         
-    //     $booking->refresh();
-    //     $this->assertEquals('withdrawn', $booking->status);
+        $booking->refresh();
+        $this->assertEquals('completed', $booking->status); // Status unchanged
+    }
+
+    #[Test]
+    public function test_update_booking_successfully()
+    {
+        // Arrange
+        Mail::fake();
+        $this->mock(AvailabilityService::class, function ($mock) {
+            $mock->shouldReceive('isPropertyAvailable')->andReturn(true);
+        });
+
+        $booking = Booking::factory()->create([
+            'property_id' => $this->property->id,
+            'first_name' => 'John',
+            'email' => 'john@example.com'
+        ]);
+
+        $updateData = [
+            'first_name' => 'Jane',
+            'last_name' => 'Smith',
+            'email' => 'jane.smith@example.com',
+            'phone' => '987-654-3210',
+            'check_in_date' => now()->addDays(2)->format('Y-m-d'),
+            'check_out_date' => now()->addDays(4)->format('Y-m-d'),
+            'number_of_guests' => 4,
+            'number_of_rooms' => 2,
+            'flexible_dates' => true,
+            'source' => 'direct',
+            'booking_type' => 'booking',
+            'total_price' => 300,
+            'special_requests' => 'Early check-in'
+        ];
+
+        // Act - Use PUT method to the correct API endpoint with authentication
+        $response = $this->actingAs($this->user)->putJson('/api/bookings/' . $booking->id, $updateData);
+
+        // Debug response if not 200
+        if ($response->status() !== 200) {
+            $this->fail('Expected 200 but got ' . $response->status() . '. Response: ' . $response->getContent());
+        }
+
+        // Assert
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'Booking updated successfully.']);
         
-    //     Mail::assertQueued(BookingUpdateAdminMail::class);
-    // }
-
-    // #[Test]
-    // public function test_withdraw_requires_authentication()
-    // {
-    //     // Arrange
-    //     $booking = Booking::factory()->create([
-    //         'user_id' => $this->user->id,
-    //         'property_id' => $this->property->id,
-    //         'status' => 'pending'
-    //     ]);
-
-    //     // Act
-    //     $response = $this->post(route('bookings.withdraw', $booking), ['status' => 'withdrawn']);
-
-    //     // Assert
-    //     $response->assertRedirect('/login');
-    // }
-
-    // #[Test]
-    // public function test_withdraw_prevents_unauthorized_access()
-    // {
-    //     // Arrange
-    //     $otherUser = User::factory()->create();
-    //     $booking = Booking::factory()->create([
-    //         'user_id' => $otherUser->id,
-    //         'property_id' => $this->property->id,
-    //         'status' => 'pending'
-    //     ]);
-
-    //     // Act
-    //     $response = $this->actingAs($this->user)->post(
-    //         route('bookings.withdraw', $booking),
-    //         ['status' => 'withdrawn']
-    //     );
-
-    //     // Assert
-    //     $response->assertRedirect();
-    //     $response->assertSessionHasErrors(['message']);
+        $booking->refresh();
+        $this->assertEquals('Jane', $booking->first_name);
+        $this->assertEquals('jane.smith@example.com', $booking->email);
         
-    //     $booking->refresh();
-    //     $this->assertEquals('pending', $booking->status); // Status unchanged
-    // }
+        Mail::assertQueued(BookingUpdateAdminMail::class);
+    }
 
-    // #[Test]
-    // public function test_withdraw_only_allows_pending_or_confirmed_bookings()
-    // {
-    //     // Arrange
-    //     $booking = Booking::factory()->create([
-    //         'user_id' => $this->user->id,
-    //         'property_id' => $this->property->id,
-    //         'status' => 'completed'
-    //     ]);
+    #[Test]
+    public function test_update_validates_date_availability()
+    {
+        // Arrange
+        $this->mock(AvailabilityService::class, function ($mock) {
+            $mock->shouldReceive('isPropertyAvailable')->andReturn(false);
+        });
 
-    //     // Act
-    //     $response = $this->actingAs($this->user)->post(
-    //         route('bookings.withdraw', $booking),
-    //         ['status' => 'withdrawn']
-    //     );
+        $booking = Booking::factory()->create([
+             'property_id' => $this->property->id
+        ]);
 
-    //     // Assert
-    //     $response->assertRedirect();
-    //     $response->assertSessionHasErrors(['message']);
+        $updateData = [
+            'check_in_date' => now()->addDays(10)->format('Y-m-d'),
+            'check_out_date' => now()->addDays(12)->format('Y-m-d'),
+            'number_of_guests' => 2,
+            'total_price' => 200
+        ];
+
+        // Act
+        $response = $this->actingAs($this->user)->putJson('/api/bookings/' . $booking->id, $updateData);
+
+        // Assert
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => 'The selected dates are not available for this property.'
+        ]);
+    }
+
+    #[Test]
+    public function test_destroy_deletes_booking()
+    {
+        // Arrange
+        $booking = Booking::factory()->create([
+            'property_id' => $this->property->id,
+            'user_id' => $this->user->id
+        ]);
+
+        // Act
+        $response = $this->actingAs($this->user)->deleteJson('/api/bookings/' . $booking->id);
+
+        // Assert
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'Booking deleted successfully.']);
         
-    //     $booking->refresh();
-    //     $this->assertEquals('completed', $booking->status); // Status unchanged
-    // }
+        $this->assertDatabaseMissing('bookings', ['id' => $booking->id]);
+    }
 
-    // #[Test]
-    // public function test_update_booking_successfully()
-    // {
-    //     // Arrange
-    //     Mail::fake();
-    //     $this->mock(AvailabilityService::class, function ($mock) {
-    //         $mock->shouldReceive('isPropertyAvailable')->andReturn(true);
-    //     });
-
-    //     $booking = Booking::factory()->create([
-    //         'property_id' => $this->property->id,
-    //         'first_name' => 'John',
-    //         'email' => 'john@example.com'
-    //     ]);
-
-    //     $updateData = [
-    //         'first_name' => 'Jane',
-    //         'last_name' => 'Smith',
-    //         'email' => 'jane.smith@example.com',
-    //         'phone' => '987-654-3210',
-    //         'check_in_date' => now()->addDays(2)->format('Y-m-d'),
-    //         'check_out_date' => now()->addDays(4)->format('Y-m-d'),
-    //         'number_of_guests' => 4,
-    //         'number_of_rooms' => 2,
-    //         'flexible_dates' => true,
-    //         'source' => 'direct',
-    //         'booking_type' => 'booking',
-    //         'total_price' => 300,
-    //         'special_requests' => 'Early check-in'
-    //     ];
-
-    //     // Act
-    //     $response = $this->putJson('/api/bookings/' . $booking->id, $updateData);
-
-    //     // Assert
-    //     $response->assertStatus(200);
-    //     $response->assertJson(['message' => 'Booking updated successfully.']);
+    #[Test]
+    public function test_destroy_prevents_unauthorized_deletion()
+    {
+        // Arrange
+        $otherUser = User::factory()->create();
+        $booking = Booking::factory()->create([
+            'property_id' => $this->property->id,
+            'user_id' => $otherUser->id
+        ]);
+        // Act
+        $response = $this->actingAs($this->user)->deleteJson('/api/bookings/' . $booking->id);
+        // Assert
+        $response->assertStatus(403);
         
-    //     $booking->refresh();
-    //     $this->assertEquals('Jane', $booking->first_name);
-    //     $this->assertEquals('jane.smith@example.com', $booking->email);
+        $this->assertDatabaseHas('bookings', ['id' => $booking->id]);
+    }
+
+    #[Test]
+    public function test_destroy_handles_exceptions()
+    {
+        // This test would need to mock a scenario where deletion fails
+        // For simplicity, we'll test that a non-existent booking returns appropriate error
         
-    //     Mail::assertQueued(BookingUpdateAdminMail::class);
-    // }
+        // Act
+        $response = $this->actingAs($this->user)->deleteJson('/api/bookings/99999');
 
-    // #[Test]
-    // public function test_update_validates_date_availability()
-    // {
-    //     // Arrange
-    //     $this->mock(AvailabilityService::class, function ($mock) {
-    //         $mock->shouldReceive('isPropertyAvailable')->andReturn(false);
-    //     });
-
-    //     $booking = Booking::factory()->create([
-    //         'property_id' => $this->property->id
-    //     ]);
-
-    //     $updateData = [
-    //         'check_in_date' => now()->addDays(10)->format('Y-m-d'),
-    //         'check_out_date' => now()->addDays(12)->format('Y-m-d'),
-    //         'number_of_guests' => 2,
-    //         'total_price' => 200
-    //     ];
-
-    //     // Act
-    //     $response = $this->putJson('/api/bookings/' . $booking->id, $updateData);
-
-    //     // Assert
-    //     $response->assertStatus(422);
-    //     $response->assertJson([
-    //         'message' => 'The selected dates are not available for this property.'
-    //     ]);
-    // }
-
-    // #[Test]
-    // public function test_destroy_deletes_booking()
-    // {
-    //     // Arrange
-    //     $booking = Booking::factory()->create([
-    //         'property_id' => $this->property->id
-    //     ]);
-
-    //     // Act
-    //     $response = $this->deleteJson('/api/bookings/' . $booking->id);
-
-    //     // Assert
-    //     $response->assertStatus(200);
-    //     $response->assertJson(['message' => 'Booking deleted successfully.']);
-        
-    //     $this->assertDatabaseMissing('bookings', ['id' => $booking->id]);
-    // }
-
-    // #[Test]
-    // public function test_destroy_handles_exceptions()
-    // {
-    //     // This test would need to mock a scenario where deletion fails
-    //     // For simplicity, we'll test that a non-existent booking returns appropriate error
-        
-    //     // Act
-    //     $response = $this->deleteJson('/api/bookings/99999');
-
-    //     // Assert
-    //     $response->assertStatus(404);
-    // }
+        // Assert
+        $response->assertStatus(404);
+    }
 }
