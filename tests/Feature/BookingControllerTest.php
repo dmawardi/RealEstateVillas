@@ -433,7 +433,8 @@ class BookingControllerTest extends TestCase
         $booking = Booking::factory()->create([
             'property_id' => $this->property->id,
             'first_name' => 'John',
-            'email' => 'john@example.com'
+            'email' => 'john@example.com',
+            'user_id' => $this->user->id
         ]);
 
         $updateData = [
@@ -472,6 +473,30 @@ class BookingControllerTest extends TestCase
     }
 
     #[Test]
+    public function test_update_prevents_unauthorized_access()
+    {
+        // Arrange
+        $otherUser = User::factory()->create();
+        $booking = Booking::factory()->create([
+            'property_id' => $this->property->id,
+            'user_id' => $otherUser->id
+        ]);
+
+        $updateData = [
+            'check_in_date' => now()->addDays(10)->format('Y-m-d'),
+            'check_out_date' => now()->addDays(12)->format('Y-m-d'),
+            'number_of_guests' => 2,
+            'total_price' => 200
+        ];
+
+        // Act
+        $response = $this->actingAs($this->user)->putJson('/api/bookings/' . $booking->id, $updateData);
+
+        // Assert
+        $response->assertStatus(403);
+    }
+
+    #[Test]
     public function test_update_validates_date_availability()
     {
         // Arrange
@@ -480,7 +505,8 @@ class BookingControllerTest extends TestCase
         });
 
         $booking = Booking::factory()->create([
-             'property_id' => $this->property->id
+             'property_id' => $this->property->id,
+             'user_id' => $this->user->id
         ]);
 
         $updateData = [

@@ -285,6 +285,12 @@ class BookingController extends Controller
             'notes' => 'nullable|string|max:1000', // Added notes field
         ]);
 
+        if (!auth()->check() || auth()->id() !== $booking->user_id) {
+            return response()->json([
+                'message' => 'Unauthorized to update this booking.'
+            ], 403);
+        }
+
         // Store original data before update
         $originalData = $booking->getOriginal();
 
