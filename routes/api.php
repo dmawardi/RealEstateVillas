@@ -19,15 +19,7 @@ Route::get('/properties/{property}/price', [PropertyController::class, 'calculat
 // Property availability
 Route::get('/properties/{property}/availability', [PropertyController::class, 'getAvailability'])->name('properties.availability');
 
-// Property Attachments
-// Index
-Route::get('/properties/{property}/attachments', [PropertyAttachmentController::class, 'index'])->name('properties.attachments.index');
-// Create
-Route::post('/properties/{property}/attachments', [PropertyAttachmentController::class, 'store'])->name('properties.attachments.store');
-// Update
-Route::put('/attachments/{attachment}', [PropertyAttachmentController::class, 'update'])->name('attachments.update');
-// Delete
-Route::delete('/attachments/{attachment}', [PropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
+
 
 
 
@@ -54,6 +46,16 @@ Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
     Route::delete('admin/cache/features', [AdminFeatureController::class, 'clearFeaturesCache'])->name('cache.features.clear');
     Route::post('admin/cache/features/refresh', [AdminFeatureController::class, 'refreshFeaturesCache'])->name('cache.features.refresh');
     Route::get('admin/cache/features/info', [AdminFeatureController::class, 'getCacheInfo'])->name('cache.features.info');
+
+    // Property Attachments
+    // Index
+    Route::get('/properties/{property}/attachments', [PropertyAttachmentController::class, 'index'])->name('properties.attachments.index');
+    // Create
+    Route::post('/properties/{property}/attachments', [PropertyAttachmentController::class, 'store'])->name('properties.attachments.store');
+    // Update
+    Route::put('/attachments/{attachment}', [PropertyAttachmentController::class, 'update'])->name('attachments.update');
+    // Delete
+    Route::delete('/attachments/{attachment}', [PropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
 
     // Property Detail refresh route
     Route::post('admin/properties/{property}/refresh-details', [AdminPropertyController::class, 'clearPropertyDetailCache'])->name('properties.refresh-details');
