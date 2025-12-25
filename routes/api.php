@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminPropertyController;
-use App\Http\Controllers\PropertyAttachmentController;
+use App\Http\Controllers\AdminPropertyAttachmentController;
 use App\Http\Controllers\AdminFeatureController;
 use App\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
@@ -49,13 +49,13 @@ Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
 
     // Property Attachments
     // Index
-    Route::get('/properties/{property}/attachments', [PropertyAttachmentController::class, 'index'])->name('properties.attachments.index');
+    Route::get('/properties/{property}/attachments', [AdminPropertyAttachmentController::class, 'index'])->name('properties.attachments.index');
     // Create
-    Route::post('/properties/{property}/attachments', [PropertyAttachmentController::class, 'store'])->name('properties.attachments.store');
+    Route::post('/properties/{property}/attachments', [AdminPropertyAttachmentController::class, 'store'])->name('properties.attachments.store');
     // Update
-    Route::put('/attachments/{attachment}', [PropertyAttachmentController::class, 'update'])->name('attachments.update');
+    Route::put('/attachments/{attachment}', [AdminPropertyAttachmentController::class, 'update'])->name('attachments.update');
     // Delete
-    Route::delete('/attachments/{attachment}', [PropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
+    Route::delete('/attachments/{attachment}', [AdminPropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
 
     // Property Detail refresh route
     Route::post('admin/properties/{property}/refresh-details', [AdminPropertyController::class, 'clearPropertyDetailCache'])->name('properties.refresh-details');

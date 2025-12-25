@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\PropertyAttachmentController;
+use App\Http\Controllers\AdminPropertyAttachmentController;
 use App\Models\Property;
 use App\Models\PropertyAttachment;
 use App\Models\User;
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class PropertyAttachmentControllerTest extends TestCase
+class AdminPropertyAttachmentControllerTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 

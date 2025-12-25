@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-class PropertyAttachmentController extends Controller
+class AdminPropertyAttachmentController extends Controller
 {
     /**
      * Get all attachments for a property (for Vue frontend)
