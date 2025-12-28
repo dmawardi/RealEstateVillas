@@ -183,7 +183,10 @@ class PropertyController extends Controller
         $seoData = [
             'title' => 'Explore Premium Properties in Bali - Villas & Land for Sale/Rent',
             'description' => 'Discover our curated selection of luxury villas and land in Bali. Whether you\'re looking to buy or rent, find your perfect property with our expert guidance and commission-based services.',
-            'keywords' => 'bali property, villa for sale bali, villa rental bali, bali land for sale, luxury villas bali, property investment bali',
+            'keywords' => 'bali property, villa for sale bali, villa rental bali, bali land for sale, luxury villas bali, property investment bali' 
+                . ($hasLocationFilter && $request->filled('villages') ? ', villas in ' . explode(',', $request->villages)[0] : '')
+                . ($hasLocationFilter && $request->filled('districts') && !$request->filled('villages') ? ', villas in ' . explode(',', $request->districts)[0] : '')
+                . ($hasLocationFilter && $request->filled('regencies') && !$request->filled('villages') && !$request->filled('districts') ? ', villas in ' . explode(',', $request->regencies)[0] : ''),
             'canonicalUrl' => url('/properties'),
             // Grab first property's image as ogImage if available
             'ogImage' => $properties->first()?->attachments->first()?->path ?? asset('images/logo/Logo.png'),
