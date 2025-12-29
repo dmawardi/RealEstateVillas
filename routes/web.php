@@ -105,6 +105,12 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
     Route::get('admin/bookings/{booking}/edit', [AdminBookingController::class, 'edit'])->name('bookings.edit');
     Route::put('admin/bookings/{booking}', [AdminBookingController::class, 'update'])->name('bookings.update');
     Route::delete('admin/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
+    
+    // Property Attachments
+    Route::get('admin/properties/{property}/attachments', [\App\Http\Controllers\AdminPropertyAttachmentController::class, 'index'])->name('properties.attachments.index');
+    Route::post('admin/properties/{property}/attachments', [\App\Http\Controllers\AdminPropertyAttachmentController::class, 'store'])->name('properties.attachments.store');
+    Route::put('admin/attachments/{attachment}', [\App\Http\Controllers\AdminPropertyAttachmentController::class, 'update'])->name('attachments.update');
+    Route::delete('admin/attachments/{attachment}', [\App\Http\Controllers\AdminPropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
 });
 
 require __DIR__.'/settings.php';

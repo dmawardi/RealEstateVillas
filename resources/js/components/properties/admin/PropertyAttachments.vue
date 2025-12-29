@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { Property, PropertyAttachment } from '@/types';
-import { api } from '@/services/api';
 import Documents from '@/components/properties/admin/attachments/Documents.vue';
 import Images from '@/components/properties/admin/attachments/Images.vue';
 import AllAttachments from '@/components/properties/admin/attachments/AllAttachments.vue';
@@ -124,34 +124,29 @@ const saveEdit = async (attachmentId: number) => {
     savingAttachment.value = attachmentId;
     
     try {
-        await api.attachments.updateAttachment(attachmentId, editForm.value, {
-            onSuccess: (response: any) => {
-                if (response.success) {
-                    emit('attachment-updated', response.data.attachment);
-                    editingAttachment.value = null;
-                    console.log('✅ Attachment updated successfully');
-                } else {
-                    console.error('❌ Update failed:', response.message);
-                    alert(`Failed to update attachment: ${response.message}`);
-                }
+        router.put(route('admin.attachments.update', attachmentId), editForm.value, {
+            onSuccess: () => {
+                emit('attachment-updated', { id: attachmentId, ...editForm.value });
+                editingAttachment.value = null;
+                console.log('✅ Attachment updated successfully');
             },
             onError: (errors: any) => {
                 console.error('❌ Failed to update attachment:', errors);
                 
                 if (errors.message) {
                     alert(`Failed to update attachment: ${errors.message}`);
-                } else if (errors.errors) {
-                    const errorMessages = Object.values(errors.errors).flat();
-                    alert(`Validation errors: ${errorMessages.join(', ')}`);
                 } else {
-                    alert('Failed to update attachment. Please try again.');
+                    const errorMessages = Object.values(errors).flat();
+                    alert(`Validation errors: ${errorMessages.join(', ')}`);
                 }
+            },
+            onFinish: () => {
+                savingAttachment.value = null;
             }
         });
     } catch (error) {
         console.error('❌ Unexpected error updating attachment:', error);
         alert('An unexpected error occurred. Please try again.');
-    } finally {
         savingAttachment.value = null;
     }
 };
@@ -161,13 +156,10 @@ const deleteAttachment = async (attachmentId: number) => {
     if (!confirm('Are you sure you want to delete this attachment? This action cannot be undone.')) return;
     
     try {
-        await api.attachments.deleteAttachment(attachmentId, {
-            onSuccess: (response: any) => {
-                if (response.success) {
-                    emit('attachment-deleted', attachmentId);
-                    console.log('✅ Attachment deleted successfully');
-                }
-                window.location.reload();
+        router.delete(route('admin.attachments.destroy', attachmentId), {
+            onSuccess: () => {
+                emit('attachment-deleted', attachmentId);
+                console.log('✅ Attachment deleted successfully');
             },
             onError: (errors: any) => {
                 console.error('❌ Failed to delete attachment:', errors);
@@ -228,64 +220,63 @@ const handleFileUpload = async () => {
     uploading.value = true;
     uploadStatus.value = 'uploading';
     uploadProgress.value = 0;
-        try {
-            const formData = new FormData();
-            Array.from(selectedFiles.value).forEach(file => {
-                formData.append('files[]', file);
-            });
-            formData.append('is_visible_to_customer', '0');
-            
-            const progressInterval = setInterval(() => {
-                if (uploadProgress.value < 90) {
-                    uploadProgress.value += Math.random() * 10;
-                }
-            }, 200);
-            
-            await api.attachments.createAttachment(property.slug, formData, {
-            onSuccess: (response: any) => {
+    
+    try {
+        const formData = new FormData();
+        Array.from(selectedFiles.value).forEach(file => {
+            formData.append('files[]', file);
+        });
+        formData.append('is_visible_to_customer', '0');
+        
+        const progressInterval = setInterval(() => {
+            if (uploadProgress.value < 90) {
+                uploadProgress.value += Math.random() * 10;
+            }
+        }, 200);
+        
+        router.post(route('admin.properties.attachments.store', property.slug), formData, {
+            forceFormData: true,
+            onProgress: () => {
+                // Update progress if browser supports it
+                uploadProgress.value = Math.min(95, uploadProgress.value + 5);
+            },
+            onSuccess: () => {
                 clearInterval(progressInterval);
                 uploadProgress.value = 100;
-                clearInterval(progressInterval);
-                uploadProgress.value = 100;
+                uploadStatus.value = 'success';
+                emit('attachments-reordered');
                 
-                if (response.success) {
-                    uploadStatus.value = 'success';
-                    emit('attachments-reordered');
-                    
-                    setTimeout(() => {
-                        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-                        if (fileInput) fileInput.value = '';
-                        selectedFiles.value = null;
-                        uploadStatus.value = 'idle';
-                        uploadProgress.value = 0;
-                    }, 2000);
-
-                    // Refresh the page to show the updated attachments
-                    window.location.reload();
-                } else {
-                    uploadStatus.value = 'error';
-                }
+                setTimeout(() => {
+                    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+                    if (fileInput) fileInput.value = '';
+                    selectedFiles.value = null;
+                    uploadStatus.value = 'idle';
+                    uploadProgress.value = 0;
+                }, 2000);
             },
             onError: (errors: any) => {
                 clearInterval(progressInterval);
                 uploadStatus.value = 'error';
                 console.error('Failed to upload attachments:', errors);
                 
-                if (errors.error_type === 'duplicate_files') {
-                    alert(`${errors.message}\n\nSome files already exist. Please rename them or delete the existing files first.`);
-                } else if (errors.message) {
+                if (errors.message) {
                     alert(`Upload failed: ${errors.message}`);
+                } else if (errors.files) {
+                    alert(`Upload failed: ${errors.files[0]}`);
                 } else {
                     alert('Upload failed. Please try again.');
                 }
+            },
+            onFinish: () => {
+                uploading.value = false;
+                clearInterval(progressInterval);
             }
         });
     } catch (error) {
         uploadStatus.value = 'error';
+        uploading.value = false;
         console.error('Failed to upload attachments:', error);
         alert('An unexpected error occurred during upload.');
-    } finally {
-        uploading.value = false;
     }
 };
 

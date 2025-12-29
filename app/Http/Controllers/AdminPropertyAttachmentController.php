@@ -56,29 +56,21 @@ class AdminPropertyAttachmentController extends Controller
     {
         // Check if files array is present and not empty
         if (!$request->hasFile('files')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No files were uploaded'
-            ], 422);
+            return back()->withErrors(['files' => 'No files were uploaded']);
         }
         
         // Get files and check if they're valid
         $files = $request->file('files');
+        $duplicateFiles = [];
         
         // Check for empty or invalid files
         foreach ($files as $index => $file) {
             if (!$file->isValid()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "File '{$file->getClientOriginalName()}' is invalid or corrupted"
-                ], 422);
+                return back()->withErrors(['files' => "File '{$file->getClientOriginalName()}' is invalid or corrupted"]);
             }
             
             if ($file->getSize() == 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "File '{$file->getClientOriginalName()}' is empty"
-                ], 422);
+                return back()->withErrors(['files' => "File '{$file->getClientOriginalName()}' is empty"]);
             }
 
             // Check if file with same original_filename already exists for this property
@@ -94,12 +86,9 @@ class AdminPropertyAttachmentController extends Controller
 
         // If there are duplicate files, return error with all duplicates listed
         if (!empty($duplicateFiles)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'The following files already exist and would be overwritten: ' . implode(', ', $duplicateFiles),
-                'duplicate_files' => $duplicateFiles,
-                'error_type' => 'duplicate_files'
-            ], 422);
+            return back()->withErrors([
+                'files' => 'The following files already exist and would be overwritten: ' . implode(', ', $duplicateFiles)
+            ]);
         }
         
         // Validation
@@ -123,38 +112,10 @@ class AdminPropertyAttachmentController extends Controller
         try {            
             $this->handleAttachments($files, $property);
 
-            // Get the newly created attachments for the response
-            $uploadedAttachments = $property->attachments()
-                ->where('is_active', true)
-                ->orderBy('created_at', 'desc')
-                ->take(count($files))
-                ->get()
-                ->map(function ($attachment) {
-                    return [
-                        'id' => $attachment->id,
-                        'title' => $attachment->title,
-                        'path' => $attachment->path,
-                        'original_filename' => $attachment->original_filename,
-                        'file_type' => $attachment->file_type,
-                        'file_size' => $attachment->file_size,
-                        'type' => $attachment->type,
-                        'caption' => $attachment->caption,
-                        'is_visible_to_customer' => $attachment->is_visible_to_customer,
-                        'order' => $attachment->order,
-                        'created_at' => $attachment->created_at,
-                    ];
-                });
-
-            return response()->json([
-                'success' => true,
-                'message' => $uploadedAttachments->count() . ' file(s) uploaded successfully',
-                'data' => [
-                    'attachments' => $uploadedAttachments,
-                    'uploaded_count' => $uploadedAttachments->count(),
-                    'failed_count' => 0,
-                    'errors' => []
-                ]
-            ], 201);
+            $uploadedCount = count($files);
+            $message = $uploadedCount . ' file(s) uploaded successfully';
+            
+            return back()->with('success', $message);
 
         } catch (\Exception $e) {
             Log::error('Failed to store property attachment', [
@@ -163,11 +124,7 @@ class AdminPropertyAttachmentController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to store attachment',
-                'error' => $e->getMessage()
-            ], 500);
+            return back()->withErrors(['files' => 'Failed to store attachment: ' . $e->getMessage()]);
         }
     }
 
@@ -210,27 +167,7 @@ class AdminPropertyAttachmentController extends Controller
                 'original_filename' => $attachment->original_filename
             ]);
 
-            // Return the updated attachment
-            return response()->json([
-                'success' => true,
-                'message' => 'Attachment updated successfully',
-                'data' => [
-                    'attachment' => [
-                        'id' => $attachment->id,
-                        'title' => $attachment->title,
-                        'path' => $attachment->path,
-                        'original_filename' => $attachment->original_filename,
-                        'file_type' => $attachment->file_type,
-                        'file_size' => $attachment->file_size,
-                        'type' => $attachment->type,
-                        'caption' => $attachment->caption,
-                        'is_visible_to_customer' => $attachment->is_visible_to_customer,
-                        'order' => $attachment->order,
-                        'created_at' => $attachment->created_at,
-                        'updated_at' => $attachment->updated_at,
-                    ]
-                ]
-            ]);
+            return back()->with('success', 'Attachment updated successfully');
 
         } catch (\Exception $e) {
             Log::error('Failed to update attachment', [
@@ -239,43 +176,40 @@ class AdminPropertyAttachmentController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update attachment',
-                'error' => $e->getMessage()
-            ], 500);
+            return back()->withErrors(['attachment' => 'Failed to update attachment: ' . $e->getMessage()]);
         }
     }
 
-    public function destroy(Request $request, $id)
+
+    public function destroy(PropertyAttachment $attachment)
     {
-        $attachment = PropertyAttachment::findOrFail($id);
-        // Attempt to delete the file from S3
-        if ($attachment->path) {
-            try {
-                Storage::disk('s3')->delete($attachment->path);
-            } catch (\Exception $e) {
-                Log::error('Failed to delete attachment file from S3', [
-                    'attachment_id' => $attachment->id,
-                    'path' => $attachment->path,
-                    'error' => $e->getMessage()
-                ]);
+        try {
+            // Attempt to delete the file from S3
+            if ($attachment->path) {
+                try {
+                    Storage::disk('s3')->delete($attachment->path);
+                } catch (\Exception $e) {
+                    Log::error('Failed to delete attachment file from S3', [
+                        'attachment_id' => $attachment->id,
+                        'path' => $attachment->path,
+                        'error' => $e->getMessage()
+                    ]);
+                }
             }
-        }
-        // Delete the attachment record from the database
-        $attachment->delete();
-
-        // Check if this is an API call or web call
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Attachment deleted successfully.'
+            
+            // Delete the attachment record from the database
+            $attachment->delete();
+            
+            return back()->with('success', 'Attachment deleted successfully.');
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to delete attachment', [
+                'attachment_id' => $attachment->id,
+                'error' => $e->getMessage()
             ]);
+            
+            return back()->withErrors(['attachment' => 'Failed to delete attachment: ' . $e->getMessage()]);
         }
-
-        // Web request - return redirect
-        return redirect()->back()->with('success', 'Attachment deleted successfully.');
-    
     }
 
      // S3 Helper functions

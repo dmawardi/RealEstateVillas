@@ -43,16 +43,6 @@ Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
     Route::post('admin/cache/features/refresh', [AdminFeatureController::class, 'refreshFeaturesCache'])->name('cache.features.refresh');
     Route::get('admin/cache/features/info', [AdminFeatureController::class, 'getCacheInfo'])->name('cache.features.info');
 
-    // Property Attachments
-    // Index
-    Route::get('/properties/{property}/attachments', [AdminPropertyAttachmentController::class, 'index'])->name('properties.attachments.index');
-    // Create
-    Route::post('/properties/{property}/attachments', [AdminPropertyAttachmentController::class, 'store'])->name('properties.attachments.store');
-    // Update
-    Route::put('/attachments/{attachment}', [AdminPropertyAttachmentController::class, 'update'])->name('attachments.update');
-    // Delete
-    Route::delete('/attachments/{attachment}', [AdminPropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
-
     // Property Detail refresh route
     Route::post('admin/properties/{property}/refresh-details', [AdminPropertyController::class, 'clearPropertyDetailCache'])->name('properties.refresh-details');
     // Location refresh route
