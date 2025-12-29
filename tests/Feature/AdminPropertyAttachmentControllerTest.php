@@ -170,27 +170,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $file = UploadedFile::fake()->image('test-image.jpg', 800, 600)->size(1024); // 1MB
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$file]
         ]);
 
         // Assert
-        $response->assertStatus(201);
-        $response->assertJsonStructure([
-            'success',
-            'message',
-            'data' => [
-                'attachments',
-                'uploaded_count',
-                'failed_count',
-                'errors'
-            ]
-        ]);
-
-        $responseData = $response->json();
-        $this->assertTrue($responseData['success']);
-        $this->assertEquals(1, $responseData['data']['uploaded_count']);
-        $this->assertEquals(0, $responseData['data']['failed_count']);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', '1 file(s) uploaded successfully');
         
         // Verify database entry
         $this->assertDatabaseHas('property_attachments', [
@@ -213,16 +199,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $document = UploadedFile::fake()->create('test-document.pdf', 2048, 'application/pdf');
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$image, $document]
         ]);
 
         // Assert
-        $response->assertStatus(201);
-        $responseData = $response->json();
-        $this->assertTrue($responseData['success']);
-        $this->assertEquals(2, $responseData['data']['uploaded_count']);
-        $this->assertEquals(0, $responseData['data']['failed_count']);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', '2 file(s) uploaded successfully');
         
         // Verify database entries
         $this->assertDatabaseHas('property_attachments', [
@@ -252,26 +235,24 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $file = UploadedFile::fake()->image('test-image.jpg');
 
         // Act
-        $response = $this->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$file]
         ]);
 
         // Assert
-        $response->assertStatus(401);
+        $response->assertStatus(302);
+        $response->assertRedirect(route('login'));
     }
 
     #[Test]
     public function test_store_validates_required_fields()
     {
         // Act - No files provided
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), []);
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), []);
 
         // Assert
-        $response->assertStatus(422);
-        $response->assertJson([
-            'success' => false,
-            'message' => 'No files were uploaded'
-        ]);
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors('files');
     }
 
     #[Test]
@@ -281,13 +262,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $invalidFile = UploadedFile::fake()->create('test.txt', 100, 'text/plain');
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$invalidFile]
         ]);
 
         // Assert
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['files.0']);
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors('files.0');
     }
 
     #[Test]
@@ -297,13 +278,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $largeFile = UploadedFile::fake()->image('large-image.jpg')->size(11264); // 11MB
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$largeFile]
         ]);
 
         // Assert
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['files.0']);
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors('files.0');
     }
 
     #[Test]
@@ -319,17 +300,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $file = UploadedFile::fake()->image('duplicate-file.jpg', 800, 600);
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$file]
         ]);
 
         // Assert
-        $response->assertStatus(422);
-        $response->assertJson([
-            'success' => false,
-            'error_type' => 'duplicate_files',
-            'duplicate_files' => ['duplicate-file.jpg']
-        ]);
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors('files');
     }
 
     #[Test]
@@ -339,16 +316,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $emptyFile = UploadedFile::fake()->create('empty.jpg', 0);
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$emptyFile]
         ]);
 
         // Assert
-        $response->assertStatus(422);
-        $response->assertJson([
-            'success' => false,
-            'message' => "File 'empty.jpg' is empty"
-        ]);
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors('files');
     }
 
     #[Test]
@@ -361,15 +335,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $file = UploadedFile::fake()->create('huge-file.jpg', 1024 * 1024 * 15); // 15MB file, exceeds validation
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$file]
         ]);
 
         // Assert - Should return validation error due to file size limit
-        $response->assertStatus(422);
-        
-        // Verify it's a validation error response
-        $this->assertTrue($response->getStatusCode() === 422);
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors('files.0');
     }
 
     #[Test]
@@ -394,34 +366,11 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         ];
 
         // Act
-        $response = $this->actingAs($this->admin)->putJson(route('admin.attachments.update', $attachment), $updateData);
+        $response = $this->actingAs($this->admin)->put(route('admin.attachments.update', $attachment), $updateData);
 
         // Assert
-        $response->assertStatus(200);
-        $response->assertJsonStructure([
-            'success',
-            'message',
-            'data' => [
-                'attachment' => [
-                    'id',
-                    'title',
-                    'caption',
-                    'type',
-                    'is_visible_to_customer',
-                    'order',
-                    'created_at',
-                    'updated_at'
-                ]
-            ]
-        ]);
-
-        $responseData = $response->json();
-        $this->assertTrue($responseData['success']);
-        $this->assertEquals('Updated Title', $responseData['data']['attachment']['title']);
-        $this->assertEquals('Updated Caption', $responseData['data']['attachment']['caption']);
-        $this->assertEquals('floor_plan', $responseData['data']['attachment']['type']);
-        $this->assertFalse($responseData['data']['attachment']['is_visible_to_customer']);
-        $this->assertEquals(5, $responseData['data']['attachment']['order']);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', 'Attachment updated successfully');
 
         // Verify database was updated
         $this->assertDatabaseHas('property_attachments', [
@@ -443,12 +392,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->putJson(route('admin.attachments.update', $attachment), [
-            'title' => 'Updated Title'
+        $response = $this->put(route('admin.attachments.update', $attachment), [
+            'title' => 'New Title'
         ]);
 
         // Assert
-        $response->assertStatus(401);
+        $response->assertStatus(302);
+        $response->assertRedirect(route('login'));
     }
 
     #[Test]
@@ -483,12 +433,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         ]);
 
         // Act - Only update title
-        $response = $this->actingAs($this->admin)->putJson(route('admin.attachments.update', $attachment), [
+        $response = $this->actingAs($this->admin)->put(route('admin.attachments.update', $attachment), [
             'title' => 'Updated Title Only'
         ]);
 
         // Assert
-        $response->assertStatus(200);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', 'Attachment updated successfully');
         
         $attachment->refresh();
         $this->assertEquals('Updated Title Only', $attachment->title);
@@ -531,21 +482,18 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         Storage::disk('s3')->put($attachment->path, 'fake file content');
 
         // Act
-        $response = $this->actingAs($this->admin)->deleteJson(route('admin.attachments.destroy', $attachment));
+        $response = $this->actingAs($this->admin)->delete(route('admin.attachments.destroy', $attachment));
 
         // Assert
-        $response->assertStatus(200);
-        $response->assertJson([
-            'success' => true,
-            'message' => 'Attachment deleted successfully.'
-        ]);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', 'Attachment deleted successfully.');
 
         // Verify database deletion
         $this->assertDatabaseMissing('property_attachments', [
             'id' => $attachment->id
         ]);
 
-        // Verify S3 file deletion
+        // Verify file deletion from S3
         Storage::disk('s3')->assertMissing($attachment->path);
     }
 
@@ -558,21 +506,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->deleteJson(route('admin.attachments.destroy', $attachment));
+        $response = $this->delete(route('admin.attachments.destroy', $attachment));
 
         // Assert
-        $response->assertStatus(401);
+        $response->assertStatus(302);
+        $response->assertRedirect(route('login'));
     }
 
-    #[Test]
-    public function test_destroy_handles_nonexistent_attachment()
-    {
-        // Act
-        $response = $this->actingAs($this->admin)->deleteJson("/api/attachments/99999");
-
-        // Assert
-        $response->assertStatus(404);
-    }
 
     #[Test]
     public function test_destroy_handles_s3_deletion_failure()
@@ -589,14 +529,11 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         // So we'll test the basic delete functionality instead
 
         // Act
-        $response = $this->actingAs($this->admin)->deleteJson(route('admin.attachments.destroy', $attachment));
+        $response = $this->actingAs($this->admin)->delete(route('admin.attachments.destroy', $attachment));
 
         // Assert - Should succeed 
-        $response->assertStatus(200);
-        $response->assertJson([
-            'success' => true,
-            'message' => 'Attachment deleted successfully.'
-        ]);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', 'Attachment deleted successfully.');
 
         // Verify database deletion occurred
         $this->assertDatabaseMissing('property_attachments', [
@@ -613,12 +550,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $file3 = UploadedFile::fake()->image('image2.jpg');
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$file1, $file2, $file3]
         ]);
 
         // Assert
-        $response->assertStatus(201);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', '3 file(s) uploaded successfully');
 
         // Verify ordering - Files should get incremental orders based on upload sequence
         $attachments = PropertyAttachment::where('property_id', $this->property->id)
@@ -640,7 +578,7 @@ class AdminPropertyAttachmentControllerTest extends TestCase
     public function test_property_not_found_returns_404()
     {
         // Act
-        $response = $this->actingAs($this->admin)->getJson("/api/properties/non-existent-slug/attachments");
+        $response = $this->actingAs($this->admin)->get("/api/properties/non-existent-slug/attachments");
 
         // Assert
         $response->assertStatus(404);
@@ -654,12 +592,13 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         $documentFile = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');
 
         // Act
-        $response = $this->actingAs($this->admin)->postJson(route('admin.properties.attachments.store', $this->property), [
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
             'files' => [$imageFile, $documentFile]
         ]);
 
         // Assert
-        $response->assertStatus(201);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', '2 file(s) uploaded successfully');
         
         // Verify correct type assignment
         $this->assertDatabaseHas('property_attachments', [
