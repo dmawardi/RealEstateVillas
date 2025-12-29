@@ -15,7 +15,7 @@ const defaults = {
     title: 'Bali Villa Rentals & Land Sales | BaliVillaSpot',
     description: 'Discover luxury villas and premium land for sale in Bali. Commission-based rentals from trusted partners with expert local support.',
     canonicalUrl: 'https://balivillaspot.com',
-    ogImage: 'https://balivillaspot.com/images/logo/og-homepage.jpg',
+    ogImage: 'https://balivillaspot.com/images/logo/Logo_w_text.png',
     siteName: 'BaliVillaSpot',
     author: 'BaliVillaSpot',
     locale: 'en_US'
@@ -60,6 +60,13 @@ const keywords = seoData?.keywords;
         <meta property="og:image:height" content="630" />
         <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:site_name" :content="defaults.siteName" />
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" :content="title" />
+        <meta name="twitter:description" :content="description" />
+        <meta name="twitter:image" :content="ogImage" />
+        <meta name="twitter:site" content="@BaliVillaSpot" />
         
         <!-- Business/Organization markup -->
         <meta property="business:contact_data:locality" content="Bali" />
