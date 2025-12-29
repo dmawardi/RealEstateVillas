@@ -19,10 +19,6 @@ Route::get('/properties/{property}/price', [PropertyController::class, 'calculat
 // Property availability
 Route::get('/properties/{property}/availability', [PropertyController::class, 'getAvailability'])->name('properties.availability');
 
-
-
-
-
 Route::middleware(['web', 'auth'])->group(function () {
     // Property Bookings
     Route::get('/properties/{property}/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('properties.bookings.index');
