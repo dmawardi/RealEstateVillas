@@ -35,12 +35,36 @@ const closeMobileMenu = () => {
 
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex items-center space-x-1">
+                    <Link
+                        :href="route('properties.index')"
+                        class="px-4 py-2 text-sm font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                    >
+                        Properties
+                    </Link>
+                    <Link
+                        :href="route('contact')"
+                        class="px-4 py-2 text-sm font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                    >
+                        Contact
+                    </Link>
                     <template v-if="$page.props.auth.user">
                         <Link
                             :href="route('dashboard')"
-                            class="px-4 py-2 text-sm font-medium text-foreground hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                            class="px-4 py-2 text-sm font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
                         >
                             Dashboard
+                        </Link>
+                        <Link
+                            :href="route('my.bookings')"
+                            class="px-4 py-2 text-sm font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                        >
+                            My Bookings
+                        </Link>
+                        <Link
+                            :href="route('my.favorites')"
+                            class="px-4 py-2 text-sm font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                        >
+                            Favorites
                         </Link>
                         <Link
                             :href="route('logout')"
@@ -53,7 +77,7 @@ const closeMobileMenu = () => {
                     <template v-else>
                         <Link
                             :href="route('login')"
-                            class="px-4 py-2 text-sm font-medium text-foreground hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                            class="px-4 py-2 text-sm font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
                         >
                             Log in
                         </Link>
@@ -102,13 +126,41 @@ const closeMobileMenu = () => {
         <!-- Mobile Menu -->
         <div v-show="isMobileMenuOpen" class="md:hidden">
             <div class="px-2 pt-2 pb-3 space-y-1 bg-background/95 backdrop-blur-md border-t border-border/20">
+                <Link
+                    :href="route('properties.index')"
+                    @click="closeMobileMenu"
+                    class="block px-3 py-2 font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                >
+                    Properties
+                </Link>
+                <Link
+                    :href="route('contact')"
+                    @click="closeMobileMenu"
+                    class="block px-3 py-2 font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                >
+                    Contact
+                </Link>
                 <template v-if="$page.props.auth.user">
                     <Link
                         :href="route('dashboard')"
                         @click="closeMobileMenu"
-                        class="block px-3 py-2 text-base font-medium hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                        class="block px-3 py-2 font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
                     >
                         Dashboard
+                    </Link>
+                    <Link
+                        :href="route('my.bookings')"
+                        @click="closeMobileMenu"
+                        class="block px-3 py-2 font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                    >
+                        My Bookings
+                    </Link>
+                    <Link
+                        :href="route('my.favorites')"
+                        @click="closeMobileMenu"
+                        class="block px-3 py-2 text-base font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                    >
+                        Favorites
                     </Link>
                     <Link
                         :href="route('logout')"
@@ -123,7 +175,7 @@ const closeMobileMenu = () => {
                     <Link
                         :href="route('login')"
                         @click="closeMobileMenu"
-                        class="block px-3 py-2 text-base font-medium hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
+                        class="block px-3 py-2 text-base font-medium text-gray-900 hover:text-accent hover:bg-secondary/10 rounded-lg transition-all duration-200"
                     >
                         Log in
                     </Link>
