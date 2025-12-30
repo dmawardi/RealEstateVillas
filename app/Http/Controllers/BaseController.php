@@ -166,7 +166,7 @@ class BaseController extends Controller
                 return asset($firstAttachment->file_path);
             }
         }
-        return asset('images/og-homepage.jpg');
+        return asset('images/logo/Logo_w_text.png');
     }
 
     /**
