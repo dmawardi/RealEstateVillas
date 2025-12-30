@@ -189,7 +189,7 @@ class PropertyController extends Controller
                 . ($hasLocationFilter && $request->filled('regencies') && !$request->filled('villages') && !$request->filled('districts') ? ', villas in ' . explode(',', $request->regencies)[0] : ''),
             'canonicalUrl' => url('/properties'),
             // Grab first property's image as ogImage if available
-            'ogImage' => $properties->first()?->attachments->first()?->url() ?? asset('images/logo/Logo.png'),
+            'ogImage' => $properties->first()?->attachments->first()?->url ?? asset('images/logo/Logo.png'),
         ];
 
         $businessPhone = config('app.business_phone');
@@ -682,7 +682,7 @@ class PropertyController extends Controller
                 ->firstWhere('type', 'image');
                 
             if ($imageAttachment) {
-                $ogImage = $imageAttachment->url();
+                $ogImage = $imageAttachment->url;
             }
         }
         
