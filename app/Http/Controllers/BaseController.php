@@ -158,7 +158,7 @@ class BaseController extends Controller
                 ->firstWhere('type', 'image');
                 
             if ($imageAttachment) {
-                return asset($imageAttachment->path);
+                return $imageAttachment->url;
             }
             // Fallback to first attachment if no specific image type
             $firstAttachment = collect($bestProperty->attachments)->first();
