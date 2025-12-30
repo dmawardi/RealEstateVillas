@@ -163,7 +163,7 @@ class BaseController extends Controller
             // Fallback to first attachment if no specific image type
             $firstAttachment = collect($bestProperty->attachments)->first();
             if ($firstAttachment) {
-                return asset($firstAttachment->file_path);
+                return $firstAttachment->url;
             }
         }
         return asset('images/logo/Logo_w_text.png');
