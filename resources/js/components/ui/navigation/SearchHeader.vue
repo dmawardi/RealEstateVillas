@@ -123,14 +123,14 @@ const applyFiltersAndClose = () => {
         <div class="absolute inset-0 bg-primary/60 backdrop-blur-sm"></div>
         
         <!-- Search Section -->
-        <div class="relative z-10 mx-auto w-full h-80 flex flex-col items-center justify-center px-4">
+        <div class="relative z-10 mx-auto w-full min-h-80 flex flex-col items-center justify-center px-4 py-8">
             
             <!-- Hero Text -->
-            <div class="text-center mb-8">
-                <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+            <div class="text-center mb-6 md:mb-8">
+                <h1 class="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-4">
                     Find Your Perfect Villa
                 </h1>
-                <p class="font-body text-lg md:text-xl text-base/90 max-w-2xl">
+                <p class="font-body text-base md:text-xl text-base/90 max-w-2xl">
                     Discover rentals and premium land investments in beautiful Bali
                 </p>
             </div>
@@ -178,45 +178,47 @@ const applyFiltersAndClose = () => {
 
                 <!-- Main Search Bar -->
                 <div :class="[
-                    'bg-white/95 backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-between w-full px-6 py-4 shadow-xl border border-secondary/20 space-y-4 md:space-y-0 md:space-x-4',
+                    'bg-white/95 backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-between w-full px-4 md:px-6 py-4 shadow-xl border border-secondary/20 space-y-4 md:space-y-0 md:space-x-4',
                     form.locationFilter.length ? 'rounded-t-xl' : 'rounded-xl'
                 ]">
                     <div class="flex items-center w-full space-x-3">
-                        <SearchIcon class="text-primary/70" />
+                        <SearchIcon class="text-primary/70 flex-shrink-0" />
                         <LocationAutocomplete 
                             v-model="form.locationFilter" 
-                            class="flex-grow"
+                            class="flex-grow min-w-0"
                             :class="'border-none focus:ring-2 focus:ring-accent/50 bg-transparent text-primary font-body placeholder:text-primary/50'"
                         />
                     </div>
                     
                     <!-- Action Buttons -->
-                    <div class="flex space-x-3 md:flex-shrink-0 justify-end">
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto md:flex-shrink-0">
                         <button
                             @click="modalOpen = true"
-                            class="group bg-secondary hover:bg-secondary-600 text-white px-6 py-3 rounded-lg font-display font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-secondary/50"
+                            class="group bg-secondary hover:bg-secondary-600 text-white px-4 sm:px-6 py-3 rounded-lg font-display font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-secondary/50 w-full sm:w-auto"
                         >
-                            <span class="flex items-center gap-2">
+                            <span class="flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
                                 </svg>
-                                Filters
+                                <span class="hidden sm:inline">Filters</span>
+                                <span class="sm:hidden">Filter</span>
                             </span>
                         </button>
                         <button
                             @click="handleSearch"
-                            class="group bg-accent hover:bg-accent-600 text-white px-8 py-3 rounded-lg font-display font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-accent/50"
+                            class="group bg-accent hover:bg-accent-600 text-white px-4 sm:px-8 py-3 rounded-lg font-display font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-accent/50 w-full sm:w-auto"
                         >
-                            <span class="flex items-center gap-2">
+                            <span class="flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                Search Properties
+                                <span class="hidden sm:inline">Search Properties</span>
+                                <span class="sm:hidden">Search</span>
                             </span>
                         </button>
                     </div>
                 </div>
-
+                
                 <!-- Location Tags -->
                 <div v-if="form.locationFilter.length" class="bg-white/95 backdrop-blur-md w-full rounded-b-xl border-t-0 border border-secondary/20 shadow-xl">
                     <LocationTagDisplay 
