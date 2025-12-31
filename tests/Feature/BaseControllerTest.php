@@ -625,11 +625,7 @@ class BaseControllerTest extends TestCase
     {
         // Arrange
         $property = Property::factory()->create();
-        
-        // Use fixed dates for current month (December 2025)
-        $currentMonth = '2025-12-01';
-        $previousMonth = '2025-11-30';
-        
+                
         // Create completed bookings for current month
         Booking::factory()->create([
             'property_id' => $property->id,
@@ -650,7 +646,7 @@ class BaseControllerTest extends TestCase
             'property_id' => $property->id,
             'status' => 'completed',
             'total_price' => 800,
-            'check_out_date' => $previousMonth
+            'check_out_date' => '2025-11-30'
         ]);
 
         // Act
