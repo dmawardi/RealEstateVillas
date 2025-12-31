@@ -59,12 +59,9 @@ class AdminPropertyPriceController extends Controller
                 ->exists();
 
             if ($overlapping) {
-                return response()->json([
-                    'message' => 'The date range overlaps with an existing pricing period.',
-                    'errors' => [
-                        'dates' => ['The selected dates overlap with an existing pricing period.']
-                    ]
-                ], 422);
+                return back()->withErrors([
+                    'dates' => 'The selected dates overlap with an existing pricing period.'
+                ])->withInput();
             }
 
             // Create the pricing record
@@ -94,10 +91,7 @@ class AdminPropertyPriceController extends Controller
                 'currency' => $pricing->currency
             ]);
 
-            return response()->json([
-                'message' => 'Property pricing created successfully.',
-                'pricing' => $pricing
-            ]);
+            return back()->with('success', 'Property pricing created successfully.');
 
         } catch (\Exception $e) {
             Log::error('Property pricing creation failed', [
@@ -107,10 +101,7 @@ class AdminPropertyPriceController extends Controller
                 'stack_trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'message' => 'An error occurred while creating the property pricing.',
-                'error' => $e->getMessage()
-            ], 500);
+            return back()->with('error', 'An error occurred while creating the property pricing.')->withInput();
         }
     }
 
@@ -172,12 +163,9 @@ class AdminPropertyPriceController extends Controller
             ]);
 
             if ($overlapping) {
-                return response()->json([
-                    'message' => 'The date range overlaps with an existing pricing period.',
-                    'errors' => [
-                        'dates' => ['The selected dates overlap with an existing pricing period.']
-                    ]
-                ], 422);
+                return back()->withErrors([
+                    'dates' => 'The selected dates overlap with an existing pricing period.'
+                ])->withInput();
             }
 
             // Update the pricing record
@@ -207,10 +195,7 @@ class AdminPropertyPriceController extends Controller
                 'updated_fields' => array_keys($validated)
             ]);
 
-            return response()->json([
-                'message' => 'Property pricing updated successfully.',
-                'pricing' => $pricing->fresh() // Return updated pricing data
-            ]);
+            return back()->with('success', 'Property pricing updated successfully.');
 
         } catch (\Exception $e) {
             Log::error('Property pricing update failed', [
@@ -221,40 +206,32 @@ class AdminPropertyPriceController extends Controller
                 'stack_trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'message' => 'An error occurred while updating the property pricing.',
-                'error' => $e->getMessage()
-            ], 500);
+            return back()->with('error', 'An error occurred while updating the property pricing.')->withInput();
         }
     }
 
-    public function destroy(Property $property, PropertyPrice $pricing)
+    public function destroy(PropertyPrice $pricing)
     {
         try {
             $pricing->delete();
 
             Log::info('Property pricing deleted', [
                 'pricing_id' => $pricing->id,
-                'property_id' => $property->id,
+                'property_id' => $pricing->property_id,
                 'name' => $pricing->name,
             ]);
 
-            return response()->json([
-                'message' => 'Property pricing deleted successfully.'
-            ]);
+            return back()->with('success', 'Property pricing deleted successfully.');
 
         } catch (\Exception $e) {
             Log::error('Property pricing deletion failed', [
                 'error' => $e->getMessage(),
                 'pricing_id' => $pricing->id,
-                'property_id' => $property->id,
+                'property_id' => $pricing->property_id,
                 'stack_trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'message' => 'An error occurred while deleting the property pricing.',
-                'error' => $e->getMessage()
-            ], 500);
+            return back()->with('error', 'An error occurred while deleting the property pricing.');
         }
     }
 }

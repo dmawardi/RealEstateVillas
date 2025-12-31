@@ -61,13 +61,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $pricingData);
+            ->post(route('admin.properties.pricing.store', $this->property), $pricingData);
         
         // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Property pricing created successfully.'
-            ]);
+        $response->assertRedirect()
+            ->assertSessionHas('success', 'Property pricing created successfully.');
 
         $this->assertDatabaseHas('property_pricing', [
             'property_id' => $this->property->id,
@@ -84,11 +82,11 @@ class AdminPropertyPriceControllerTest extends TestCase
     {
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), []);
+            ->post(route('admin.properties.pricing.store', $this->property), []);
         
         // Assert
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors([
+        $response->assertRedirect()
+            ->assertSessionHasErrors([
                 'nightly_rate',
                 'start_date',
                 'end_date'
@@ -107,11 +105,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $pricingData);
+            ->post(route('admin.properties.pricing.store', $this->property), $pricingData);
         
         // Assert
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['end_date']);
+        $response->assertRedirect()
+            ->assertSessionHasErrors(['end_date']);
     }
 
     #[Test]
@@ -131,11 +129,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $pricingData);
+            ->post(route('admin.properties.pricing.store', $this->property), $pricingData);
         
         // Assert
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors([
+        $response->assertRedirect()
+            ->assertSessionHasErrors([
                 'nightly_rate',
                 'weekly_discount_percent',
                 'monthly_discount_percent',
@@ -158,11 +156,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $pricingData);
+            ->post(route('admin.properties.pricing.store', $this->property), $pricingData);
         
         // Assert
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['currency']);
+        $response->assertRedirect()
+            ->assertSessionHasErrors(['currency']);
     }
 
     #[Test]
@@ -183,12 +181,12 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $overlappingData);
+            ->post(route('admin.properties.pricing.store', $this->property), $overlappingData);
         
         // Assert
-        $response->assertStatus(422)
-            ->assertJson([
-                'message' => 'The date range overlaps with an existing pricing period.'
+        $response->assertRedirect()
+            ->assertSessionHasErrors([
+                'dates' => 'The selected dates overlap with an existing pricing period.'
             ]);
     }
 
@@ -210,10 +208,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $adjacentData);
+            ->post(route('admin.properties.pricing.store', $this->property), $adjacentData);
         
         // Assert
-        $response->assertStatus(200);
+        $response->assertRedirect()
+            ->assertSessionHas('success');
         $this->assertDatabaseHas('property_pricing', [
             'property_id' => $this->property->id,
             'start_date' => Carbon::parse('2025-02-01')->startOfDay(),
@@ -233,10 +232,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $pricingData);
+            ->post(route('admin.properties.pricing.store', $this->property), $pricingData);
         
         // Assert
-        $response->assertStatus(200);
+        $response->assertRedirect()
+            ->assertSessionHas('success');
         $this->assertDatabaseHas('property_pricing', [
             'property_id' => $this->property->id,
             'nightly_rate' => 100.00,
@@ -274,13 +274,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->putJson(route('admin.properties.pricing.update', $pricing), $updateData);
+            ->put(route('admin.pricing.update', $pricing), $updateData);
         
         // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Property pricing updated successfully.'
-            ]);
+        $response->assertRedirect()
+            ->assertSessionHas('success', 'Property pricing updated successfully.');
 
         $this->assertDatabaseHas('property_pricing', [
             'id' => $pricing->id,
@@ -314,12 +312,12 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->putJson(route('admin.properties.pricing.update', $pricing1), $updateData);
+            ->put(route('admin.pricing.update', $pricing1), $updateData);
         
         // Assert
-        $response->assertStatus(422)
-            ->assertJson([
-                'message' => 'The date range overlaps with an existing pricing period.'
+        $response->assertRedirect()
+            ->assertSessionHasErrors([
+                'dates' => 'The selected dates overlap with an existing pricing period.'
             ]);
     }
 
@@ -342,10 +340,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->putJson(route('admin.properties.pricing.update', $pricing), $updateData);
+            ->put(route('admin.pricing.update', $pricing), $updateData);
         
         // Assert
-        $response->assertStatus(200);
+        $response->assertRedirect()
+            ->assertSessionHas('success');
         $this->assertDatabaseHas('property_pricing', [
             'id' => $pricing->id,
             'nightly_rate' => 200.00
@@ -372,10 +371,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->putJson(route('admin.properties.pricing.update', $pricing), $updateData);
+            ->put(route('admin.pricing.update', $pricing), $updateData);
         
         // Assert
-        $response->assertStatus(200);
+        $response->assertRedirect()
+            ->assertSessionHas('success');
         $pricing->refresh();
         $this->assertEquals('Existing Name', $pricing->name);
         $this->assertEquals(10.0, $pricing->weekly_discount_percent);
@@ -392,13 +392,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->deleteJson(route('admin.properties.pricing.destroy', $pricing));
+            ->delete(route('admin.pricing.destroy', $pricing));
         
         // Assert
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Property pricing deleted successfully.'
-            ]);
+        $response->assertRedirect()
+            ->assertSessionHas('success', 'Property pricing deleted successfully.');
 
         $this->assertDatabaseMissing('property_pricing', [
             'id' => $pricing->id
@@ -421,15 +419,15 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act & Assert - Regular user cannot access admin routes
         $this->actingAs($this->user)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $pricingData)
+            ->post(route('admin.properties.pricing.store', $this->property), $pricingData)
             ->assertStatus(302); // Redirect for unauthorized
 
         $this->actingAs($this->user)
-            ->putJson(route('admin.properties.pricing.update', $pricing), $pricingData)
+            ->put(route('admin.pricing.update', $pricing), $pricingData)
             ->assertStatus(302);
 
         $this->actingAs($this->user)
-            ->deleteJson(route('admin.properties.pricing.destroy', $pricing))
+            ->delete(route('admin.pricing.destroy', $pricing))
             ->assertStatus(302);
     }
 
@@ -471,10 +469,11 @@ class AdminPropertyPriceControllerTest extends TestCase
             
             // Act
             $response = $this->actingAs($this->admin)
-                ->postJson(route('admin.properties.pricing.store', $this->property), $pricingData);
+                ->post(route('admin.properties.pricing.store', $this->property), $pricingData);
             
             // Assert
-            $response->assertStatus(422, "Failed for scenario: {$scenario['start_date']} to {$scenario['end_date']}");
+            $response->assertRedirect()
+                ->assertSessionHasErrors(['dates'], "Failed for scenario: {$scenario['start_date']} to {$scenario['end_date']}");
         }
     }
 
@@ -498,10 +497,11 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act - Create pricing for different property with overlapping dates
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $property2), $pricingData);
+            ->post(route('admin.properties.pricing.store', $property2), $pricingData);
         
         // Assert - Should succeed since it's a different property
-        $response->assertStatus(200);
+        $response->assertRedirect()
+            ->assertSessionHas('success');
         $this->assertDatabaseHas('property_pricing', [
             'property_id' => $property2->id,
             'start_date' => Carbon::parse('2025-02-15'),
@@ -521,10 +521,10 @@ class AdminPropertyPriceControllerTest extends TestCase
         
         // Act
         $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.properties.pricing.store', $this->property), $pricingData);
+            ->post(route('admin.properties.pricing.store', $this->property), $pricingData);
         
         // Assert - Laravel validation should handle or reject invalid date formats
         // This tests the robustness of date parsing
-        $this->assertTrue(in_array($response->status(), [200, 422]));
+        $this->assertTrue(in_array($response->status(), [302])); // Should redirect (success or validation errors)
     }
 }

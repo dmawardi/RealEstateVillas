@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { formatPrice, formatDate, formatDateForInput } from '@/utils';
 import { Property, PropertyPricing } from '@/types';
-import { PricingApi } from '@/services/api/pricing';
 
 interface Props {
     property: Property;
@@ -157,31 +157,47 @@ const submitPricing = async () => {
     processing.value = true;
     errors.value = {};
 
-    const apiOptions = {
-        onSuccess: (responseData: any) => {
-            console.log('✅ Success:', responseData);
-            closePricingForm();
-            window.location.reload();
-        },
-        onError: (errorData: any) => {
-            console.log('❌ Error:', errorData);
-            
-            if (errorData.errors) {
-                errors.value = errorData.errors;
-                console.log('❌ Validation errors set:', errors.value);
-            } else {
-                alert(`Error: ${errorData.message || 'An error occurred while saving the pricing.'}`);
-            }
-        },
-        onFinish: () => {
-            processing.value = false;
+    const onSuccess = () => {
+        console.log('✅ Pricing saved successfully');
+        closePricingForm();
+        // No need to reload, Inertia will handle the update
+    };
+
+    const onError = (errorData: any) => {
+        console.log('❌ Error:', errorData);
+        
+        if (errorData.errors) {
+            errors.value = errorData.errors;
+            console.log('❌ Validation errors set:', errors.value);
+        } else if (errorData.message) {
+            alert(`Error: ${errorData.message}`);
+        } else {
+            alert('An error occurred while saving the pricing.');
         }
     };
 
-    if (isEditing.value && editingPricing.value) {
-        PricingApi.updatePricing(editingPricing.value.id, pricingForm.value, apiOptions);
-    } else {
-        PricingApi.createPricing(property.slug, pricingForm.value, apiOptions);
+    const onFinish = () => {
+        processing.value = false;
+    };
+
+    try {
+        if (isEditing.value && editingPricing.value) {
+            router.put(route('admin.pricing.update', editingPricing.value.id), pricingForm.value, {
+                onSuccess,
+                onError,
+                onFinish
+            });
+        } else {
+            router.post(route('admin.properties.pricing.store', property.slug), pricingForm.value, {
+                onSuccess,
+                onError,
+                onFinish
+            });
+        }
+    } catch (error) {
+        console.error('❌ Unexpected error:', error);
+        alert('An unexpected error occurred. Please try again.');
+        processing.value = false;
     }
 };
 
@@ -193,12 +209,22 @@ const deletePricing = async (pricing: PropertyPricing) => {
     deleting.value = pricing.id;
 
     try {
-        await PricingApi.deletePricing(pricing.id);
-        window.location.reload(); // Refresh to show updated data
+        router.delete(route('admin.pricing.destroy', pricing.id), {
+            onSuccess: () => {
+                console.log('✅ Pricing deleted successfully');
+                // No need to reload, Inertia will handle the update
+            },
+            onError: (errors: any) => {
+                console.error('❌ Failed to delete pricing:', errors);
+                alert('Failed to delete pricing. Please try again.');
+            },
+            onFinish: () => {
+                deleting.value = null;
+            }
+        });
     } catch (error: any) {
-        console.error('Pricing deletion failed:', error);
-        alert('An error occurred while deleting the pricing. Please try again.');
-    } finally {
+        console.error('❌ Unexpected error deleting pricing:', error);
+        alert('An unexpected error occurred while deleting.');
         deleting.value = null;
     }
 };
@@ -515,8 +541,6 @@ const calculateMonthlyRate = (nightlyRate: number, discountPercent: number) => {
                                     >
                                         <option value="IDR">IDR</option>
                                         <option value="USD">USD</option>
-                                        <option value="EUR">EUR</option>
-                                        <option value="GBP">GBP</option>
                                     </select>
                                 </div>
                             </div>

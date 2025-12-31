@@ -111,6 +111,12 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
     Route::post('admin/properties/{property}/attachments', [\App\Http\Controllers\AdminPropertyAttachmentController::class, 'store'])->name('properties.attachments.store');
     Route::put('admin/attachments/{attachment}', [\App\Http\Controllers\AdminPropertyAttachmentController::class, 'update'])->name('attachments.update');
     Route::delete('admin/attachments/{attachment}', [\App\Http\Controllers\AdminPropertyAttachmentController::class, 'destroy'])->name('attachments.destroy');
+    
+    // Property Pricing
+    Route::get('admin/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'index'])->name('properties.pricing.index');
+    Route::post('admin/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'store'])->name('properties.pricing.store');
+    Route::put('admin/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'update'])->name('pricing.update');
+    Route::delete('admin/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('pricing.destroy');
 });
 
 require __DIR__.'/settings.php';

@@ -32,12 +32,6 @@ Route::middleware(['web', 'auth'])->group(function () {
 Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
     Route::get('admin/properties/available-features', [AdminFeatureController::class, 'getAvailableFeatures'])->name('properties.features');
 
-     // Property Pricing
-    Route::get('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'index'])->name('properties.pricing.index');
-    Route::post('/properties/{property}/pricing', [\App\Http\Controllers\AdminPropertyPriceController::class, 'store'])->name('properties.pricing.store');
-    Route::put('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'update'])->name('properties.pricing.update');
-    Route::delete('/pricing/{pricing}', [\App\Http\Controllers\AdminPropertyPriceController::class, 'destroy'])->name('properties.pricing.destroy');
-    
     // Feature cache management routes
     Route::delete('admin/cache/features', [AdminFeatureController::class, 'clearFeaturesCache'])->name('cache.features.clear');
     Route::post('admin/cache/features/refresh', [AdminFeatureController::class, 'refreshFeaturesCache'])->name('cache.features.refresh');
