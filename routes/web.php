@@ -76,6 +76,10 @@ Route::middleware(['auth', 'verified', 'admin'])->name('admin.')->group(function
     Route::get('admin/properties/{property}/edit', [AdminPropertyController::class, 'edit'])->name('properties.edit');
     Route::put('admin/properties/{property}', [AdminPropertyController::class, 'update'])->name('properties.update');
     Route::delete('admin/properties/{property}', [AdminPropertyController::class, 'destroy'])->name('properties.destroy');
+
+    // Property Notes Management
+    Route::patch('admin/properties/{property}/notes', [AdminPropertyController::class, 'updateNotes'])->name('properties.notes.update');
+
     // Property Features CRUD routes
     Route::get('admin/features', [AdminFeatureController::class, 'index'])->name('features.index');
     Route::get('admin/features/create', [AdminFeatureController::class, 'create'])->name('features.create');

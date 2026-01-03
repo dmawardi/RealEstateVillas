@@ -883,6 +883,37 @@ class AdminPropertyController extends Controller
     }
 
     /**
+     * Update property notes
+     */
+    public function updateNotes(Request $request, Property $property)
+    {
+        $validated = $request->validate([
+            'notes' => 'nullable|string|max:65535', // TEXT column limit
+        ]);
+
+        try {
+            $property->update([
+                'notes' => $validated['notes']
+            ]);
+
+            Log::info('Property notes updated', [
+                'property_id' => $property->id,
+                'updated_by' => auth()->id(),
+            ]);
+
+            return back()->with('success', 'Property notes updated successfully.');
+
+        } catch (\Exception $e) {
+            Log::error('Failed to update property notes', [
+                'property_id' => $property->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Failed to update property notes.');
+        }
+    }
+
+    /**
      * Clear location cache
      */
     public function clearLocationsCache(): bool

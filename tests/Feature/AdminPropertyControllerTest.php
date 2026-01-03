@@ -748,4 +748,211 @@ class AdminPropertyControllerTest extends TestCase
         // Assert
         $response->assertSessionHasErrors(['images']);
     }
+
+    #[Test]
+    public function test_update_notes_successfully_updates_property_notes()
+    {
+        // Arrange
+        $property = Property::factory()->create(['notes' => 'Old notes']);
+        
+        $notesData = [
+            'notes' => 'These are updated notes for the property'
+        ];
+        
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Property notes updated successfully.');
+        $this->assertDatabaseHas('properties', [
+            'id' => $property->id,
+            'notes' => 'These are updated notes for the property'
+        ]);
+    }
+
+    #[Test]
+    public function test_update_notes_handles_empty_notes()
+    {
+        // Arrange
+        $property = Property::factory()->create(['notes' => 'Existing notes']);
+        
+        $notesData = [
+            'notes' => ''
+        ];
+        
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('properties', [
+            'id' => $property->id,
+            'notes' => null // Laravel converts empty string to null during validation
+        ]);
+    }
+
+    #[Test]
+    public function test_update_notes_handles_null_notes()
+    {
+        // Arrange
+        $property = Property::factory()->create(['notes' => 'Existing notes']);
+        
+        $notesData = [
+            'notes' => null
+        ];
+        
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('properties', [
+            'id' => $property->id,
+            'notes' => null
+        ]);
+    }
+
+    #[Test]
+    public function test_update_notes_validates_max_length()
+    {
+        // Arrange
+        $property = Property::factory()->create();
+        
+        // Create notes that exceed the 65535 character limit
+        $longNotes = str_repeat('a', 65536);
+        
+        $notesData = [
+            'notes' => $longNotes
+        ];
+        
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertSessionHasErrors(['notes']);
+    }
+
+    #[Test]
+    public function test_update_notes_accepts_maximum_allowed_length()
+    {
+        // Arrange
+        $property = Property::factory()->create();
+        
+        // Create notes at exactly the 65535 character limit
+        $maxLengthNotes = str_repeat('a', 65535);
+        
+        $notesData = [
+            'notes' => $maxLengthNotes
+        ];
+        
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('properties', [
+            'id' => $property->id,
+            'notes' => $maxLengthNotes
+        ]);
+    }
+
+    #[Test]
+    public function test_update_notes_requires_authentication()
+    {
+        // Arrange
+        $property = Property::factory()->create();
+        
+        $notesData = [
+            'notes' => 'Unauthorized update attempt'
+        ];
+        
+        // Act - without authentication
+        $response = $this->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertRedirect(); // Should redirect to login
+        $this->assertDatabaseMissing('properties', [
+            'id' => $property->id,
+            'notes' => 'Unauthorized update attempt'
+        ]);
+    }
+
+    #[Test]
+    public function test_update_notes_requires_admin_role()
+    {
+        // Arrange
+        $property = Property::factory()->create(['notes' => 'Original notes']);
+        
+        $notesData = [
+            'notes' => 'Regular user update attempt'
+        ];
+        
+        // Act - as regular user
+        $response = $this->actingAs($this->user)
+            ->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertStatus(302); // Redirect for unauthorized access
+        $this->assertDatabaseHas('properties', [
+            'id' => $property->id,
+            'notes' => 'Original notes' // Should remain unchanged
+        ]);
+    }
+
+    #[Test]
+    public function test_update_notes_with_special_characters()
+    {
+        // Arrange
+        $property = Property::factory()->create();
+        
+        $notesData = [
+            'notes' => "Notes with special chars: !@#$%^&*()_+-={}[]|\\:;\"'<>?,./"
+        ];
+        
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('properties', [
+            'id' => $property->id,
+            'notes' => "Notes with special chars: !@#$%^&*()_+-={}[]|\\:;\"'<>?,./"
+        ]);
+    }
+
+    #[Test]
+    public function test_update_notes_with_multiline_content()
+    {
+        // Arrange
+        $property = Property::factory()->create();
+        
+        $multilineNotes = "Line 1\nLine 2\nLine 3\n\nLine 5 after empty line";
+        
+        $notesData = [
+            'notes' => $multilineNotes
+        ];
+        
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.properties.notes.update', $property), $notesData);
+        
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('properties', [
+            'id' => $property->id,
+            'notes' => $multilineNotes
+        ]);
+    }
 }

@@ -625,20 +625,20 @@ class BaseControllerTest extends TestCase
     {
         // Arrange
         $property = Property::factory()->create();
-                
+        
         // Create completed bookings for current month
         Booking::factory()->create([
             'property_id' => $property->id,
             'status' => 'completed',
             'total_price' => 1000,
-            'check_out_date' => '2025-12-05'
+            'check_out_date' => now()->startOfMonth()->addDays(5)
         ]);
         
         Booking::factory()->create([
             'property_id' => $property->id,
             'status' => 'completed',
             'total_price' => 1500,
-            'check_out_date' => '2025-12-15'
+            'check_out_date' => now()->startOfMonth()->addDays(15)
         ]);
 
         // Create booking for previous month (should not be included)
@@ -646,7 +646,7 @@ class BaseControllerTest extends TestCase
             'property_id' => $property->id,
             'status' => 'completed',
             'total_price' => 800,
-            'check_out_date' => '2025-11-30'
+            'check_out_date' => now()->startOfMonth()->subMonth()
         ]);
 
         // Act

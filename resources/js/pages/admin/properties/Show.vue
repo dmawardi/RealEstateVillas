@@ -11,6 +11,7 @@ import PropertyBookings from '@/components/properties/admin/PropertyBookings.vue
 import { Booking } from '@/types';
 import PropertyAttachments from '@/components/properties/admin/PropertyAttachments.vue';
 import AdminPropertyPricing from '@/components/properties/admin/pricing/AdminPropertyPricing.vue';
+import PropertyNotes from '@/components/properties/admin/PropertyNotes.vue';
 
 
 interface Props {
@@ -119,6 +120,10 @@ const deleteProperty = () => {
                         :price-types="priceTypes"
                     />
 
+                    <PropertyNotes
+                        :property="property"
+                    />
+
                     <!-- Address & Location -->
                     <PropertyAddressLocation
                         :property="property"
@@ -188,14 +193,6 @@ const deleteProperty = () => {
                             <div v-if="current_pricing.nightly_rate">
                                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Nightly Rate</span>
                                 <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ formatPrice(current_pricing.nightly_rate) }}</p>
-                            </div>
-                            <div v-if="current_pricing.weekly_rate">
-                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Weekly Rate</span>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ formatPrice(current_pricing.weekly_rate) }}</p>
-                            </div>
-                            <div v-if="current_pricing.monthly_rate">
-                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Rate</span>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ formatPrice(current_pricing.monthly_rate) }}</p>
                             </div>
                             <div>
                                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Currency</span>
