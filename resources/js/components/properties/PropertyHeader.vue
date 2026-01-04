@@ -136,6 +136,10 @@ const detailedPricing = computed((): DetailedPricing | null => {
                             </p>
                         </div>
                     </div>
+                    <div v-else>
+                        <!-- Price not available -->
+                        {{ property.listing_type === 'for_rent' ? 'Contact for Rent Price' : formatPrice(property.price ?? 0) }}
+                    </div>
                 </div>
                 <div class="text-sm text-gray-500 capitalize">
                     {{ formatPropertyType(property.listing_type) }}
