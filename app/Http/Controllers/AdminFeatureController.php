@@ -59,7 +59,7 @@ class AdminFeatureController extends Controller
             'slug' => 'required|string|max:255|unique:features,slug',
             'category' => 'required|string|max:100',
             'description' => 'nullable|string',
-            'icon' => 'nullable|string|max:100',
+            'icon' => 'nullable|string|max:65535', // Allow large SVG content
             'is_quantifiable' => 'required|boolean',
             'is_active' => 'required|boolean',
         ]);
@@ -84,7 +84,7 @@ class AdminFeatureController extends Controller
             'slug' => 'sometimes|string|max:255|unique:features,slug,' . $feature->id,
             'category' => 'sometimes|string|max:100',
             'description' => 'sometimes|nullable|string',
-            'icon' => 'sometimes|nullable|string|max:100',
+            'icon' => 'sometimes|nullable|string|max:65535', // Allow large SVG content
             'is_quantifiable' => 'sometimes|boolean',
             'is_active' => 'sometimes|boolean',
         ]);
