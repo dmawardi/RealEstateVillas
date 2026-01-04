@@ -64,6 +64,7 @@ const loadAvailableFeatures = async () => {
 
         // The response is grouped by category, we need to flatten it
         if (response) {
+            console.log('Available features loaded:', response);
             // Flatten the grouped features into a single array
             availableFeatures.value = Object.values(response).flat() as Feature[];
         } else {
