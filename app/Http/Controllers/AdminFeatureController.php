@@ -112,12 +112,16 @@ class AdminFeatureController extends Controller
             // Try to get features from cache first
             $features = Cache::remember(self::FEATURES_CACHE_KEY, self::CACHE_DURATION, function () {
                 
-                return Feature::where('is_active', true)
+                return Feature::where(function($query) {
+                    $query->where('is_active', true)
+                          ->orWhere('is_active', '1')
+                          ->orWhere('is_active', 'true');
+                })
                 ->select('id', 'name', 'slug', 'category', 'icon', 'is_quantifiable')
                 ->orderBy('category')
                 ->orderBy('name')
-                ->groupBy('category') // Group by category for better organization
-                ->get();
+                ->get()
+                ->groupBy('category'); // Group by category for better organization
             });
 
             return response()->json($features)
