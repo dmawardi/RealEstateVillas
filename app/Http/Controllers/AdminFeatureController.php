@@ -113,11 +113,11 @@ class AdminFeatureController extends Controller
             $features = Cache::remember(self::FEATURES_CACHE_KEY, self::CACHE_DURATION, function () {
                 
                 return Feature::where('is_active', true)
-                ->select('id', 'name', 'slug', 'category', 'icon')
+                ->select('id', 'name', 'slug', 'category', 'icon', 'is_quantifiable')
                 ->orderBy('category')
                 ->orderBy('name')
-                ->get()
-                ->groupBy('category'); // Group by category for better organization
+                ->groupBy('category') // Group by category for better organization
+                ->get();
             });
 
             return response()->json($features)
