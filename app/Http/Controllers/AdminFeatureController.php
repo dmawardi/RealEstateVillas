@@ -16,7 +16,7 @@ class AdminFeatureController extends Controller
     private const FEATURES_CACHE_KEY = 'available_features_for_filtering';
     
     /**
-     * Cache duration in seconds (24 hours)
+     * Cache duration in seconds (6 hours)
      */
     private const CACHE_DURATION = 60 * 60 * 6;
 
@@ -66,6 +66,9 @@ class AdminFeatureController extends Controller
 
         Feature::create($validated);
 
+        // Clear the features cache since a new feature is added
+        $this->clearFeaturesCache();
+
         return redirect()->route('admin.features.index')
             ->with('success', 'Feature created successfully.');
     }
@@ -91,6 +94,9 @@ class AdminFeatureController extends Controller
 
         $feature->update($validated);
 
+        // Clear the features cache since a feature is updated
+        $this->clearFeaturesCache();
+
         return redirect()->route('admin.features.index')
             ->with('success', 'Feature updated successfully.');
     }
@@ -112,7 +118,7 @@ class AdminFeatureController extends Controller
             // Try to get features from cache first
             $features = Cache::remember(self::FEATURES_CACHE_KEY, self::CACHE_DURATION, function () {
                 
-                return Feature::where(function($query) {
+                $groupedFeatures = Feature::where(function($query) {
                     $query->where('is_active', true)
                           ->orWhere('is_active', '1')
                           ->orWhere('is_active', 'true');
@@ -122,6 +128,8 @@ class AdminFeatureController extends Controller
                 ->orderBy('name')
                 ->get()
                 ->groupBy('category'); // Group by category for better organization
+
+                return $groupedFeatures;
             });
 
             return response()->json($features)
