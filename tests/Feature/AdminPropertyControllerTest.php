@@ -81,6 +81,17 @@ class AdminPropertyControllerTest extends TestCase
             $page->component('admin/properties/Index')
             ->has('properties.data', 1)
         );
+
+        // Act - search by property_id
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.properties.index', ['search' => 'DEF456']));
+        
+        // Assert
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) =>
+            $page->component('admin/properties/Index')
+            ->has('properties.data', 1)
+        );
     }
 
     #[Test]
