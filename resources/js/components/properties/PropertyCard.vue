@@ -4,8 +4,9 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import type { DetailedPricing, Property } from '@/types';
 import { formatPrice } from '@/utils/formatters';
 import CardImageGallery from '@/components/properties/CardImageGallery.vue';
+import DetailedPricingDisplay from '@/components/properties/DetailedPricingDisplay.vue';
 import { MapPin, BedSingleIcon, BathIcon, LandPlotIcon, Heart } from 'lucide-vue-next';
-import { calculateRates, getPriceDisplay, propertyTypeLabels } from '@/utils';
+import { calculateRates, propertyTypeLabels } from '@/utils';
 
 interface Props {
     property: Property;
@@ -83,6 +84,63 @@ const detailedPricing = computed((): DetailedPricing | null => {
         },
         periodName: currentPricing.name ?? undefined
     };
+});
+
+// Primary price display logic
+const primaryPriceDisplay = computed(() => {
+    // For sale properties - use the single price from properties table
+    if (property.listing_type === 'for_sale') {
+        if (property.price) {
+            return formatPrice(property.price);
+        }
+        return 'Price on Application';
+    }
+    
+    // For rent properties - use pricing calculations
+    if (property.listing_type === 'for_rent') {
+        const currentPricing = property.pricing && property.pricing.length > 0 
+            ? property.pricing[0] 
+            : null;
+        
+        if (currentPricing) {
+            const rates = calculateRates(currentPricing);
+            
+            if (rates) {
+                // Primary display: nightly rate
+                const nightlyDisplay = `${formatPrice(rates.nightly)}/night`;
+                
+                // Add weekly rate with discount info if greater discount
+                if (rates.weeklyDiscount >= rates.monthlyDiscount) {
+                    const weeklyDisplay = `${formatPrice(rates.weekly)}/week`;
+                    return `<p>${nightlyDisplay} •</p><p>${weeklyDisplay}</p>`;
+                }
+                
+                // Add monthly rate with discount info if greater discount
+                if (rates.monthlyDiscount > rates.weeklyDiscount) {
+                    const monthlyDisplay = `${formatPrice(rates.monthly)}/month`;
+                    return `<p>${nightlyDisplay} •</p><p>${monthlyDisplay}</p>`;
+                }
+                
+                // Show just nightly + monthly for context if no significant discounts
+                if (rates.monthly && rates.monthly !== rates.nightly * 30) {
+                    return `${nightlyDisplay} • ${formatPrice(rates.monthly)}/month`;
+                }
+                
+                return nightlyDisplay;
+            }
+            
+            // Fallback to stored rates if calculation fails
+            if (currentPricing.nightly_rate) {
+                return `${formatPrice(currentPricing.nightly_rate)}/night`;
+            }
+        }
+        
+        // No pricing found
+        return 'Rental Rate on Application';
+    }
+    
+    // For other listing types (sold, off_market)
+    return 'Price on Application';
 });
 
 // Property type badge color
@@ -182,27 +240,15 @@ const listingTypeColor = computed(() => {
                     <div :class="[
                         'text-2xl font-bold font-display transition-all duration-300 group-hover:scale-105',
                         listingTypeColor
-                    ]" v-html="getPriceDisplay(property)">
+                    ]" v-html="primaryPriceDisplay">
                     </div>
                     
                     <!-- Show pricing period name and additional rates for rentals -->
-                    <div v-if="detailedPricing" class="mt-3 space-y-2">
-                        <div class="text-sm font-body text-primary/60 dark:text-gray-400 space-y-1">
-                            <p v-if="detailedPricing.weekly.hasDiscount" class="flex items-center gap-2 truncate">
-                                <span class="font-medium text-primary/80">Weekly:</span> 
-                                <span class="font-semibold">{{ detailedPricing.weekly.display }}</span>
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 font-medium border border-green-200">
-                                    {{ detailedPricing.weekly.discount }}% off
-                                </span>
-                            </p>
-                            <p v-if="detailedPricing.monthly.hasDiscount" class="flex items-center gap-2 truncate">
-                                <span class="font-medium text-primary/80">Monthly:</span> 
-                                <span class="font-semibold">{{ detailedPricing.monthly.display }}</span>
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 font-medium border border-green-200">
-                                    {{ detailedPricing.monthly.discount }}% off
-                                </span>
-                            </p>
-                        </div>
+                    <div v-if="detailedPricing" class="mt-3">
+                        <DetailedPricingDisplay 
+                            :pricing="detailedPricing" 
+                            textClass="text-sm font-body text-primary/60 dark:text-gray-400" 
+                        />
                     </div>
                 </div>
 

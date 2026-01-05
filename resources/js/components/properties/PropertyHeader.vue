@@ -5,6 +5,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import { formatPrice, formatPropertyType } from '@/utils/formatters'; // Importing formatPrice utility
 import { MapPin, Heart } from 'lucide-vue-next';
 import { calculateRates } from '@/utils';
+import DetailedPricingDisplay from './DetailedPricingDisplay.vue';
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
@@ -121,20 +122,8 @@ const detailedPricing = computed((): DetailedPricing | null => {
             <div class="text-right">
                 <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
                     <!-- Show pricing period name and additional rates for rentals -->
-                    <div v-if="detailedPricing" class="mt-1 space-y-1">
-                        <div class="text-lg text-gray-600 dark:text-gray-300">
-                            <p class="truncate">
-                                Nightly: {{ detailedPricing.nightly.display }}
-                            </p>
-                            <p v-if="detailedPricing.weekly.hasDiscount && (!detailedPricing.monthly.hasDiscount || detailedPricing.weekly.discount >= detailedPricing.monthly.discount)" class="truncate">
-                                Weekly: {{ detailedPricing.weekly.display }}
-                                <span class="text-green-600">({{ detailedPricing.weekly.discount }}% off)</span>
-                            </p>
-                            <p v-else-if="detailedPricing.monthly.hasDiscount && (!detailedPricing.weekly.hasDiscount || detailedPricing.monthly.discount > detailedPricing.weekly.discount)" class="truncate">
-                                Monthly: {{ detailedPricing.monthly.display }}
-                                <span class="text-green-600">({{ detailedPricing.monthly.discount }}% off)</span>
-                            </p>
-                        </div>
+                    <div v-if="detailedPricing" class="mt-1">
+                        <DetailedPricingDisplay :pricing="detailedPricing" />
                     </div>
                     <div v-else>
                         <!-- Price not available -->
