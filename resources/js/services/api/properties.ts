@@ -65,8 +65,4 @@ export class PropertyApi extends ApiService {
     static getAvailableFeatures(options = {}) {
         return this.get(`/admin/properties/available-features`, options);
     }
-
-    static getAllFeatures(options = {}) {
-        return this.get('/properties/available-features', options);
-    }
 }

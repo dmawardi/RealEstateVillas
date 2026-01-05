@@ -80,30 +80,35 @@ const fetchFeatures = async () => {
         isLoading.value = true;
         error.value = null;
         
-        const response: any = await PropertyApi.getAllFeatures();
+        const response: any = await PropertyApi.getAvailableFeatures();
 
-        // The response is already the features object, not wrapped in a success property
-        if (response && typeof response === 'object') {
+        // The response is grouped by category, we need to flatten it
+        if (response) {
+            // Use the response directly as it's already grouped by category
             features.value = response;
             
             // Auto-expand categories that have selected features
             Object.entries(response).forEach(([categoryName, categoryFeatures]) => {
-                const hasSelected = (categoryFeatures as Feature[]).some(feature => 
-                    selectedFeatures.value.includes(feature.id)
-                );
-                if (hasSelected) {
-                    expandedCategories.value.add(categoryName);
-                }
-            });
+            // Convert Laravel Collection to array if needed and check for selected features
+            const featuresArray = Array.isArray(categoryFeatures) ? categoryFeatures : Object.values(categoryFeatures as Record<string, Feature>);
+            const hasSelected = featuresArray.some((feature: Feature) => 
+                selectedFeatures.value.includes(feature.id)
+            );
+            if (hasSelected) {
+                expandedCategories.value.add(categoryName);
+            }
+
+            isLoading.value = false;
+
+        });
         } else {
-            error.value = 'Invalid response format';
-            console.error('Invalid API response format:', response);
+            console.error('API returned empty response');
+            features.value = {};
         }
-    } catch (err) {
-        error.value = err instanceof Error ? err.message : 'Failed to load features';
-        console.error('Error fetching features:', err);
-    } finally {
-        isLoading.value = false;
+    } catch (error: any) {
+        console.error('Failed to load available features:', error);
+        features.value = {};
+        error.value = 'Failed to load features';
     }
 };
 
