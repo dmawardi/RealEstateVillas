@@ -7,32 +7,6 @@ interface Props {
 
 const { features } = defineProps<Props>();
 
-// Helper function to get feature icon based on name
-const getFeatureIcon = (featureName: string) => {
-    const iconMap: Record<string, string> = {
-        'swimming pool': '🏊‍♂️',
-        'wifi': '📶',
-        'air conditioning': '❄️',
-        'parking': '🚗',
-        'garden': '🌿',
-        'balcony': '🏠',
-        'terrace': '🏡',
-        'kitchen': '🍳',
-        'gym': '💪',
-        'security': '🔒',
-        'laundry': '👕',
-        'furnished': '🛋️',
-        'pets allowed': '🐕',
-        'beach access': '🏖️',
-        'mountain view': '🏔️',
-        'ocean view': '🌊',
-        'rice field view': '🌾',
-    };
-    
-    const normalizedName = featureName.toLowerCase();
-    return iconMap[normalizedName] || '✓';
-};
-
 // Group features by category (optional enhancement)
 const groupedFeatures = features.reduce((groups: Record<string, Feature[]>, feature) => {
     const category = feature.category || 'Other';
@@ -75,9 +49,8 @@ const hasCategories = Object.keys(groupedFeatures).length > 1 && features.some(f
                             :key="feature.id"
                             class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                         >
-                            <div class="flex-shrink-0">
-                                <span class="text-lg">{{ getFeatureIcon(feature.name) }}</span>
-                            </div>
+                            <div v-if="feature.icon" class="flex-shrink-0 w-5 h-5 text-gray-400 dark:text-gray-500" v-html="feature.icon" />
+                            
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                                     {{ feature.name }}
@@ -105,7 +78,7 @@ const hasCategories = Object.keys(groupedFeatures).length > 1 && features.some(f
                     class="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600"
                 >
                     <div class="flex-shrink-0">
-                        <span class="text-xl">{{ getFeatureIcon(feature.name) }}</span>
+                        <div class="w-5 h-5 text-gray-400 dark:text-gray-500" v-html="feature.icon"/>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -132,7 +105,10 @@ const hasCategories = Object.keys(groupedFeatures).length > 1 && features.some(f
                         :key="`tag-${feature.id}`"
                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                     >
-                        {{ getFeatureIcon(feature.name) }} {{ feature.name }}
+                        <div class="flex">
+                            <div v-if="feature.icon" class="w-5 h-5 text-gray-400 dark:text-gray-500" v-html="feature.icon"/>
+                            <span>{{ feature.name }}</span>
+                        </div>
                     </span>
                     <span v-if="features.length > 8" 
                           class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">

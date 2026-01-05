@@ -125,6 +125,7 @@ const saveEdit = async (attachmentId: number) => {
     
     try {
         router.put(route('admin.attachments.update', attachmentId), editForm.value, {
+            preserveScroll: true,
             onSuccess: () => {
                 emit('attachment-updated', { id: attachmentId, ...editForm.value });
                 editingAttachment.value = null;
@@ -236,6 +237,7 @@ const handleFileUpload = async () => {
         
         router.post(route('admin.properties.attachments.store', property.slug), formData, {
             forceFormData: true,
+            preserveScroll: true,
             onProgress: () => {
                 // Update progress if browser supports it
                 uploadProgress.value = Math.min(95, uploadProgress.value + 5);
