@@ -329,7 +329,7 @@ watch(showDatePicker, (isOpen) => {
                         Login to Book
                     </a>
                     <a 
-                        :href="'https://wa.me/' + businessPhone" 
+                        :href="'https://wa.me/' + props.businessPhone + '?text=' + encodeURIComponent('Hi, I am interested in property #' + props.property.property_id)"
                         target="_blank"
                         class="bg-green-600 text-white py-2 px-4 rounded-lg text-center font-medium hover:bg-green-700 transition-colors text-sm"
                     >
