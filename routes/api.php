@@ -27,10 +27,12 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::delete('/bookings/{booking}', [\App\Http\Controllers\BookingController::class, 'destroy'])->name('properties.bookings.destroy');
 });
 
+// Public route to get available features for properties
+Route::get('admin/properties/available-features', [AdminFeatureController::class, 'getAvailableFeatures'])->name('properties.features');
+
 // Property feature management routes
 // Admin routes
 Route::middleware(['web', 'auth', 'admin'])->name('admin.')->group(function () {
-    Route::get('admin/properties/available-features', [AdminFeatureController::class, 'getAvailableFeatures'])->name('properties.features');
 
     // Feature cache management routes
     Route::delete('admin/cache/features', [AdminFeatureController::class, 'clearFeaturesCache'])->name('cache.features.clear');
