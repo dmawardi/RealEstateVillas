@@ -368,26 +368,6 @@ class AdminFeatureControllerTest extends TestCase
     }
 
     #[Test]
-    public function test_get_available_features_requires_authentication()
-    {
-        // Act - No authentication
-        $response = $this->getJson(route('admin.properties.features'));
-
-        // Assert
-        $response->assertStatus(401);
-    }
-
-    #[Test]
-    public function test_get_available_features_requires_admin_role()
-    {
-        // Act - Regular user trying to access admin endpoint
-        $response = $this->actingAs($this->user)->getJson(route('admin.properties.features'));
-
-        // Assert
-        $response->assertStatus(302);
-    }
-
-    #[Test]
     public function test_get_available_features_returns_active_features_grouped_by_category()
     {
         // Arrange - Clear cache first to ensure fresh test
@@ -426,7 +406,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($this->admin)->getJson(route('admin.properties.features'));
+        $response = $this->actingAs($this->admin)->getJson(route('properties.features'));
 
         // Assert
         $response->assertStatus(200);
@@ -487,7 +467,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
 
         // First request - should populate cache
-        $response1 = $this->actingAs($this->admin)->getJson(route('admin.properties.features'));
+        $response1 = $this->actingAs($this->admin)->getJson(route('properties.features'));
         $response1->assertStatus(200);
         
         // Verify cache is now populated
@@ -497,7 +477,7 @@ class AdminFeatureControllerTest extends TestCase
         $cachedData = Cache::get('available_features_for_filtering');
         
         // Second request - should use cache
-        $response2 = $this->actingAs($this->admin)->getJson(route('admin.properties.features'));
+        $response2 = $this->actingAs($this->admin)->getJson(route('properties.features'));
         $response2->assertStatus(200);
         
         // Verify cache still exists after second request
@@ -514,7 +494,7 @@ class AdminFeatureControllerTest extends TestCase
     public function test_get_available_features_handles_empty_results()
     {
         // Act - No features in database
-        $response = $this->actingAs($this->admin)->getJson(route('admin.properties.features'));
+        $response = $this->actingAs($this->admin)->getJson(route('properties.features'));
 
         // Assert
         $response->assertStatus(200);
@@ -534,7 +514,7 @@ class AdminFeatureControllerTest extends TestCase
         Cache::shouldReceive('remember')->andThrow(new \Exception('Database connection failed'));
 
         // Act
-        $response = $this->actingAs($this->admin)->getJson(route('admin.properties.features'));
+        $response = $this->actingAs($this->admin)->getJson(route('properties.features'));
 
         // Assert
         $response->assertStatus(500);
@@ -549,7 +529,7 @@ class AdminFeatureControllerTest extends TestCase
     {
         // Arrange - Create feature and cache it
         Feature::factory()->create(['is_active' => true]);
-        $this->actingAs($this->admin)->getJson(route('admin.properties.features')); // This caches the data
+        $this->actingAs($this->admin)->getJson(route('properties.features')); // This caches the data
 
         // Verify cache exists
         $this->assertTrue(Cache::has('available_features_for_filtering'));
@@ -575,7 +555,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
 
         // Cache some data first
-        $this->actingAs($this->admin)->getJson(route('admin.properties.features'));
+        $this->actingAs($this->admin)->getJson(route('properties.features'));
         $this->assertTrue(Cache::has('available_features_for_filtering'));
 
         // Act
@@ -618,7 +598,7 @@ class AdminFeatureControllerTest extends TestCase
     {
         // Arrange - Create feature and cache it
         Feature::factory()->create(['is_active' => true]);
-        $this->actingAs($this->admin)->getJson(route('admin.properties.features')); // This caches the data
+        $this->actingAs($this->admin)->getJson(route('properties.features')); // This caches the data
 
         // Act
         $response = $this->actingAs($this->admin)->getJson(route('admin.cache.features.info'));
@@ -684,7 +664,7 @@ class AdminFeatureControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($this->admin)->getJson(route('admin.properties.features'));
+        $response = $this->actingAs($this->admin)->getJson(route('properties.features'));
 
         // Assert
         $response->assertStatus(200);
