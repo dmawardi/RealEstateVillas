@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\BookingConfirmationAdminMail;
-use App\Mail\BookingConfirmationMail;
+use App\Mail\BookingReceivedAdminMail;
+use App\Mail\BookingReceivedMail;
 use App\Mail\BookingUpdateAdminMail;
 use App\Models\Booking;
 use App\Models\Property;
@@ -182,7 +182,7 @@ class BookingController extends Controller
         if ($booking->email) {
             try {
                 // Mail to user
-                Mail::to($booking->email)->queue(new BookingConfirmationMail($booking));
+                Mail::to($booking->email)->queue(new BookingReceivedMail($booking));
                 
                 Log::info('Booking confirmation email queued', [
                     'booking_id' => $booking->id,
@@ -190,7 +190,7 @@ class BookingController extends Controller
                 ]);
 
                 // Mail to admin
-                Mail::to(config('app.business_email'))->queue(new BookingConfirmationAdminMail($booking));
+                Mail::to(config('app.business_email'))->queue(new BookingReceivedAdminMail($booking));
             } catch (\Exception $emailError) {
                 // Don't fail the booking if email fails
                 Log::error('Failed to queue booking confirmation email', [

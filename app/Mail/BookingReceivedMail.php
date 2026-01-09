@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class BookingConfirmationMail extends Mailable
+class BookingReceivedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -31,7 +31,7 @@ class BookingConfirmationMail extends Mailable
     {
         return new Envelope(
             from: config('app.mail_from_address'),
-            subject: 'Booking Confirmation - ' . $this->booking->property->title,
+            subject: 'Booking Received - ' . $this->booking->property->title,
             replyTo: config('app.mail_from_address'),
         );
     }
@@ -42,7 +42,7 @@ class BookingConfirmationMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.booking-confirmation',
+            view: 'emails.booking-received',
             with: [
                 'booking' => $this->booking,
                 'property' => $this->booking->property,

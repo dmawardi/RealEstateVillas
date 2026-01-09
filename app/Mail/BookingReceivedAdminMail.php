@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class BookingConfirmationAdminMail extends Mailable
+class BookingReceivedAdminMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -33,7 +33,7 @@ class BookingConfirmationAdminMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.booking-confirmation-admin',
+            view: 'emails.booking-received-admin',
             with: [
                 'booking' => $this->booking,
                 'property' => $this->booking->property,

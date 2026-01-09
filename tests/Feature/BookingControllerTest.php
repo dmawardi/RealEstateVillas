@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Mail\BookingConfirmationAdminMail;
-use App\Mail\BookingConfirmationMail;
+use App\Mail\BookingReceivedAdminMail;
+use App\Mail\BookingReceivedMail;
 use App\Mail\BookingUpdateAdminMail;
 use App\Models\Booking;
 use App\Models\Property;
@@ -197,8 +197,8 @@ class BookingControllerTest extends TestCase
             'source' => 'direct'
         ]);
 
-        Mail::assertQueued(BookingConfirmationMail::class);
-        Mail::assertQueued(BookingConfirmationAdminMail::class);
+        Mail::assertQueued(BookingReceivedMail::class);
+        Mail::assertQueued(BookingReceivedAdminMail::class);
     }
 
     #[Test]
