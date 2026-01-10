@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingConfirmedMail;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Services\AvailabilityService;
@@ -9,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class AdminBookingController extends Controller
@@ -334,7 +336,7 @@ class AdminBookingController extends Controller
             if ($request->boolean('send_confirmation_email') && $booking->email) {
                 try {
                     // Only import and send if email is requested
-                    $mailClass = new \App\Mail\BookingConfirmationMail($booking);
+                    $mailClass = new \App\Mail\BookingReceivedMail($booking);
                     \Illuminate\Support\Facades\Mail::to($booking->email)->queue($mailClass);
                     
                     Log::info('Admin booking confirmation email queued', [
@@ -421,7 +423,7 @@ class AdminBookingController extends Controller
         // Similar validation as store but for updating
         $validated = $request->validate([
             // Property selection
-            'property_id' => 'required|exists:properties,id',
+            'property_id' => 'nullable|exists:properties,id',
             
             // Guest Information
             'first_name' => 'nullable|string|max:255',
@@ -430,16 +432,16 @@ class AdminBookingController extends Controller
             'phone' => 'nullable|string|max:255',
             
             // Booking Details
-            'check_in_date' => 'required|date',
-            'check_out_date' => 'required|date|after:check_in_date',
-            'number_of_guests' => 'required|integer|min:1|max:50',
+            'check_in_date' => 'nullable|date',
+            'check_out_date' => 'nullable|date|after:check_in_date',
+            'number_of_guests' => 'nullable|integer|min:1|max:50',
             'number_of_rooms' => 'nullable|integer|min:1|max:20',
-            'total_price' => 'required|numeric|min:0',
+            'total_price' => 'nullable|numeric|min:0',
             
             // Booking Configuration
-            'status' => 'required|in:pending,confirmed,cancelled,completed,withdrawn',
-            'source' => 'required|in:direct,airbnb,booking_com,agoda,owner_blocked,maintenance,other',
-            'booking_type' => 'required|in:booking,inquiry,blocked,maintenance',
+            'status' => 'nullable|in:pending,confirmed,cancelled,completed,withdrawn',
+            'source' => 'nullable|in:direct,airbnb,booking_com,agoda,owner_blocked,maintenance,other',
+            'booking_type' => 'nullable|in:booking,inquiry,blocked,maintenance',
             'external_booking_id' => 'nullable|string|max:255',
             
             // Commission Details
@@ -455,12 +457,17 @@ class AdminBookingController extends Controller
         ]);
 
         // Get the property and parse dates BEFORE starting transaction
-        $property = Property::findOrFail($validated['property_id']);
-        $checkInDate = Carbon::parse($validated['check_in_date']);
-        $checkOutDate = Carbon::parse($validated['check_out_date']);
+        $property = Property::findOrFail($validated['property_id'] ?? $booking->property_id);
+        $checkInDate = Carbon::parse($validated['check_in_date'] ?? $booking->check_in_date);
+        $checkOutDate = Carbon::parse($validated['check_out_date'] ?? $booking->check_out_date);
         
-        // Check availability BEFORE transaction for confirmed/completed bookings
-        if (in_array($validated['status'], ['confirmed', 'completed'])) {
+        // Determine status values
+        $currentStatus = $booking->status;
+        $newStatus = $validated['status'] ?? $currentStatus;
+        $isStatusChangingToConfirmed = $currentStatus !== $newStatus && $newStatus === 'confirmed';
+        
+        // Check availability ONLY if status is being changed to confirmed
+        if ($isStatusChangingToConfirmed) {
             if (!$request->boolean('override_availability_check')) {
                 $isAvailable = $this->availabilityService->isPropertyAvailable(
                     $property,
@@ -470,14 +477,6 @@ class AdminBookingController extends Controller
                 );
                 
                 if (!$isAvailable) {
-                    if ($request->expectsJson()) {
-                        return response()->json([
-                            'message' => 'The selected dates are not available for this property.',
-                            'errors' => [
-                                'check_in_date' => ['The selected dates are not available for this property.']
-                            ]
-                        ], 422);
-                    }
                     return back()->with('error', 'The selected dates are not available for this property.');
                 }
             }
@@ -509,34 +508,35 @@ class AdminBookingController extends Controller
             ]);
 
             // Calculate commission amount if rate is provided and amount is not explicitly set
-            $commissionAmount = $validated['commission_amount'] ?? null;
-            if (isset($validated['commission_rate']) && $validated['total_price'] && !$commissionAmount) {
-                $commissionAmount = ($validated['total_price'] * $validated['commission_rate']) / 100;
+            $commissionAmount = $validated['commission_amount'] ?? $booking->commission_amount;
+            $totalPrice = $validated['total_price'] ?? $booking->total_price;
+            if (isset($validated['commission_rate']) && $totalPrice && !$commissionAmount) {
+                $commissionAmount = ($totalPrice * $validated['commission_rate']) / 100;
             }
             
             // Update the booking
             $booking->update([
                 'property_id' => $property->id,
                 'user_id' => $userId,
-                'first_name' => $validated['first_name'] ?? null,
-                'last_name' => $validated['last_name'] ?? null,
-                'email' => $validated['email'] ?? null,
-                'phone' => $validated['phone'] ?? null,
+                'first_name' => $validated['first_name'] ?? $booking->first_name,
+                'last_name' => $validated['last_name'] ?? $booking->last_name,
+                'email' => $validated['email'] ?? $booking->email,
+                'phone' => $validated['phone'] ?? $booking->phone,
                 'check_in_date' => $checkInDate->format('Y-m-d'),
                 'check_out_date' => $checkOutDate->format('Y-m-d'),
-                'number_of_guests' => $validated['number_of_guests'],
-                'number_of_rooms' => $validated['number_of_rooms'] ?? null,
-                'total_price' => $validated['total_price'],
-                'status' => $validated['status'],
-                'source' => $validated['source'],
-                'booking_type' => $validated['booking_type'],
-                'external_booking_id' => $validated['external_booking_id'] ?? null,
-                'commission_rate' => $validated['commission_rate'] ?? null,
+                'number_of_guests' => $validated['number_of_guests'] ?? $booking->number_of_guests,
+                'number_of_rooms' => $validated['number_of_rooms'] ?? $booking->number_of_rooms,
+                'total_price' => $totalPrice,
+                'status' => $newStatus,
+                'source' => $validated['source'] ?? $booking->source,
+                'booking_type' => $validated['booking_type'] ?? $booking->booking_type,
+                'external_booking_id' => $validated['external_booking_id'] ?? $booking->external_booking_id,
+                'commission_rate' => $validated['commission_rate'] ?? $booking->commission_rate,
                 'commission_amount' => $commissionAmount,
-                'commission_paid' => $validated['commission_paid'] ?? false,
-                'flexible_dates' => $validated['flexible_dates'] ?? false,
-                'special_requests' => $validated['special_requests'] ?? null,
-                'notes' => $validated['notes'] ?? null,
+                'commission_paid' => $validated['commission_paid'] ?? $booking->commission_paid,
+                'flexible_dates' => $validated['flexible_dates'] ?? $booking->flexible_dates,
+                'special_requests' => $validated['special_requests'] ?? $booking->special_requests,
+                'notes' => $validated['notes'] ?? $booking->notes,
             ]);
             
             Log::info('Admin booking updated', [
@@ -550,14 +550,13 @@ class AdminBookingController extends Controller
                 'changes' => $booking->getChanges()
             ]);
 
+            // Commit transaction
             DB::commit();
-
-            // Return appropriate response based on request type
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Booking updated successfully.',
-                    'booking' => $booking->load('property')
-                ]);
+            
+            // Send notification email if status updated from pending to confirmed
+            if ($booking->wasChanged('status') && $booking->status === 'confirmed' && $booking->email) {
+                    $mailClass = new BookingConfirmedMail($booking);
+                    Mail::to($booking->email)->queue($mailClass);
             }
 
             return back()->with('success', 'Booking updated successfully.');
@@ -573,13 +572,6 @@ class AdminBookingController extends Controller
                 'guest_email' => $validated['email'] ?? null,
                 'stack_trace' => $e->getTraceAsString()
             ]);
-            
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'An error occurred while updating the booking.',
-                    'error' => $e->getMessage()
-                ], 500);
-            }
 
             return back()->with('error', 'Failed to update booking: ' . $e->getMessage())
                 ->withInput();

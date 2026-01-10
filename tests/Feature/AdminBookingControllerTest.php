@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\BookingConfirmedMail;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\User;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -294,6 +296,45 @@ class AdminBookingControllerTest extends TestCase
             'first_name' => 'Updated Name',
             'number_of_guests' => 3
         ]);
+    }
+
+    #[Test]
+    public function test_update_status_to_confirmed_sends_email()
+    {
+        // Arrange
+        Mail::fake(); // Add Mail fake to prevent actual email sending during tests
+        
+        $booking = Booking::factory()->create([
+            'property_id' => $this->property->id,
+            'status' => 'pending',
+            'email' => 'test@example.com'
+        ]);
+        $this->availabilityService
+            ->shouldReceive('isPropertyAvailable')
+            ->once()
+            ->andReturn(true);
+
+        $updateData = [
+            'status' => 'confirmed',
+        ];
+
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->put(route('admin.bookings.update', $booking), $updateData);
+
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        // Check that the booking status was updated
+        $this->assertDatabaseHas('bookings', [
+                'id' => $booking->id,
+                'status' => 'confirmed',
+            ]);
+
+        // Check that the mail was queued
+        Mail::assertQueued(BookingConfirmedMail::class, function ($mail) use ($booking) {
+            return $mail->hasTo($booking->email);
+        });
     }
 
     #[Test]
