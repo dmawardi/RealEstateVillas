@@ -14,8 +14,15 @@
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         <link rel="icon" type="image/png" href="/logo-touch-icon.png" sizes="180x180">
         <link rel="apple-touch-icon" href="/logo-touch-icon.png">
+        <link rel="manifest" href="/site.webmanifest">
+        
+        <!-- iOS specific meta tags -->
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="Bali Villa Spot">
 
         
 

@@ -1,0 +1,22 @@
+{
+    "name": "Bali Villa Spot",
+    "short_name": "BaliVillaSpot",
+    "description": "Find and book your perfect villa in Bali",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#F8F5F1",
+    "theme_color": "#284544",
+    "icons": [
+        {
+            "src": "/logo-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}
