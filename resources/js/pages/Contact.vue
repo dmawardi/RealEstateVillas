@@ -207,10 +207,10 @@ const contactMethods = [
                             </svg>
                             
                         </div>
-                        <h3 class="font-display text-xl font-semibold text-primary dark:text-gray-100 mb-2">
-                            {{ method.title }}
+                        <h3 class="font-display text-xl font-semibold text-primary mb-2">
+                            {{ info.title }}
                         </h3>
-                        <p class="font-body text-primary/70 dark:text-gray-400 mb-3">
+                        <p class="font-body text-primary/70 mb-3">
                             {{ method.description }}
                         </p>
                         <a 
@@ -219,7 +219,7 @@ const contactMethods = [
                         >
                             {{ method.contact }}
                         </a>
-                        <p class="font-body text-sm text-primary/60 dark:text-gray-500">
+                        <p class="font-body text-sm text-primary/60">
                             {{ method.hours }}
                         </p>
                     </div>
@@ -232,7 +232,7 @@ const contactMethods = [
                     <!-- Basic Information -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="name" class="block font-display font-medium text-primary dark:text-gray-100 mb-2">
+                            <label for="name" class="block font-display font-medium text-primary mb-2">
                                 Full Name *
                             </label>
                             <input
@@ -240,14 +240,14 @@ const contactMethods = [
                                 v-model="form.name"
                                 type="text"
                                 required
-                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 rounded-lg font-body text-primary dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
+                                class="w-full px-4 py-3 bg-white border border-secondary/30 rounded-lg font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
                                 placeholder="Enter your full name"
                             />
                             <div v-if="form.errors.name" class="mt-1 text-red-500 text-sm font-body">{{ form.errors.name }}</div>
                         </div>
 
                         <div>
-                            <label for="email" class="block font-display font-medium text-primary dark:text-gray-100 mb-2">
+                            <label for="email" class="block font-display font-medium text-primary mb-2">
                                 Email Address *
                             </label>
                             <input
@@ -255,7 +255,7 @@ const contactMethods = [
                                 v-model="form.email"
                                 type="email"
                                 required
-                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 rounded-lg font-body text-primary dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
+                                class="w-full px-4 py-3 bg-white border border-secondary/30 rounded-lg font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
                                 placeholder="Enter your email address"
                             />
                             <div v-if="form.errors.email" class="mt-1 text-red-500 text-sm font-body">{{ form.errors.email }}</div>
@@ -264,28 +264,28 @@ const contactMethods = [
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="phone" class="block font-display font-medium text-primary dark:text-gray-100 mb-2">
+                            <label for="phone" class="block font-display font-medium text-primary mb-2">
                                 Phone Number
                             </label>
                             <input
                                 id="phone"
                                 v-model="form.phone"
                                 type="tel"
-                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 rounded-lg font-body text-primary dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
+                                class="w-full px-4 py-3 bg-white border border-secondary/30 rounded-lg font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
                                 placeholder="Enter your phone number"
                             />
                             <div v-if="form.errors.phone" class="mt-1 text-red-500 text-sm font-body">{{ form.errors.phone }}</div>
                         </div>
 
                         <div>
-                            <label for="inquiry_type" class="block font-display font-medium text-primary dark:text-gray-100 mb-2">
+                            <label for="inquiry_type" class="block font-display font-medium text-primary mb-2">
                                 Inquiry Type *
                             </label>
                             <select
                                 id="inquiry_type"
                                 v-model="form.inquiry_type"
                                 required
-                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 rounded-lg font-body text-primary dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
+                                class="w-full px-4 py-3 bg-white border border-secondary/30 rounded-lg font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
                             >
                                 <option v-for="type in inquiryTypes" :key="type.value" :value="type.value">
                                     {{ type.label }}
@@ -297,7 +297,7 @@ const contactMethods = [
 
                     <!-- Subject -->
                     <div>
-                        <label for="subject" class="block font-display font-medium text-primary dark:text-gray-100 mb-2">
+                        <label for="subject" class="block font-display font-medium text-primary mb-2">
                             Subject *
                         </label>
                         <input
@@ -305,7 +305,7 @@ const contactMethods = [
                             v-model="form.subject"
                             type="text"
                             required
-                            class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-secondary/30 dark:border-gray-600 rounded-lg font-body text-primary dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
+                            class="w-full px-4 py-3 bg-white border border-secondary/30 rounded-lg font-body text-primary focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200"
                             placeholder="Brief description of your inquiry"
                         />
                         <div v-if="form.errors.subject" class="mt-1 text-red-500 text-sm font-body">{{ form.errors.subject }}</div>
@@ -313,7 +313,7 @@ const contactMethods = [
 
                     <!-- Property-specific fields -->
                     <div v-if="form.inquiry_type === 'villa_rental' || form.inquiry_type === 'property_sale'" class="space-y-6 p-6 bg-secondary/5 rounded-xl border border-secondary/20">
-                        <h3 class="font-display text-lg font-semibold text-primary dark:text-gray-100">
+                        <h3 class="font-display text-lg font-semibold text-primary">
                             {{ form.inquiry_type === 'villa_rental' ? 'Villa Rental Details' : 'Property Purchase Details' }}
                         </h3>
                         

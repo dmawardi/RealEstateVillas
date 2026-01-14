@@ -51,15 +51,15 @@ const getCleanLabel = (label: string): string => {
             <div class="mb-8">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        <h1 class="text-3xl font-bold text-gray-900">
                             Properties
                         </h1>
-                        <p class="text-lg text-gray-600 dark:text-gray-400 mt-2">
+                        <p class="text-lg text-gray-600 mt-2">
                             Discover your dream property in Bali
                         </p>
                     </div>
                     <div class="text-right">
-                        <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        <div class="text-lg font-medium text-gray-900">
                             {{ properties.total }} Properties Found
                         </div>
                         <div class="text-sm text-gray-500">
@@ -91,7 +91,7 @@ const getCleanLabel = (label: string): string => {
                         'px-4 py-2 font-body font-medium rounded-lg border transition-all duration-300 transform hover:-translate-y-0.5',
                         link.active 
                             ? 'bg-accent text-white border-accent shadow-md' 
-                            : 'bg-white dark:bg-gray-800 text-primary dark:text-gray-300 border-secondary/30 dark:border-gray-600 hover:bg-secondary/10 hover:border-accent/50 dark:hover:bg-gray-700 shadow-sm hover:shadow-md',
+                            : 'bg-white text-primary border-secondary/30 hover:bg-secondary/10 hover:border-accent/50 shadow-sm hover:shadow-md',
                         !link.url ? 'opacity-50 cursor-not-allowed pointer-events-none transform-none' : ''
                     ]" 
                     :preserve-scroll="true"
