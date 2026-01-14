@@ -59,10 +59,13 @@ class AdminPropertyControllerTest extends TestCase
     #[Test]
     public function test_index_filters_by_search_term()
     {
-        // Arrange
+        // Arrange - Clear any existing properties first
+        Property::truncate();
+        
         $property1 = Property::factory()->create([
-            'title' => 'Beautiful Villa in Canggu',
+            'title' => 'Beautiful UniqueVilla123 in Canggu',
             'property_id' => 'PROP-2025-ABC123',
+            'property_type' => 'house'
         ]);
         
         $property2 = Property::factory()->create([
@@ -71,9 +74,9 @@ class AdminPropertyControllerTest extends TestCase
             'property_type' => 'apartment'
         ]);
         
-        // Act - search by title
+        // Act - search by unique title term
         $response = $this->actingAs($this->admin)
-            ->get(route('admin.properties.index', ['search' => 'Villa']));
+            ->get(route('admin.properties.index', ['search' => 'UniqueVilla123']));
         
         // Assert
         $response->assertStatus(200);
