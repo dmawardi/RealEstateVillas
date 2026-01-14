@@ -208,7 +208,7 @@ const contactMethods = [
                             
                         </div>
                         <h3 class="font-display text-xl font-semibold text-primary mb-2">
-                            {{ info.title }}
+                            {{ method.title }}
                         </h3>
                         <p class="font-body text-primary/70 mb-3">
                             {{ method.description }}

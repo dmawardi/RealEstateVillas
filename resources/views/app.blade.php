@@ -32,7 +32,7 @@
                 "@id": "https://balivillaspot.com/#organization",
                 "name": "Bali Villa Spot",
                 "url": "https://balivillaspot.com/",
-                "logo": "https://balivillaspot.com/logo.png",
+                "logo": "https://balivillaspot.com/images/logo/Logo.png",
                 "sameAs": [
                     "https://www.instagram.com/balivillaspot",
                     "https://www.facebook.com/balivillaspot"
