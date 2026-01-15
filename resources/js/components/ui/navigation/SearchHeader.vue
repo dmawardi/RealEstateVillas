@@ -116,7 +116,7 @@ const applyFiltersAndClose = () => {
 </script>
 
 <template>
-    <div class="bg-gradient-to-r from-primary/90 to-primary shadow-lg container mx-auto w-full relative overflow-hidden"
+    <div class="bg-gradient-to-r from-primary/90 to-primary shadow-lg container mx-auto w-full relative z-50 overflow-visible"
          style="background-image: url('/images/headers/header_image.jpeg'); background-size: cover; background-position: center;">
         
         <!-- Overlay for better text readability -->
@@ -136,7 +136,7 @@ const applyFiltersAndClose = () => {
             </div>
 
             <!-- Search Container -->
-            <div class="w-full max-w-4xl">
+            <div class="w-full max-w-4xl relative z-10">
                 <!-- Rent/Buy Toggle Bar -->
                 <div class="flex justify-center mb-1">
                     <div class="flex bg-white/20 backdrop-blur-md rounded-t-xl p-1 border border-secondary/30">

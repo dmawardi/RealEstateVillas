@@ -409,7 +409,7 @@ onMounted(() => {
         <!-- Only show when: dropdown is open, not loading, and has results -->
         <div 
             v-if="isOpen && !isLoading && filteredLocations.length > 0" 
-            class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
+            class="absolute z-[9999] w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
         >
             <!-- Individual location option -->
             <div 
@@ -462,7 +462,7 @@ onMounted(() => {
         <!-- ================================================================ -->
         <div 
             v-if="isOpen && !isLoading && searchQuery && filteredLocations.length === 0"
-            class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg p-3"
+            class="absolute z-[9999] w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg p-3"
         >
             <div class="text-sm text-gray-500 dark:text-gray-400 text-center">
                 No locations found for "{{ searchQuery }}"
