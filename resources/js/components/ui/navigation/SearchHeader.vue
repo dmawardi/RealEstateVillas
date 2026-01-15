@@ -178,7 +178,7 @@ const applyFiltersAndClose = () => {
 
                 <!-- Main Search Bar -->
                 <div :class="[
-                    'bg-white/95 backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-between w-full px-4 md:px-6 py-4 shadow-xl border border-secondary/20 space-y-4 md:space-y-0 md:space-x-4',
+                    'relative z-40 bg-white/95 backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-between w-full px-4 md:px-6 py-4 shadow-xl border border-secondary/20 space-y-4 md:space-y-0 md:space-x-4',
                     form.locationFilter.length ? 'rounded-t-xl' : 'rounded-xl'
                 ]">
                     <div class="flex items-center w-full space-x-3">
@@ -220,7 +220,7 @@ const applyFiltersAndClose = () => {
                 </div>
                 
                 <!-- Location Tags -->
-                <div v-if="form.locationFilter.length" class="bg-white/95 backdrop-blur-md w-full rounded-b-xl border-t-0 border border-secondary/20 shadow-xl">
+                <div v-if="form.locationFilter.length" class="bg-white/95 backdrop-blur-md w-full rounded-b-xl border-t-0 border border-secondary/20 shadow-xl relative z-10">
                     <LocationTagDisplay 
                         :locations="form.locationFilter"
                         @remove="removeLocationFromFilter" 
