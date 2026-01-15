@@ -86,6 +86,31 @@ const areDatesValid = computed(() => {
     return dateRange.value && dateRange.value[0] && dateRange.value[1];
 });
 
+const minimumStayDays = computed(() => {
+    return props.property.only_monthly_allowed ? 30 : 1;
+});
+
+const meetsMinimumStay = computed(() => {
+    if (!areDatesValid.value) return false;
+    if (!props.property.only_monthly_allowed) return true; // No minimum requirement if monthly not required
+    
+    const startDate = dateRange.value![0];
+    const endDate = dateRange.value![1];
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays >= minimumStayDays.value;
+});
+
+const selectedStayDays = computed(() => {
+    if (!areDatesValid.value) return 0;
+    
+    const startDate = dateRange.value![0];
+    const endDate = dateRange.value![1];
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+});
+
 const disabledDates = computed(() => {
     const disabled: Date[] = [];
     
@@ -107,6 +132,7 @@ const hasDiscount = computed(() => {
 
 const canProceedToBooking = computed(() => {
     return areDatesValid.value && 
+           meetsMinimumStay.value &&
            priceCalculation.value && 
            !isLoadingPrice.value && 
            !isLoadingAvailability.value;
@@ -274,17 +300,28 @@ watch(dateRange, () => {
                         v-model="dateRange"
                         :min-date="today"
                         :disabled-dates="disabledDates"
+                        :min-range="property.only_monthly_allowed ? minimumStayDays : undefined"
                         :enable-time-picker="false"
                         :inline="false"
                         :multi-calendars="false"
                         :auto-apply="false"
                         range
-                        placeholder="Select check-in and check-out dates"
+                        :placeholder="property.only_monthly_allowed ? `Select dates (minimum ${minimumStayDays} days)` : 'Select check-in and check-out dates'"
                         format="MMM dd, yyyy"
                         menu-class-name="dp-custom-menu"
                         @focus="handleDatePickerOpen"
                         @open="handleDatePickerOpen"
                     />
+                    
+                    <!-- Minimum stay info and validation (only show if monthly required) -->
+                    <div v-if="property.only_monthly_allowed" class="mt-2 space-y-1">
+                        <div class="text-xs text-gray-600 dark:text-gray-400">
+                            Minimum stay: {{ minimumStayDays }} days
+                        </div>
+                        <div v-if="areDatesValid && !meetsMinimumStay" class="text-xs text-red-600 dark:text-red-400">
+                            Selected stay ({{ selectedStayDays }} days) is below minimum requirement of {{ minimumStayDays }} days
+                        </div>
+                    </div>
                 </div>
     
                 <!-- Price Summary -->
@@ -377,6 +414,9 @@ watch(dateRange, () => {
                     </span>
                     <span v-else-if="!areDatesValid">
                         Select Dates
+                    </span>
+                    <span v-else-if="property.only_monthly_allowed && areDatesValid && !meetsMinimumStay">
+                        Minimum {{ minimumStayDays }} days required
                     </span>
                     <span v-else>
                         Continue to Book

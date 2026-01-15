@@ -168,6 +168,7 @@ const hasAmenities = () => {
                 <div class="lg:col-span-1">
                     <div class="space-y-6 lg:sticky lg:top-24 lg:self-start">
                         <PropertyBookingCard 
+                            v-if="property.listing_type === 'for_rent'"
                             class="hidden lg:block" 
                             :property="property" 
                             :current_pricing="current_pricing" 

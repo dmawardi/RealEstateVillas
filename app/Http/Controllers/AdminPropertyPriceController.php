@@ -7,9 +7,12 @@ use App\Models\PropertyPrice;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class AdminPropertyPriceController extends Controller
 {
+    // Cache constants - match PropertyController
+    private const PROPERTY_DETAIL_CACHE_PREFIX = 'property_detail_';
     /**
      * Store a newly created property pricing in storage.
      */
@@ -90,6 +93,9 @@ class AdminPropertyPriceController extends Controller
                 'date_range' => $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d'),
                 'currency' => $pricing->currency
             ]);
+
+            // Clear property detail cache to ensure frontend gets updated pricing
+            $this->clearPropertyDetailCache($property->id);
 
             return back()->with('success', 'Property pricing created successfully.');
 
@@ -195,6 +201,9 @@ class AdminPropertyPriceController extends Controller
                 'updated_fields' => array_keys($validated)
             ]);
 
+            // Clear property detail cache to ensure frontend gets updated pricing
+            $this->clearPropertyDetailCache($pricing->property_id);
+
             return back()->with('success', 'Property pricing updated successfully.');
 
         } catch (\Exception $e) {
@@ -213,13 +222,19 @@ class AdminPropertyPriceController extends Controller
     public function destroy(PropertyPrice $pricing)
     {
         try {
+            // Store property ID before deletion
+            $propertyId = $pricing->property_id;
+            
             $pricing->delete();
 
             Log::info('Property pricing deleted', [
                 'pricing_id' => $pricing->id,
-                'property_id' => $pricing->property_id,
+                'property_id' => $propertyId,
                 'name' => $pricing->name,
             ]);
+
+            // Clear property detail cache to ensure frontend gets updated pricing
+            $this->clearPropertyDetailCache($propertyId);
 
             return back()->with('success', 'Property pricing deleted successfully.');
 
@@ -233,5 +248,24 @@ class AdminPropertyPriceController extends Controller
 
             return back()->with('error', 'An error occurred while deleting the property pricing.');
         }
+    }
+
+    /**
+     * Clear property detail cache for a specific property.
+     * This ensures the frontend gets updated pricing information immediately.
+     * 
+     * @param int $propertyId
+     * @return bool
+     */
+    private function clearPropertyDetailCache(int $propertyId): bool
+    {
+        $cacheKey = self::PROPERTY_DETAIL_CACHE_PREFIX . $propertyId;
+        
+        Log::info('Clearing property detail cache', [
+            'property_id' => $propertyId,
+            'cache_key' => $cacheKey
+        ]);
+        
+        return Cache::forget($cacheKey);
     }
 }
