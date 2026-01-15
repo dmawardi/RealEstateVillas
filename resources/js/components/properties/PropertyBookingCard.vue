@@ -87,7 +87,7 @@ const areDatesValid = computed(() => {
 });
 
 const minimumStayDays = computed(() => {
-    return props.property.only_monthly_allowed ? 30 : 1;
+    return props.property.only_monthly_allowed ? 28 : 1;
 });
 
 const meetsMinimumStay = computed(() => {

@@ -250,6 +250,41 @@ class BookingControllerTest extends TestCase
     }
 
     #[Test]
+    public function test_store_enforces_minimum_stay_for_monthly_properties()
+    {
+        // Arrange - Mock AvailabilityService to return true
+        $this->mock(AvailabilityService::class, function ($mock) {
+            $mock->shouldReceive('isPropertyAvailable')->andReturn(true);
+        });
+
+        // Create a property for testing
+        $monthlyProperty = Property::factory()->create([
+            'status' => 'active',
+            'listing_type' => 'for_rent',
+            'only_monthly_allowed' => true
+        ]);
+
+        $bookingData = [
+            'check_in_date' => now()->addDays(1)->format('Y-m-d'),
+            'check_out_date' => now()->addDays(10)->format('Y-m-d'), // Less than 28 days
+            'number_of_guests' => 2,
+            'total_price' => 100
+        ];
+
+        // Act
+        $response = $this->actingAs($this->user)->post(
+            route('properties.bookings.store', $monthlyProperty),
+            $bookingData
+        );
+
+        // Assert
+        $response->assertSessionHas('error', 'This property requires a minimum stay of 28 days.');
+
+        // Delete the property after test
+        $monthlyProperty->delete();
+    }
+
+    #[Test]
     public function test_store_handles_unavailable_dates()
     {
         // Arrange - Mock AvailabilityService to return false

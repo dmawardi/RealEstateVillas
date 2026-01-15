@@ -122,6 +122,12 @@ class BookingController extends Controller
                 return back()->with('error', 'The selected dates are not available for this property.');
             }
 
+            // Check if number of days meets monthly minimum stay requirement if applicable
+            $stayDuration = $checkInDate->diffInDays($checkOutDate);
+            if ($property->only_monthly_allowed && $stayDuration < 28) {
+                return back()->with('error', 'This property requires a minimum stay of 28 days.');
+            }
+
             // Calculate total price (this could include discounts, fees, etc.)
             $totalPrice = $property->calculateTotalPrice($checkInDate, $checkOutDate);
             if ($totalPrice === null) {
