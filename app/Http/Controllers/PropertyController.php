@@ -194,8 +194,17 @@ class PropertyController extends Controller
 
         $businessPhone = config('app.business_phone');
         $businessEmail = config('app.business_email');
+        $googleMapsIds = config('services.google.maps_ids');
+        $googleMapsApiKey = config('services.google.maps_api_key');
 
-        return Inertia::render('properties/Index', compact('properties', 'filters', 'seoData', 'businessPhone', 'businessEmail'));
+        return Inertia::render('properties/Index', 
+        compact('properties',
+                'filters',
+                'seoData',
+                'businessPhone',
+                'businessEmail',
+                'googleMapsIds',
+                'googleMapsApiKey'));
     }
 
     /**
