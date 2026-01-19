@@ -29,7 +29,7 @@ const modalOpen = ref(false);
 // Initialize form with props data or defaults
 const form = ref({
     search: props.initialFilters.search || '',
-    mode: (props.initialFilters.listing_type as 'for_rent' | 'for_sale') || 'for_rent',
+    mode: props.initialFilters.listing_type as 'for_rent' | 'for_sale' | undefined,
     priceFilter: {
         minPrice: props.initialFilters.min_price || '',
         maxPrice: props.initialFilters.max_price || '',
@@ -95,7 +95,7 @@ function applyFilters() {
 const handleSearch = () => {
     const flattenedFilters = {
         property_type: form.value.propertyTypes.join(','),
-        listing_type: form.value.mode,
+        ...(form.value.mode && { listing_type: form.value.mode }),
         bedrooms: form.value.bedrooms,
         bathrooms: form.value.bathrooms,
         min_price: form.value.priceFilter.minPrice,
@@ -138,7 +138,7 @@ const clearAllLocations = () => {
 const clearAllFilters = () => {
     form.value = {
         search: '',
-        mode: 'for_rent',
+        mode: undefined,
         priceFilter: { minPrice: '', maxPrice: ''},
         propertyTypes: [],
         bedrooms: '',
