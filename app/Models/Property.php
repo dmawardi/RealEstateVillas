@@ -150,6 +150,70 @@ class Property extends Model
             }
     }
 
+    public function pricingString()
+    {
+        // For rental properties, fetch the current active pricing for the day
+        if ($this->listing_type == 'for_rent') {
+            $today = now()->format('Y-m-d'); // Convert to date format
+            
+            $currentPricing = $this->pricing()
+                ->where(function($query) use ($today) {
+                    $query->whereNull('start_date')
+                        ->orWhere('start_date', '<=', $today);
+                })
+                ->where(function($query) use ($today) {
+                    $query->whereNull('end_date')
+                        ->orWhere('end_date', '>=', $today);
+                })
+                ->orderBy('start_date', 'desc') // Get most recent pricing first
+                ->first();
+                
+            // Debug: Log the query and result
+            Log::debug("getCurrentPricing for property {$this->id}:", [
+                'today' => $today,
+                'total_pricing_records' => $this->pricing()->count(),
+                'found_pricing' => $currentPricing ? $currentPricing->id : 'null'
+            ]);
+
+            // Convert current pricing to a string format for presentation
+            if ($currentPricing) {
+                $nightly = number_format($currentPricing->nightly_rate);
+                $currency = $currentPricing->currency ?? 'IDR';
+                
+                $weeklyDiscount = $currentPricing->weekly_discount_active ? $currentPricing->weekly_discount_percent : 0;
+                $monthlyDiscount = $currentPricing->monthly_discount_active ? $currentPricing->monthly_discount_percent : 0;
+                
+                // Calculate rates with discounts
+                $weeklyRate = $currentPricing->nightly_rate * (1 - $weeklyDiscount / 100) * 7;
+                $monthlyRate = $currentPricing->nightly_rate * (1 - $monthlyDiscount / 100) * 30;
+                
+                $priceString = "{$currency} {$nightly}/night";
+                
+                // Show best discount rate following DetailedPricingDisplay logic
+                if ($weeklyDiscount > 0 && $weeklyDiscount >= $monthlyDiscount) {
+                    $weeklyFormatted = number_format($weeklyRate);
+                    $priceString .= " | {$currency} {$weeklyFormatted}/week ({$weeklyDiscount}% off)";
+                } elseif ($monthlyDiscount > 0 && $monthlyDiscount > $weeklyDiscount) {
+                    $monthlyFormatted = number_format($monthlyRate);
+                    $priceString .= " | {$currency} {$monthlyFormatted}/month ({$monthlyDiscount}% off)";
+                } elseif ($monthlyRate !== ($currentPricing->nightly_rate * 30)) {
+                    // Show monthly for context if rates differ but no significant discounts
+                    $monthlyFormatted = number_format($monthlyRate);
+                    $priceString .= " | {$currency} {$monthlyFormatted}/month";
+                }
+                
+                return $priceString;
+            }
+                
+            return null;
+        // For sale properties, return the base price (not a pricing object)
+        } else if ($this->listing_type == 'for_sale') {
+            // Format the price for display
+            $formattedPrice = 'IDR ' . number_format($this->price);
+            return $formattedPrice;
+        }
+    }
+
     /**
      * Retrieve the current pricing records within the date range.
      *

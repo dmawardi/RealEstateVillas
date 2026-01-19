@@ -30,7 +30,7 @@ class PropertyController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Property::with(['features', 'attachments' => function($q) {
+        $query = Property::with(['features', 'pricing', 'attachments' => function($q) {
             $q->orderBy('order')->where('type', 'image');
         }]);
 
@@ -107,8 +107,6 @@ class PropertyController extends Controller
         if ($request->filled('features')) {
             $features = explode(',', $request->features);
             
-            Log::info('Filtering properties by features: ' . implode(',', $features));
-
             // Option 1: Properties that have ANY of the selected features (OR logic)
             // $query->whereHas('features', function ($featureQuery) use ($features) {
             //     $featureQuery->whereIn('features.id', $features);
@@ -149,6 +147,9 @@ class PropertyController extends Controller
 
         // Append URL for each attachment
         $properties->getCollection()->each(function ($property) {
+            // Prepopulate pricing string
+            $property->pricing_string = $property->pricingString();
+            // Generate URLs for attachments
             if ($property->attachments) {
                 $property->attachments->each(function ($attachment) {
                     $attachment->makeVisible(['url']);

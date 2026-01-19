@@ -75,6 +75,10 @@ export interface Property {
     // Timestamps
     created_at: string;
     updated_at: string;
+
+    // Helper
+    getCurrentPricing?: () => string;
+    pricing_string?:string;
 }
 
 export interface Booking {
