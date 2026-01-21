@@ -158,6 +158,7 @@ const deleteAttachment = async (attachmentId: number) => {
     
     try {
         router.delete(route('admin.attachments.destroy', attachmentId), {
+            preserveScroll: true,
             onSuccess: () => {
                 emit('attachment-deleted', attachmentId);
                 console.log('✅ Attachment deleted successfully');
