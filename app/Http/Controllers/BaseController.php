@@ -50,9 +50,7 @@ class BaseController extends Controller
         $all = Cache::get('properties:featured_premium');
 
         if (!$all) {
-            $all = Property::where('is_featured', true)
-            ->orWhere('is_premium', true)
-            ->where('status', 'active')
+            $all = Property::where('status', 'active')
             ->where(function ($query) {
                 $query->where('is_featured', true)
                       ->orWhere('is_premium', true);
