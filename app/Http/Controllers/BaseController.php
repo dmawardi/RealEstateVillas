@@ -52,8 +52,12 @@ class BaseController extends Controller
         if (!$all) {
             $all = Property::where('is_featured', true)
             ->orWhere('is_premium', true)
+            ->orWhere('status', 'active')
             ->with([
-                'attachments',
+                'attachments' => function ($query) {
+                    $query->where('type', 'image')
+                          ->orderBy('order');
+                },
                 'features',
                 'pricing' => function ($query) {
                     $query->where('start_date', '<=', now())
