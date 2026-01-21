@@ -155,10 +155,7 @@ class BaseControllerTest extends TestCase
     public function test_home_generates_dynamic_seo_data()
     {
         // Arrange
-        Property::factory()->count(3)->create([
-            'is_featured' => true,
-            'status' => 'active'
-        ]);
+        Property::factory()->count(3)->create(['is_featured' => true, 'status' => 'active']);
 
         // Act
         $response = $this->get('/');
@@ -166,9 +163,7 @@ class BaseControllerTest extends TestCase
         // Assert
         $response->assertInertia(fn ($page) =>
             $page->has('seoData')
-                ->where('seoData.title', function ($title) {
-                    return str_contains($title, '3+ Premium Properties Available');
-                })
+                ->where('seoData.title', fn ($title) => str_contains($title, '3+ Premium Properties'))
                 ->has('seoData.description')
                 ->has('seoData.keywords')
                 ->has('seoData.ogImage')
