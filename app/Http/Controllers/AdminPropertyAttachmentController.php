@@ -288,8 +288,8 @@ class AdminPropertyAttachmentController extends Controller
                 $propertyAttachment->caption = null;
                 $propertyAttachment->is_visible_to_customer = true;
                 $propertyAttachment->is_active = true;
-                // Set order to 0 for PDFs, otherwise use the next order number
-                $propertyAttachment->order = $fileType == 'pdf' ? 0 : $order;
+                // Set order as next order number
+                $propertyAttachment->order = $order;
                 $propertyAttachment->save();
 
                 Log::info('Individual attachment saved', [

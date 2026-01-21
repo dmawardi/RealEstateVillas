@@ -402,6 +402,47 @@ class AdminPropertyAttachmentControllerTest extends TestCase
     }
 
     #[Test]
+    public function test_store_assigns_correct_order_to_new_attachments()
+    {
+        // Init last order value
+        $lastOrder = 5;
+
+        // Arrange - Create existing attachments with specific orders
+        PropertyAttachment::factory()->create([
+            'property_id' => $this->property->id,
+            'order' => 0,
+            'is_active' => true
+        ]);
+        
+        PropertyAttachment::factory()->create([
+            'property_id' => $this->property->id,
+            'order' => $lastOrder,
+            'is_active' => true
+        ]);
+
+
+        $newFile = UploadedFile::fake()->image('new-image.jpg', 800, 600);
+
+        // Act
+        $response = $this->actingAs($this->admin)->post(route('admin.properties.attachments.store', $this->property), [
+            'files' => [$newFile]
+        ]);
+
+        // Assert
+        $response->assertStatus(302);
+        $response->assertSessionHas('success', '1 file(s) uploaded successfully');
+
+        // Verify new attachment gets the next sequential order (should be 6, since max existing order is 5)
+        $newAttachment = PropertyAttachment::where('property_id', $this->property->id)
+            ->where('original_filename', 'new-image.jpg')
+            ->first();
+        
+        $this->assertNotNull($newAttachment);
+        // Assert order is lastOrder + 1
+        $this->assertEquals($lastOrder + 1, $newAttachment->order);
+    }
+
+    #[Test]
     public function test_update_validates_input_fields()
     {
         // Arrange

@@ -560,7 +560,7 @@ class BaseControllerTest extends TestCase
     public function test_home_handles_properties_with_attachments()
     {
         // Arrange
-        $property = Property::factory()->create(['is_featured' => true]);
+        $property = Property::factory()->create(['is_featured' => true, 'status' => 'active']);
         $attachment = PropertyAttachment::factory()->create([
             'property_id' => $property->id,
             'type' => 'image'
