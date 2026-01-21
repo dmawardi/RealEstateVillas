@@ -154,6 +154,9 @@ class BaseControllerTest extends TestCase
     #[Test]
     public function test_home_generates_dynamic_seo_data()
     {
+        // Reset cache
+        Cache::forget('properties:featured_premium');
+        
         // Arrange
         Property::factory()->count(3)->create(['is_featured' => true, 'status' => 'active']);
 
