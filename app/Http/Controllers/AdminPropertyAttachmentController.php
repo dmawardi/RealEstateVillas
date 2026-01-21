@@ -238,7 +238,7 @@ class AdminPropertyAttachmentController extends Controller
             ->where('is_active', true)
             ->max('order');
         
-        return $maxOrder ? $maxOrder + 1 : 0;
+        return $maxOrder || $maxOrder === 0 ? $maxOrder + 1 : 0;
     }
 
     /**
