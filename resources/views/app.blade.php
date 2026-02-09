@@ -11,8 +11,8 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
-
+        @inertiaHead
+        <!-- Favicon links -->
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
@@ -29,10 +29,9 @@
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-
+        
         @routes
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
-        @inertiaHead
         <script type="application/ld+json">
             {
                 "@context": "https://schema.org",
