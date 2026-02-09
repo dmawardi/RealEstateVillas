@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { route } from 'ziggy-js';
 
 interface Props {
@@ -56,20 +56,20 @@ const quickLinks = [
     { name: 'Featured Properties', href: '/properties?featured=true' },
 ];
 
-const companyLinks = [
+const companyLinks = computed(() => [
     // { name: 'About Us', href: '/about' },
     // { name: 'Our Services', href: '/services' },
     // { name: 'Property Management', href: '/management' },
     // { name: 'Investment Guide', href: '/investment' },
     { name: 'Contact', href: route('contact') },
-];
+]);
 
-const supportLinks = [
+const supportLinks = computed(() => [
     { name: 'FAQ', href: route('support.faq') },
     { name: 'Privacy Policy', href: route('support.privacyPolicy') },
     { name: 'Terms of Service', href: route('support.termsOfService') },
     { name: 'Cookie Policy', href: route('support.cookiePolicy') },
-];
+]);
 
 const getSocialIcon = (iconName: string) => {
     const icons = {
