@@ -27,9 +27,6 @@ createServer((page) =>
                     return `#${name}:${e}`; // Fallback to a hash link so it doesn't crash
                 }
             };
-            
-            // Set the global route function
-            (globalThis as any).route = globalRoute;
             const app = createSSRApp({ render: () => h(App, props) })
                 .use(plugin);
             
