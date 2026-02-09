@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { route } from 'ziggy-js';
 
 interface Props {
     businessPhone?: string;
@@ -20,7 +19,7 @@ const subscribeToNewsletter = async () => {
     isSubmitting.value = true;
     
     try {
-        await router.post(route('newsletter.subscribe'), {
+        await router.post('/newsletter/subscribe', {
             email: email.value,
         }, {
             preserveScroll: true,
@@ -61,14 +60,14 @@ const companyLinks = [
     // { name: 'Our Services', href: '/services' },
     // { name: 'Property Management', href: '/management' },
     // { name: 'Investment Guide', href: '/investment' },
-    { name: 'Contact', href: route('contact') },
+    { name: 'Contact', href: '/contact' },
 ];
 
 const supportLinks = [
-    { name: 'FAQ', href: route('support.faq') },
-    { name: 'Privacy Policy', href: route('support.privacyPolicy') },
-    { name: 'Terms of Service', href: route('support.termsOfService') },
-    { name: 'Cookie Policy', href: route('support.cookiePolicy') },
+    { name: 'FAQ', href: '/support/faq' },
+    { name: 'Privacy Policy', href: '/support/privacy-policy' },
+    { name: 'Terms of Service', href: '/support/terms-of-service' },
+    { name: 'Cookie Policy', href: '/support/cookie-policy' },
 ];
 
 const getSocialIcon = (iconName: string) => {
