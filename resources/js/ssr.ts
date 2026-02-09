@@ -13,32 +13,13 @@ createServer((page) =>
         render: renderToString,
         title: (title) => title ? `${title} - ${appName}` : appName,
         resolve: resolvePage,
-        setup: ({ App, props, plugin }) => {
-            const ziggyConfig = page.props.ziggy as any;
-
-            // 1. CREATE A SAFETY MOCK
-            // This prevents the "TypeError: route is not defined" or "Cannot read contact"
-            // if Ziggy fails to load properly.
-            const globalRoute = (name?: string) => {
-                try {
-                    // Try to use the actual Ziggy logic if available
-                    return (globalThis as any).Ziggy ? (globalThis as any).route(name) : `#${name}`;
-                } catch (e) {
-                    return `#${name}:${e}`; // Fallback to a hash link so it doesn't crash
-                }
-            };
-            const app = createSSRApp({ render: () => h(App, props) })
-                .use(plugin);
-            
-            // 2. Attempt to load Ziggy but don't die if fails
-            if (ziggyConfig) {
-                app.use(ZiggyVue, {
-                    ...ziggyConfig,
-                    location: new URL(ziggyConfig.location),
-                });
-            }
-            return app;
-        }   
+        setup: ({ App, props, plugin }) =>
+            createSSRApp({ render: () => h(App, props) })
+                .use(plugin)
+                .use(ZiggyVue, {
+                    ...page.props.ziggy,
+                    location: new URL(page.props.ziggy.location),
+                }),
     }),
     { cluster: true },
 );
