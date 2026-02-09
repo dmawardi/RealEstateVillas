@@ -14,6 +14,16 @@ const email = ref('');
 const isSubmitting = ref(false);
 const subscriptionMessage = ref('');
 
+// Helper function to safely generate routes for SSR
+const safeRoute = (name: string, params?: any) => {
+    try {
+        return route(name, params);
+    } catch (e) {
+        console.warn(`Ziggy error for route "${name}":`, e);
+        return '#'; // Return a dummy link so the server doesn't crash
+    }
+};
+
 const subscribeToNewsletter = async () => {
     if (!email.value) return;
     
@@ -61,14 +71,14 @@ const companyLinks = computed(() => [
     // { name: 'Our Services', href: '/services' },
     // { name: 'Property Management', href: '/management' },
     // { name: 'Investment Guide', href: '/investment' },
-    { name: 'Contact', href: route('contact') },
+    { name: 'Contact', href: safeRoute('contact') },
 ]);
 
 const supportLinks = computed(() => [
-    { name: 'FAQ', href: route('support.faq') },
-    { name: 'Privacy Policy', href: route('support.privacyPolicy') },
-    { name: 'Terms of Service', href: route('support.termsOfService') },
-    { name: 'Cookie Policy', href: route('support.cookiePolicy') },
+    { name: 'FAQ', href: safeRoute('support.faq') },
+    { name: 'Privacy Policy', href: safeRoute('support.privacyPolicy') },
+    { name: 'Terms of Service', href: safeRoute('support.termsOfService') },
+    { name: 'Cookie Policy', href: safeRoute('support.cookiePolicy') },
 ]);
 
 const getSocialIcon = (iconName: string) => {
