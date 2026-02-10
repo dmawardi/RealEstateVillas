@@ -42,6 +42,17 @@ const initializeSelectedFeatures = () => {
     }));
 };
 
+// Toggle search active state with delay on blur
+const toggleIsSearchActive = (state: boolean) => {
+    if (state == false) {
+        setTimeout(() => {
+            isSearchActive.value = false;
+        }, 200);
+    } else if( state == true) {
+        isSearchActive.value = true;
+    }
+};
+
 // Search functionality
 const filteredAvailableFeatures = computed(() => {
     const selectedIds = selectedFeatures.value.map(f => f.id);
@@ -241,8 +252,8 @@ onMounted(() => {
                             v-model="searchQuery"
                             type="text"
                             placeholder="Type to search features..."
-                            @focus="isSearchActive = true"
-                            @blur="isSearchActive = false"
+                            @focus="toggleIsSearchActive(true)"
+                            @blur="toggleIsSearchActive(false)"
                             class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
                         />
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
