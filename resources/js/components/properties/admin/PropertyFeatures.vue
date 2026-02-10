@@ -17,6 +17,7 @@ const props = defineProps<Props>();
 const isEditing = ref(false);
 const isLoading = ref(false);
 const searchQuery = ref('');
+const isSearchActive = ref(false);
 const availableFeatures = ref<Feature[]>([]);
 const selectedFeatures = ref<Array<{
     id: number;
@@ -43,10 +44,16 @@ const initializeSelectedFeatures = () => {
 
 // Search functionality
 const filteredAvailableFeatures = computed(() => {
-    if (!searchQuery.value) return [];
+    const selectedIds = selectedFeatures.value.map(f => f.id);
+    
+    // If no search query, return all available features (not already selected)
+    if (!searchQuery.value) {
+        return availableFeatures.value
+            .filter(feature => !selectedIds.includes(feature.id))
+            .slice(0, 10); // Limit results for performance
+    }
     
     const query = searchQuery.value.toLowerCase();
-    const selectedIds = selectedFeatures.value.map(f => f.id);
     
     return availableFeatures.value
         .filter(feature => 
@@ -234,6 +241,8 @@ onMounted(() => {
                             v-model="searchQuery"
                             type="text"
                             placeholder="Type to search features..."
+                            @focus="isSearchActive = true"
+                            @blur="isSearchActive = false"
                             class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
                         />
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -244,7 +253,7 @@ onMounted(() => {
                     </div>
 
                     <!-- Search Results Dropdown -->
-                    <div v-if="filteredAvailableFeatures.length > 0" class="mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto z-10 relative">
+                    <div v-if="isSearchActive && filteredAvailableFeatures.length > 0" class="mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto z-10 relative">
                         <button
                             v-for="feature in filteredAvailableFeatures"
                             :key="feature.id"
