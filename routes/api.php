@@ -19,6 +19,9 @@ Route::get('/properties/{property}/price', [PropertyController::class, 'calculat
 // Property availability
 Route::get('/properties/{property}/availability', [PropertyController::class, 'getAvailability'])->name('properties.availability');
 
+// Quick property search route
+Route::get('/properties/quick-search', [PropertyController::class, 'apiQuickSearch'])->name('properties.quick-search');
+
 Route::middleware(['web', 'auth'])->group(function () {
     // Property Bookings
     Route::get('/properties/{property}/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('properties.bookings.index');

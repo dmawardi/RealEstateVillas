@@ -507,6 +507,79 @@ class PropertyController extends Controller
         ]);
     }
 
+    // Takes a single area search term and bedrooms (optional) and returns up to 10 matching properties
+    public function apiQuickSearch(Request $request)
+    {
+        // Force JSON response for API endpoint
+        $request->headers->set('Accept', 'application/json');
+        
+        $request->validate([
+            'query' => 'required|string|min:2',
+            'bedrooms' => 'nullable|integer|min:1',
+            'upper_budget' => 'nullable|numeric|min:0',
+        ]);
+        // Grab the search term
+        $searchTerm = $request->input('query');
+
+        // Build the query
+        $query = Property::where('status', 'active');
+        // Apply search filter across multiple fields
+        if ($request->filled('query')) {
+            $searchTerm = $request->input('query');
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('title', 'like', "%{$searchTerm}%")
+                ->orWhere('village', 'like', "%{$searchTerm}%")
+                ->orWhere('district', 'like', "%{$searchTerm}%");
+            });
+        }
+        // Apply bedrooms filter if provided
+        if ($request->filled('bedrooms')) {
+            $query->where('bedrooms', '>=', $request->input('bedrooms'));
+        }
+
+        if ($request->filled('upper_budget')) {
+            $upperBudget = $request->input('upper_budget');
+            $query->whereHas('pricing', function ($pricingQuery) use ($upperBudget) {
+                $pricingQuery->where('price', '<=', $upperBudget);
+            });
+        }
+
+        $properties = $query->select('title', 'slug', 'village', 'district', 'regency', 'bedrooms')
+            ->limit(10)
+            ->get();
+
+        // Build urls for each property using slug
+        foreach ($properties as $property) {
+            $property->url = route('properties.show', $property->slug);
+        }
+        
+        // Group properties by area (village) and then by bedrooms
+        $groupedProperties = [];
+        
+        // Iterate through properties to group them
+        foreach ($properties as $property) {
+            $area = $property->village ?: 'Unknown';
+            $bedroomKey = $property->bedrooms . '-bedroom';
+            
+            // If the area group doesn't exist, create it
+            if (!isset($groupedProperties[$area])) {
+                $groupedProperties[$area] = [];
+            }
+            
+            // If the bedroom subgroup doesn't exist, create it
+            if (!isset($groupedProperties[$area][$bedroomKey])) {
+                $groupedProperties[$area][$bedroomKey] = [];
+            }
+            
+            // Add the property to the appropriate group
+            $groupedProperties[$area][$bedroomKey][] = [
+                $property->title => $property->url
+            ];
+        }
+
+        return response()->json($groupedProperties);
+    }
+
     
     /**
      * Calculate the total price for a property booking based on check-in and check-out dates.
