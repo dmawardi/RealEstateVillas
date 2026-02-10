@@ -197,7 +197,7 @@ const formatCategoryName = (category: string) => {
 const quickRemoveFeature = (featureId: number) => {
     if (confirm('Are you sure you want to remove this feature from the property?')) {
         router.delete(
-            route('admin.properties.features.detach', [props.property.id, featureId]),
+            route('admin.properties.features.detach', [props.property.slug, featureId]),
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -396,6 +396,7 @@ onMounted(() => {
 
             <!-- View Mode -->
             <div v-else>
+                <!-- If there are no features attached -->
                 <div v-if="property.features?.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -410,6 +411,7 @@ onMounted(() => {
                     </button>
                 </div>
 
+                <!-- Else if there are features attached -->
                 <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div 
                         v-for="feature in property.features" 
