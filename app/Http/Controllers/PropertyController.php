@@ -527,9 +527,9 @@ class PropertyController extends Controller
         if ($request->filled('query')) {
             $searchTerm = $request->input('query');
             $query->where(function($q) use ($searchTerm) {
-                $q->where('title', 'like', "%{$searchTerm}%")
-                ->orWhere('village', 'like', "%{$searchTerm}%")
-                ->orWhere('district', 'like', "%{$searchTerm}%");
+                $q->whereRaw('LOWER(title) LIKE LOWER(?)', ["%{$searchTerm}%"])
+                ->orWhereRaw('LOWER(village) LIKE LOWER(?)', ["%{$searchTerm}%"])
+                ->orWhereRaw('LOWER(district) LIKE LOWER(?)', ["%{$searchTerm}%"]);
             });
         }
         // Apply bedrooms filter if provided
