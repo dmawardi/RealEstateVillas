@@ -514,17 +514,16 @@ class PropertyController extends Controller
         $request->headers->set('Accept', 'application/json');
         
         $request->validate([
-            'query' => 'required|string|min:2',
+            'query' => 'nullable|string|min:2',
             'bedrooms' => 'nullable|integer|min:1',
             'upper_budget' => 'nullable|numeric|min:0',
         ]);
-        // Grab the search term
-        $searchTerm = $request->input('query');
-
+        
         // Build the query
         $query = Property::where('status', 'active');
         // Apply search filter across multiple fields
         if ($request->filled('query')) {
+            // Grab the search term
             $searchTerm = $request->input('query');
             $query->where(function($q) use ($searchTerm) {
                 $q->whereRaw('LOWER(title) LIKE LOWER(?)', ["%{$searchTerm}%"])
@@ -545,7 +544,7 @@ class PropertyController extends Controller
         }
 
         $properties = $query->select('title', 'slug', 'village', 'district', 'regency', 'bedrooms')
-            ->limit(10)
+            ->limit(20)
             ->get();
 
         // Build urls for each property using slug
