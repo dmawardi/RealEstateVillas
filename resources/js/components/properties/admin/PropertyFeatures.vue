@@ -61,7 +61,7 @@ const filteredAvailableFeatures = computed(() => {
     if (!searchQuery.value) {
         return availableFeatures.value
             .filter(feature => !selectedIds.includes(feature.id))
-            .slice(0, 10); // Limit results for performance
+            .slice(0, 50); // Limit results for performance
     }
     
     const query = searchQuery.value.toLowerCase();
@@ -72,7 +72,7 @@ const filteredAvailableFeatures = computed(() => {
             (feature.name.toLowerCase().includes(query) ||
              feature.category.toLowerCase().includes(query))
         )
-        .slice(0, 10); // Limit results for performance
+        .slice(0, 50); // Limit results for performance
 });
 
 // Load available features from API
