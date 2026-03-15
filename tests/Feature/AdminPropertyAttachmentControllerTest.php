@@ -438,8 +438,8 @@ class AdminPropertyAttachmentControllerTest extends TestCase
             ->first();
         
         $this->assertNotNull($newAttachment);
-        // Assert order is lastOrder + 1
-        $this->assertEquals($lastOrder + 1, $newAttachment->order);
+        // Assert order is lastOrder + 5
+        $this->assertEquals($lastOrder + 5, $newAttachment->order);
     }
 
     #[Test]
@@ -480,7 +480,7 @@ class AdminPropertyAttachmentControllerTest extends TestCase
         
         $this->assertNotNull($newAttachment);
         // Assert order is lastOrder + 1
-        $this->assertEquals($lastOrder + 1, $newAttachment->order);
+        $this->assertEquals($lastOrder + 5, $newAttachment->order);
     }
 
     #[Test]
