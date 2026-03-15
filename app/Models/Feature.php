@@ -38,14 +38,19 @@ class Feature extends Model
         ];
     }
 
+    /**
+     * Cache key for available features (should match controller)
+     */
+    private const FEATURES_CACHE_KEY = 'available_features_for_filtering';
+
     protected static function booted()
     {
         // Clear cache when a feature is saved or deleted
         static::saved(function ($feature) {
-            Cache::forget('available_features_for_filtering');
+            Cache::forget(self::FEATURES_CACHE_KEY);
         });
         static::deleted(function ($feature) {
-            Cache::forget('available_features_for_filtering');
+            Cache::forget(self::FEATURES_CACHE_KEY);
         });
     }
 }
