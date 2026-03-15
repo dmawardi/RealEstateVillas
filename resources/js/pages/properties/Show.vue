@@ -174,9 +174,7 @@ const hasAmenities = () => {
                             :current_pricing="current_pricing" 
                             :businessPhone="businessPhone"
                             @open-booking="openBookingModal"
-                        />
-                        <!-- Property Info -->
-                        <PropertyInfoBar :property="property" />
+                        />                        
                     </div>
 
                 </div>
