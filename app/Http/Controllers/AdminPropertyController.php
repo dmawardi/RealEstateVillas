@@ -50,7 +50,8 @@ class AdminPropertyController extends Controller
                 ->orWhere('description', 'like', "%{$search}%")
                 ->orWhere('property_id', 'like', "%{$search}%")
                 ->orWhere('street_name', 'like', "%{$search}%")
-                ->orWhere('district', 'like', "%{$search}%");
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%");
             });
         }
 

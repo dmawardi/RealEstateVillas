@@ -543,14 +543,16 @@ class PropertyController extends Controller
             });
         }
 
-        $properties = $query->select('title', 'slug', 'village', 'district', 'regency', 'bedrooms')
+        $properties = $query->select('id', 'title', 'slug', 'village', 'district', 'regency', 'bedrooms', 'listing_type', 'price')
+            ->with('pricing')
             ->limit(20)
-            ->get();
+            ->get()
+            ->append('pricing_string'); // Eager load pricing string for all properties
 
-        // Build urls for each property using slug
-        foreach ($properties as $property) {
+        // Add URLs for each property
+        $properties->each(function ($property) {
             $property->url = route('properties.show', $property->slug);
-        }
+        });
         
         // Group properties by area (village) and then by bedrooms
         $groupedProperties = [];
@@ -560,20 +562,25 @@ class PropertyController extends Controller
             $area = $property->village ?: 'Unknown';
             $bedroomKey = $property->bedrooms . '-bedroom';
             
-            // If the area group doesn't exist, create it
-            if (!isset($groupedProperties[$area])) {
-                $groupedProperties[$area] = [];
-            }
-            
-            // If the bedroom subgroup doesn't exist, create it
-            if (!isset($groupedProperties[$area][$bedroomKey])) {
-                $groupedProperties[$area][$bedroomKey] = [];
-            }
-            
-            // Add the property to the appropriate group
-            $groupedProperties[$area][$bedroomKey][] = [
-                $property->title => $property->url
-            ];
+            // Only include properties that have pricing information
+            // if ($property->getCurrentPricing()) {
+                // If the area group doesn't exist, create it
+                if (!isset($groupedProperties[$area])) {
+                    $groupedProperties[$area] = [];
+                }
+                
+                // If the bedroom subgroup doesn't exist, create it
+                if (!isset($groupedProperties[$area][$bedroomKey])) {
+                    $groupedProperties[$area][$bedroomKey] = [];
+                }
+                
+                // Add the property to the appropriate group
+                $groupedProperties[$area][$bedroomKey][] = [
+                    "title" => $property->title,
+                    "url" => $property->url,
+                    "price" => $property->pricing_string,
+                ];
+            // }
         }
 
         return response()->json($groupedProperties);

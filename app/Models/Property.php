@@ -143,10 +143,11 @@ class Property extends Model
                     $query->whereNull('end_date')
                         ->orWhere('end_date', '>=', now());
                 })
+                ->orderBy('start_date', 'desc') // Get most recent pricing first
                 ->first();
-            } else {
+                } else {
                 // If not for_rent, return base price
-                return [];
+                return $this->price;
             }
     }
 
@@ -154,26 +155,7 @@ class Property extends Model
     {
         // For rental properties, fetch the current active pricing for the day
         if ($this->listing_type == 'for_rent') {
-            $today = now()->format('Y-m-d'); // Convert to date format
-            
-            $currentPricing = $this->pricing()
-                ->where(function($query) use ($today) {
-                    $query->whereNull('start_date')
-                        ->orWhere('start_date', '<=', $today);
-                })
-                ->where(function($query) use ($today) {
-                    $query->whereNull('end_date')
-                        ->orWhere('end_date', '>=', $today);
-                })
-                ->orderBy('start_date', 'desc') // Get most recent pricing first
-                ->first();
-                
-            // Debug: Log the query and result
-            Log::debug("getCurrentPricing for property {$this->id}:", [
-                'today' => $today,
-                'total_pricing_records' => $this->pricing()->count(),
-                'found_pricing' => $currentPricing ? $currentPricing->id : 'null'
-            ]);
+            $currentPricing = $this->getCurrentPricing();
 
             // Convert current pricing to a string format for presentation
             if ($currentPricing) {
@@ -212,6 +194,14 @@ class Property extends Model
             $formattedPrice = 'IDR ' . number_format($this->price);
             return $formattedPrice;
         }
+    }
+
+    /**
+     * Accessor for pricing_string attribute to enable eager loading
+     */
+    public function getPricingStringAttribute()
+    {
+        return $this->pricingString();
     }
 
     /**
