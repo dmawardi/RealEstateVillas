@@ -67,6 +67,16 @@ class AdminPropertyPriceController extends Controller
                 ])->withInput();
             }
 
+            $rates = $this->calculateRates(
+                $validated['nightly_rate'], 
+                $validated['weekly_discount_percent'] ?? 0, 
+                $validated['monthly_discount_percent'] ?? 0, 
+                $validated['weekend_premium_percent'] ?? 0, 
+                $validated['weekly_discount_active'] ?? false, 
+                $validated['monthly_discount_active'] ?? false, 
+                $validated['weekend_premium_active'] ?? false
+            );
+
             // Create the pricing record
             $pricing = PropertyPrice::create([
                 'property_id' => $property->id,
@@ -83,6 +93,8 @@ class AdminPropertyPriceController extends Controller
                 'end_date' => $endDate->format('Y-m-d'),
                 'min_days_for_weekly' => $validated['min_days_for_weekly'] ?? 7,
                 'min_days_for_monthly' => $validated['min_days_for_monthly'] ?? 30,
+                'weekly_rate' => $rates['weekly'],
+                'monthly_rate' => $rates['monthly'],
             ]);
 
             Log::info('Property pricing created', [
@@ -174,6 +186,16 @@ class AdminPropertyPriceController extends Controller
                 ])->withInput();
             }
 
+            $rates = $this->calculateRates(
+                $validated['nightly_rate'], 
+                $validated['weekly_discount_percent'] ?? 0, 
+                $validated['monthly_discount_percent'] ?? 0, 
+                $validated['weekend_premium_percent'] ?? 0, 
+                $validated['weekly_discount_active'] ?? false, 
+                $validated['monthly_discount_active'] ?? false, 
+                $validated['weekend_premium_active'] ?? false
+            );
+
             // Update the pricing record
             $pricing->update([
                 'name' => $validated['name'] ?? $pricing->name,
@@ -189,6 +211,8 @@ class AdminPropertyPriceController extends Controller
                 'end_date' => $endDate->format('Y-m-d'),
                 'min_days_for_weekly' => $validated['min_days_for_weekly'] ?? $pricing->min_days_for_weekly ?? 7,
                 'min_days_for_monthly' => $validated['min_days_for_monthly'] ?? $pricing->min_days_for_monthly ?? 30,
+                'weekly_rate' => $rates['weekly'],
+                'monthly_rate' => $rates['monthly'],
             ]);
 
             Log::info('Property pricing updated', [
@@ -267,5 +291,31 @@ class AdminPropertyPriceController extends Controller
         ]);
         
         return Cache::forget($cacheKey);
+    }
+
+    private function calculateRates(
+        float $nightlyRate, 
+        float $weeklyDiscountPercent = 0, 
+        float $monthlyDiscountPercent = 0, 
+        float $weekendPremiumPercent = 0, 
+        bool $weeklyDiscountActive = false, 
+        bool $monthlyDiscountActive = false, 
+        bool $weekendPremiumActive = false
+    ): array {
+        $weeklyRate = null;
+        $monthlyRate = null;
+
+        if ($weeklyDiscountActive) {
+            $weeklyRate = round($nightlyRate * 7 * (1 - $weeklyDiscountPercent / 100), 2);
+        }
+
+        if ($monthlyDiscountActive) {
+            $monthlyRate = round($nightlyRate * 30 * (1 - $monthlyDiscountPercent / 100), 2);
+        }
+
+        return [
+            'weekly' => $weeklyRate,
+            'monthly' => $monthlyRate,
+        ];
     }
 }

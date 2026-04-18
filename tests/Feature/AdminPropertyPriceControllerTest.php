@@ -113,6 +113,43 @@ class AdminPropertyPriceControllerTest extends TestCase
     }
 
     #[Test]
+    public function test_store_calculates_rates_properly()
+    {
+        $nightlyRate = 100.00;
+        $weeklyDiscount = 10.0;
+        $monthlyDiscount = 20.0;
+        // Arrange
+        $pricingData = [
+            'nightly_rate' => $nightlyRate,
+            'weekly_discount_percent' => $weeklyDiscount,
+            'monthly_discount_percent' => $monthlyDiscount,
+            'weekly_discount_active' => true,
+            'monthly_discount_active' => true,
+            'start_date' => '2025-01-01',
+            'end_date' => '2025-01-31',
+        ];
+        
+        // Act
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.properties.pricing.store', $this->property), $pricingData);
+        
+        // Assert
+        $response->assertRedirect()
+            ->assertSessionHas('success');
+
+        $weeklyRate = $nightlyRate * 7 * (1 - $weeklyDiscount / 100); // 10% discount
+        $monthlyRate = $nightlyRate * 30 * (1 - $monthlyDiscount / 100); // 20% discount
+
+
+        $this->assertDatabaseHas('property_pricing', [
+            'property_id' => $this->property->id,
+            'nightly_rate' => 100.00,
+            'weekly_rate' => $weeklyRate,
+            'monthly_rate' => $monthlyRate
+        ]);
+    }
+
+    #[Test]
     public function test_store_validates_numeric_constraints()
     {
         // Arrange
