@@ -52,4 +52,45 @@ class PropertyPrice extends Model
         
         return $result;
     }
+    private function calculateRates(
+        float $nightlyRate, 
+        float $weeklyDiscountPercent = 0, 
+        float $monthlyDiscountPercent = 0, 
+        bool $weeklyDiscountActive = false, 
+        bool $monthlyDiscountActive = false, 
+    ): array {
+        $weeklyRate = null;
+        $monthlyRate = null;
+
+        if ($weeklyDiscountActive) {
+            $weeklyRate = round($nightlyRate * 7 * (1 - $weeklyDiscountPercent / 100), 2);
+        }
+
+        if ($monthlyDiscountActive) {
+            $monthlyRate = round($nightlyRate * 30 * (1 - $monthlyDiscountPercent / 100), 2);
+        }
+
+        return [
+            'weekly' => $weeklyRate,
+            'monthly' => $monthlyRate,
+        ];
+    }
+
+    // Lifecycle hook to ensure rates are calculated before saving
+    protected static function booted()
+    {
+        static::saving(function ($pricing) {
+            if ($pricing->isDirty(['nightly_rate', 'weekly_discount_percent', 'monthly_discount_percent', 'weekend_premium_percent', 'weekly_discount_active', 'monthly_discount_active', 'weekend_premium_active'])) {
+                $rates = $pricing->calculateRates(
+                    $pricing->nightly_rate, 
+                    $pricing->weekly_discount_percent ?? 0, 
+                    $pricing->monthly_discount_percent ?? 0, 
+                    $pricing->weekly_discount_active ?? false, 
+                    $pricing->monthly_discount_active ?? false, 
+                );
+                $pricing->weekly_rate = round($rates['weekly']);
+                $pricing->monthly_rate = round($rates['monthly']);
+            }
+        });
+    }
 }

@@ -516,7 +516,9 @@ class PropertyController extends Controller
         $request->validate([
             'query' => 'nullable|string|min:2',
             'bedrooms' => 'nullable|integer|min:1',
-            'upper_budget' => 'nullable|numeric|min:0',
+            'upper_nightly_rate' => 'nullable|numeric|min:0',
+            'upper_weekly_rate' => 'nullable|numeric|min:0',
+            'upper_monthly_rate' => 'nullable|numeric|min:0',
         ]);
         
         // Build the query
@@ -536,16 +538,24 @@ class PropertyController extends Controller
             $query->where('bedrooms', '>=', $request->input('bedrooms'));
         }
 
-        if ($request->filled('upper_budget')) {
-            $upperBudget = $request->input('upper_budget');
-            $query->whereHas('pricing', function ($pricingQuery) use ($upperBudget) {
-                $pricingQuery->where('price', '<=', $upperBudget);
-            });
-        }
+        // Apply rate filters with priority: monthly > weekly > nightly (only one applies)
+        if ($request->anyFilled(['upper_monthly_rate', 'upper_weekly_rate', 'upper_nightly_rate'])) {
+        $query->whereHas('pricing', function ($pricingQuery) use ($request) {
+            if ($request->filled('upper_monthly_rate')) {
+                $pricingQuery->where('monthly_rate', '<=', $request->input('upper_monthly_rate'));
+            }
+            if ($request->filled('upper_weekly_rate')) {
+                $pricingQuery->where('weekly_rate', '<=', $request->input('upper_weekly_rate'));
+            }
+            if ($request->filled('upper_nightly_rate')) {
+                $pricingQuery->where('nightly_rate', '<=', $request->input('upper_nightly_rate'));
+            }
+        });
+    }
 
         $properties = $query->select('id', 'title', 'slug', 'village', 'district', 'regency', 'bedrooms', 'listing_type', 'price')
             ->with('pricing')
-            ->limit(20)
+            ->limit(30)
             ->get()
             ->append('pricing_string'); // Eager load pricing string for all properties
 
@@ -579,6 +589,11 @@ class PropertyController extends Controller
                     "title" => $property->title,
                     "url" => $property->url,
                     "price" => $property->pricing_string,
+                    "rates" => [
+                        'nightly' => $property->getCurrentPricing()->nightly_rate ?? null,
+                        'weekly' => $property->getCurrentPricing()->weekly_rate ?? null,
+                        'monthly' => $property->getCurrentPricing()->monthly_rate ?? null,
+                    ],
                 ];
             // }
         }
