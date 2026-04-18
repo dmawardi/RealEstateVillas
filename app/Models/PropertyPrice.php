@@ -63,11 +63,13 @@ class PropertyPrice extends Model
         $monthlyRate = null;
 
         if ($weeklyDiscountActive) {
-            $weeklyRate = round($nightlyRate * 7 * (1 - $weeklyDiscountPercent / 100), 2);
+            $percentageToPay = (100 - $weeklyDiscountPercent) / 100;
+            $weeklyRate = $nightlyRate * 7 * $percentageToPay;
         }
 
         if ($monthlyDiscountActive) {
-            $monthlyRate = round($nightlyRate * 30 * (1 - $monthlyDiscountPercent / 100), 2);
+            $percentageToPay = (100 - $monthlyDiscountPercent) / 100;
+            $monthlyRate = $nightlyRate * 30 * $percentageToPay;
         }
 
         return [

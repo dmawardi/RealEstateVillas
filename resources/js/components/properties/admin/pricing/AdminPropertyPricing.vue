@@ -183,12 +183,14 @@ const submitPricing = async () => {
     try {
         if (isEditing.value && editingPricing.value) {
             router.put(route('admin.pricing.update', editingPricing.value.id), pricingForm.value, {
+                preserveScroll: true,
                 onSuccess,
                 onError,
                 onFinish
             });
         } else {
             router.post(route('admin.properties.pricing.store', property.slug), pricingForm.value, {
+                preserveScroll: true,
                 onSuccess,
                 onError,
                 onFinish
