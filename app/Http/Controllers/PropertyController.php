@@ -540,18 +540,23 @@ class PropertyController extends Controller
 
         // Apply rate filters with priority: monthly > weekly > nightly (only one applies)
         if ($request->anyFilled(['upper_monthly_rate', 'upper_weekly_rate', 'upper_nightly_rate'])) {
-        $query->whereHas('pricing', function ($pricingQuery) use ($request) {
             if ($request->filled('upper_monthly_rate')) {
-                $pricingQuery->where('monthly_rate', '<=', $request->input('upper_monthly_rate'));
+                $rateColumn = 'monthly_rate';
+                $rateLimit = $request->input('upper_monthly_rate');
+            } elseif ($request->filled('upper_weekly_rate')) {
+                $rateColumn = 'weekly_rate';
+                $rateLimit = $request->input('upper_weekly_rate');
+            } else {
+                $rateColumn = 'nightly_rate';
+                $rateLimit = $request->input('upper_nightly_rate');
             }
-            if ($request->filled('upper_weekly_rate')) {
-                $pricingQuery->where('weekly_rate', '<=', $request->input('upper_weekly_rate'));
-            }
-            if ($request->filled('upper_nightly_rate')) {
-                $pricingQuery->where('nightly_rate', '<=', $request->input('upper_nightly_rate'));
-            }
-        });
-    }
+
+            $query->whereHas('pricing', function ($pricingQuery) use ($rateColumn, $rateLimit) {
+                $pricingQuery->where('is_active', true)
+                    ->whereNotNull($rateColumn)
+                    ->where($rateColumn, '<=', $rateLimit);
+            });
+        }
 
         $properties = $query->select('id', 'title', 'slug', 'village', 'district', 'regency', 'bedrooms', 'listing_type', 'price')
             ->with('pricing')
