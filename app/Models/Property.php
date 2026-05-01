@@ -191,7 +191,7 @@ class Property extends Model
         // For sale properties, return the base price (not a pricing object)
         } else if ($this->listing_type == 'for_sale') {
             // Format the price for display
-            $formattedPrice = 'IDR ' . number_format($this->price);
+            $formattedPrice = 'Sale: IDR ' . number_format($this->price);
             return $formattedPrice;
         }
     }

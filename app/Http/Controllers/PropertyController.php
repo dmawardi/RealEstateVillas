@@ -550,12 +550,20 @@ class PropertyController extends Controller
                 $rateColumn = 'nightly_rate';
                 $rateLimit = $request->input('upper_nightly_rate');
             }
+            $query->where('listing_type', 'for_rent');
 
-            $query->whereHas('pricing', function ($pricingQuery) use ($rateColumn, $rateLimit) {
-                $pricingQuery->where('is_active', true)
-                    ->whereNotNull($rateColumn)
-                    ->where($rateColumn, '<=', $rateLimit);
-            });
+            // $query->whereHas('pricing', function ($pricingQuery) use ($rateColumn, $rateLimit) {
+            //     $pricingQuery->where(function ($q) {
+            //             $q->whereNull('start_date')
+            //               ->orWhereDate('start_date', '<=', now());
+            //         })
+            //         ->where(function ($q) {
+            //             $q->whereNull('end_date')
+            //               ->orWhereDate('end_date', '>=', now());
+            //         })
+            //         ->whereNotNull($rateColumn)
+            //         ->where($rateColumn, '<=', $rateLimit);
+            // });
         }
 
         $properties = $query->select('id', 'title', 'slug', 'village', 'district', 'regency', 'bedrooms', 'listing_type', 'price')
