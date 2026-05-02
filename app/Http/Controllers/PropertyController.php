@@ -540,6 +540,11 @@ class PropertyController extends Controller
 
         // Apply rate filters with priority: monthly > weekly > nightly (only one applies)
         if ($request->anyFilled(['upper_monthly_rate', 'upper_weekly_rate', 'upper_nightly_rate'])) {
+            Log::info('Applying rate filter', [
+                'upper_monthly_rate' => $request->input('upper_monthly_rate'),
+                'upper_weekly_rate' => $request->input('upper_weekly_rate'),
+                'upper_nightly_rate' => $request->input('upper_nightly_rate'),
+            ]);
             if ($request->filled('upper_monthly_rate')) {
                 $rateColumn = 'monthly_rate';
                 $rateLimit = $request->input('upper_monthly_rate');
@@ -550,7 +555,9 @@ class PropertyController extends Controller
                 $rateColumn = 'nightly_rate';
                 $rateLimit = $request->input('upper_nightly_rate');
             }
-            $query->where('listing_type', 'for_rent');
+            $query->where('listing_type', 'for_rent')->whereHas('pricing', function ($pricingQuery) use ($rateColumn, $rateLimit) {
+                $pricingQuery->where($rateColumn, '<=', $rateLimit);
+            });
         }
 
         $properties = $query->select('id', 'title', 'slug', 'village', 'district', 'regency', 'bedrooms', 'listing_type', 'price')
